@@ -1,3 +1,4 @@
-src/boot.bin
-src/master.img
-src/bx_enh_dbg.ini
+
+*.img
+*.ini
+*.bin
