@@ -2,3 +2,5 @@
 *.img
 *.ini
 *.bin
+*.map
+*.o
