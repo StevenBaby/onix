@@ -199,8 +199,8 @@ gdt_base:
     dd 0, 0; NULL 描述符
 gdt_code:
     dw memory_limit & 0xffff; 段界限 0 ~ 15 位
-    dw memory_base & 0xffff; // 基地址 0 ~ 16 位
-    db (memory_base >> 16) & 0xff; // 基地址 0 ~ 16 位
+    dw memory_base & 0xffff; 基地址 0 ~ 15 位
+    db (memory_base >> 16) & 0xff; 基地址 16 ~ 23 位
     ; 存在 - dlp 0 - S _ 代码 - 非依从 - 可读 - 没有被访问过
     db 0b_1_00_1_1_0_1_0;
     ; 4k - 32 位 - 不是 64 位 - 段界限 16 ~ 19
@@ -208,8 +208,8 @@ gdt_code:
     db (memory_base >> 24) & 0xff; 基地址 24 ~ 31 位
 gdt_data:
     dw memory_limit & 0xffff; 段界限 0 ~ 15 位
-    dw memory_base & 0xffff; // 基地址 0 ~ 16 位
-    db (memory_base >> 16) & 0xff; // 基地址 0 ~ 16 位
+    dw memory_base & 0xffff; 基地址 0 ~ 15 位
+    db (memory_base >> 16) & 0xff; 基地址 16 ~ 23 位
     ; 存在 - dlp 0 - S _ 数据 - 向上 - 可写 - 没有被访问过
     db 0b_1_00_1_0_0_1_0;
     ; 4k - 32 位 - 不是 64 位 - 段界限 16 ~ 19
