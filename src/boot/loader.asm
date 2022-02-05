@@ -94,7 +94,7 @@ error:
 
 [bits 32]
 protect_mode:
-    xchg bx, bx; 断点
+    ; xchg bx, bx; 断点
     mov ax, data_selector
     mov ds, ax
     mov es, ax
