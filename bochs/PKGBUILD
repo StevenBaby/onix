@@ -1,0 +1,68 @@
+# 用于调试 C 程序 以下内容是从 Archlinux AUR 包和 bochs 包抠出来的，专门用于 32 位系统的调试，
+# 默认的是 64 位操作系统所以会有一些问题
+# 安装使用 makepkg -si
+
+pkgname=bochs-gdb
+pkgver=2.7
+pkgrel=1
+pkgdesc="A portable x86 PC emulation software package with gdbstub"
+arch=('x86_64')
+url="http://bochs.sourceforge.net/"
+license=('LGPL')
+depends=('gcc-libs' 'libxrandr' 'libxpm' 'gtk2')
+source=("http://downloads.sourceforge.net/sourceforge/bochs/bochs-$pkgver.tar.gz")
+sha256sums=('a010ab1bfdc72ac5a08d2e2412cd471c0febd66af1d9349bc0d796879de5b17a')
+
+prepare() {
+    cd "$srcdir/bochs-$pkgver"
+    # 4.X kernel is basically 3.20
+    sed -i 's/2\.6\*|3\.\*)/2.6*|3.*|4.*)/' configure*
+}
+
+build() {
+    cd "$srcdir/bochs-$pkgver"
+
+    ./configure \
+        --prefix=/usr \
+        --without-wx \
+        --with-x11 \
+        --with-x \
+        --with-term \
+        --disable-docbook \
+        --enable-cpu-level=6 \
+        --enable-fpu \
+        --enable-3dnow \
+        --enable-disasm \
+        --enable-long-phy-address \
+        --enable-disasm \
+        --enable-pcidev \
+        --enable-usb \
+        --with-sdl \
+        --enable-all-optimizations \
+        --enable-gdb-stub \
+        --with-nogui \
+        # --enable-plugins \
+        # --enable-smp \
+        # --enable-x86-debugger \
+        # --enable-debugger \
+        # --enable-x86-64 \
+        # --enable-avx \
+        # --enable-evex \
+    sed -i 's/^LIBS = /LIBS = -lpthread/g' Makefile
+    make -j 1
+}
+
+package() {
+    cd "$srcdir/bochs-$pkgver"
+    make DESTDIR="$pkgdir" install
+    install -Dm644 .bochsrc "$pkgdir/etc/bochsrc-sample.txt"
+
+    cd "$pkgdir/usr/bin/"
+    mv bochs bochs-gdb
+    rm -rf bochs-gdb-a20
+    rm bximage
+    cd "$pkgdir/usr/"
+    rm -rfv share
+    cd "$pkgdir"
+    rm -rfv etc
+}

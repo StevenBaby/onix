@@ -5,3 +5,9 @@
 *.map
 *.o
 *.out
+*.zst
+*.gz
+*.lock
+
+bochs/src
+bochs/pkg
