@@ -8,6 +8,7 @@
 *.zst
 *.gz
 *.lock
+*.vmdk
 
 bochs/src
 bochs/pkg
