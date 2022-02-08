@@ -15,3 +15,8 @@ CFLAGS:=$(strip ${CFLAGS})
 .PHONY: hello.s
 hello.s: hello.c
 	gcc $(CFLAGS) -S $< -o $@
+
+.PHONY: clean
+clean:
+	rm -rf *.o
+	rm -rf *.out
