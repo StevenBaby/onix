@@ -19,18 +19,19 @@ $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(dir $@))
 	nasm -f bin $< -o $@
 
-$(BUILD)/kernel/%.o: $(SRC)/kernel/%.asm
+$(BUILD)/%.o: $(SRC)/%.asm
 	$(shell mkdir -p $(dir $@))
 	nasm -f elf32 $(DEBUG) $< -o $@
 
-$(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
+$(BUILD)/%.o: $(SRC)/%.c
 	$(shell mkdir -p $(dir $@))
 	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
 $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/main.o \
-	$(BUILD)/kernel/io.o
+	$(BUILD)/kernel/io.o \
+	$(BUILD)/lib/string.o \
 
 	$(shell mkdir -p $(dir $@))
 	ld -m elf_i386 -static $^ -o $@ -Ttext $(ENTRYPOINT)
