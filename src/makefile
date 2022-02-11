@@ -31,6 +31,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/main.o \
 	$(BUILD)/kernel/io.o \
+	$(BUILD)/kernel/console.o \
 	$(BUILD)/lib/string.o \
 
 	$(shell mkdir -p $(dir $@))
