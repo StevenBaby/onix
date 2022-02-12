@@ -33,6 +33,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/io.o \
 	$(BUILD)/kernel/console.o \
 	$(BUILD)/kernel/printk.o \
+	$(BUILD)/kernel/assert.o \
 	$(BUILD)/lib/string.o \
 	$(BUILD)/lib/vsprintf.o \
 

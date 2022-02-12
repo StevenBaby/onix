@@ -157,7 +157,6 @@ static void command_del()
 void console_write(char *buf, u32 count)
 {
     char ch;
-    char *ptr = (char *)pos;
     while (count--)
     {
         ch = *buf++;
@@ -196,12 +195,11 @@ void console_write(char *buf, u32 count)
                 command_lf();
             }
 
-            *ptr = ch;
-            ptr++;
-            *ptr = attr;
-            ptr++;
+            *((char *)pos) = ch;
+            pos++;
+            *((char *)pos) = attr;
+            pos++;
 
-            pos += 2;
             x++;
             break;
         }
