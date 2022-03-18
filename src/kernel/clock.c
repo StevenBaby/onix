@@ -44,13 +44,8 @@ void clock_handler(int vector)
     assert(vector == 0x20);
     send_eoi(vector);
 
-    if (jiffies % 200 == 0)
-    {
-        start_beep();
-    }
-
     jiffies++;
-    DEBUGK("clock jiffies %d ...\n", jiffies);
+    // DEBUGK("clock jiffies %d ...\n", jiffies);
 
     stop_beep();
 }

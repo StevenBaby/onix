@@ -11,11 +11,10 @@ void kernel_init()
     console_init();
     gdt_init();
     interrupt_init();
-    // clock_init();
+    clock_init();
     time_init();
     rtc_init();
-
-    // task_init();
+    // // task_init();
     asm volatile("sti");
     hang();
 }
