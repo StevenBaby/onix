@@ -20,9 +20,7 @@ void kernel_init()
     // time_init();
     // rtc_init();
 
-    BMB;
-
-    memory_test();
+    bitmap_tests();
 
     // asm volatile("sti");
     hang();
