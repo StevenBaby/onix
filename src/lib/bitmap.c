@@ -115,26 +115,3 @@ int bitmap_scan(bitmap_t *map, u32 count)
     // 然后返回索引
     return start + map->offset;
 }
-
-#include <onix/debug.h>
-
-#define LOGK(fmt, args...) DEBUGK(fmt, ##args)
-
-#define LEN 2
-u8 buf[LEN];
-bitmap_t map;
-
-void bitmap_tests()
-{
-    bitmap_init(&map, buf, LEN, 0);
-    for (size_t i = 0; i < 33; i++)
-    {
-        idx_t idx = bitmap_scan(&map, 1);
-        if (idx == EOF)
-        {
-            LOGK("TEST FINISH\n");
-            break;
-        }
-        LOGK("%d\n", idx);
-    }
-}
