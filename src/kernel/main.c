@@ -1,5 +1,6 @@
 
 #include <onix/debug.h>
+#include <onix/interrupt.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -11,6 +12,15 @@ extern void time_init();
 extern void rtc_init();
 extern void hang();
 
+void intr_test()
+{
+    bool intr = interrupt_disable();
+
+    // do something
+
+    set_interrupt_state(intr);
+}
+
 void kernel_init()
 {
     memory_map_init();
@@ -20,8 +30,21 @@ void kernel_init()
     // time_init();
     // rtc_init();
 
-    memory_test();
+    bool intr = interrupt_disable();
+    set_interrupt_state(true);
 
-    // asm volatile("sti");
+    LOGK("%d\n", intr);
+    LOGK("%d\n", get_interrupt_state());
+
+    BMB;
+
+    intr = interrupt_disable();
+
+    BMB;
+    set_interrupt_state(true);
+
+    LOGK("%d\n", intr);
+    LOGK("%d\n", get_interrupt_state());
+
     hang();
 }
