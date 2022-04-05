@@ -1,3 +1,6 @@
+[bits 32]
+
+section .text
 
 global task_switch
 task_switch:

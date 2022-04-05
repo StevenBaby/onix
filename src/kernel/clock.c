@@ -2,6 +2,7 @@
 #include <onix/interrupt.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
+#include <onix/task.h>
 
 #define PIT_CHAN0_REG 0X40
 #define PIT_CHAN2_REG 0X42
@@ -43,11 +44,21 @@ void clock_handler(int vector)
 {
     assert(vector == 0x20);
     send_eoi(vector);
+    stop_beep();
 
     jiffies++;
     // DEBUGK("clock jiffies %d ...\n", jiffies);
 
-    stop_beep();
+    task_t *task = running_task();
+    assert(task->magic == ONIX_MAGIC);
+
+    task->jiffies = jiffies;
+    task->ticks--;
+    if (!task->ticks)
+    {
+        task->ticks = task->priority;
+        schedule();
+    }
 }
 
 void pit_init()

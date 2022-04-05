@@ -17,9 +17,6 @@
 #define PAGE(idx) ((u32)idx << 12)             // 获取页索引 idx 对应的页开始的位置
 #define ASSERT_PAGE(addr) assert((addr & 0xfff) == 0)
 
-// 内核页目录索引
-#define KERNEL_PAGE_DIR 0x1000
-
 // 内核页表索引
 static u32 KERNEL_PAGE_TABLE[] = {
     0x2000,
