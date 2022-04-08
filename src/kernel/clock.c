@@ -56,7 +56,6 @@ void clock_handler(int vector)
     task->ticks--;
     if (!task->ticks)
     {
-        task->ticks = task->priority;
         schedule();
     }
 }
