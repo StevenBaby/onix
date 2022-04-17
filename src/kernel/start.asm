@@ -15,9 +15,4 @@ _start:
     call memory_init    ; 内存初始化
     call kernel_init    ; 内核初始化
 
-    xchg bx, bx
-
-    mov eax, 0; 0 号系统调用
-    int 0x80;
-
     jmp $; 阻塞
