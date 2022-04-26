@@ -9,7 +9,7 @@
 
 #define TASK_NAME_LEN 16
 
-typedef u32 target_t();
+typedef void target_t();
 
 typedef enum task_state_t
 {
@@ -52,5 +52,8 @@ void schedule();
 void task_yield();
 void task_block(task_t *task, list_t *blist, task_state_t state);
 void task_unblock(task_t *task);
+
+void task_sleep(u32 ms);
+void task_wakeup();
 
 #endif

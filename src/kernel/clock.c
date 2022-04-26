@@ -40,11 +40,15 @@ void stop_beep()
     }
 }
 
+extern void task_wakeup();
+
 void clock_handler(int vector)
 {
     assert(vector == 0x20);
-    send_eoi(vector);
-    stop_beep();
+    send_eoi(vector); // 发送中断处理结束
+
+    stop_beep();   // 检测并停止蜂鸣器
+    task_wakeup(); // 唤醒睡眠结束的任务
 
     jiffies++;
     // DEBUGK("clock jiffies %d ...\n", jiffies);
