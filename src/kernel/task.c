@@ -15,6 +15,7 @@ extern void task_switch(task_t *next);
 #define NR_TASKS 64
 static task_t *task_table[NR_TASKS]; // 任务表
 static list_t block_list;            // 任务默认阻塞链表
+static task_t *idle_task;
 
 // 从 task_table 里获得一个空闲的任务
 static task_t *get_free_task()
@@ -49,6 +50,11 @@ static task_t *task_search(task_state_t state)
             continue;
         if (task == NULL || task->ticks < ptr->ticks || ptr->jiffies < task->jiffies)
             task = ptr;
+    }
+
+    if (task == NULL && state == TASK_READY)
+    {
+        task = idle_task;
     }
 
     return task;
@@ -170,38 +176,8 @@ static void task_setup()
     memset(task_table, 0, sizeof(task_table));
 }
 
-u32 thread_a()
-{
-    set_interrupt_state(true);
-
-    while (true)
-    {
-        printk("A");
-        test();
-    }
-}
-
-u32 thread_b()
-{
-    set_interrupt_state(true);
-
-    while (true)
-    {
-        printk("B");
-        test();
-    }
-}
-
-u32 thread_c()
-{
-    set_interrupt_state(true);
-
-    while (true)
-    {
-        printk("C");
-        test();
-    }
-}
+extern void idle_thread();
+extern void init_thread();
 
 void task_init()
 {
@@ -209,7 +185,6 @@ void task_init()
 
     task_setup();
 
-    task_create(thread_a, "a", 5, KERNEL_USER);
-    task_create(thread_b, "b", 5, KERNEL_USER);
-    // task_create(thread_c, "c", 5, KERNEL_USER);
+    idle_task = task_create(idle_thread, "idle", 1, KERNEL_USER);
+    task_create(init_thread, "init", 5, NORMAL_USER);
 }
