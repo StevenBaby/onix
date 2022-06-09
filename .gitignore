@@ -9,6 +9,8 @@
 *.gz
 *.lock
 *.vmdk
+*.log
 
+build
 bochs/src
 bochs/pkg

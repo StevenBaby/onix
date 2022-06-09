@@ -113,7 +113,7 @@ protect_mode:
     mov eax, 0x20220205; 内核魔数
     mov ebx, ards_count; ards 数量指针
 
-    jmp dword code_selector:0x10000
+    jmp dword code_selector:0x10040
 
     ud2; 表示出错
 
