@@ -5,6 +5,12 @@
 
 #define GDT_SIZE 128
 
+#define KERNEL_CODE_IDX 1
+#define KERNEL_DATA_IDX 2
+
+#define KERNEL_CODE_SELECTOR (KERNEL_CODE_IDX << 3)
+#define KERNEL_DATA_SELECTOR (KERNEL_DATA_IDX << 3)
+
 // 全局描述符
 typedef struct descriptor_t /* 共 8 个字节 */
 {
