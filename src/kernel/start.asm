@@ -34,9 +34,9 @@ _start:
 
     call console_init   ; 控制台初始化
 
-    xchg bx, bx
+    ; xchg bx, bx
     call gdt_init       ; 全局描述符初始化
-    xchg bx, bx
+    ; xchg bx, bx
 
     lgdt [gdt_ptr]
 
@@ -51,10 +51,10 @@ _next:
     mov ss, ax; 初始化段寄存器
 
     call memory_init    ; 内存初始化
-    xchg bx, bx
+    ; xchg bx, bx
 
     mov esp, 0x10000; 修改栈顶
-    xchg bx, bx
+    ; xchg bx, bx
     call kernel_init    ; 内核初始化
 
     jmp $; 阻塞
