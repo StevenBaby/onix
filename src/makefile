@@ -57,6 +57,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/keyboard.o \
 	$(BUILD)/lib/bitmap.o \
 	$(BUILD)/lib/list.o \
+	$(BUILD)/lib/fifo.o \
 	$(BUILD)/lib/string.o \
 	$(BUILD)/lib/vsprintf.o \
 	$(BUILD)/lib/stdlib.o \
