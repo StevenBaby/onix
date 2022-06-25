@@ -34,9 +34,9 @@ _start:
 
     call console_init   ; 控制台初始化
 
-    ; xchg bx, bx
+    xchg bx, bx
     call gdt_init       ; 全局描述符初始化
-    ; xchg bx, bx
+    xchg bx, bx
 
     lgdt [gdt_ptr]
 
