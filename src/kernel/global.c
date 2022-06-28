@@ -83,7 +83,7 @@ void tss_init()
     desc->DPL = 0;         // 用于任务门或调用门
     desc->type = 0b1001;   // 32 位可用 tss
 
-    BMB;
+    // BMB;
     asm volatile(
         "ltr %%ax\n" ::"a"(KERNEL_TSS_SELECTOR));
 }
