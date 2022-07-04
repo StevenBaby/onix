@@ -9,6 +9,7 @@
 #include <onix/syscall.h>
 #include <onix/list.h>
 #include <onix/global.h>
+#include <onix/arena.h>
 
 #define NR_TASKS 64
 
@@ -253,6 +254,10 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 void task_to_user_mode(target_t target)
 {
     task_t *task = running_task();
+
+    task->vmap = kmalloc(sizeof(bitmap_t)); // todo kfree
+    void *buf = (void *)alloc_kpage(1);     // todo free_kpage
+    bitmap_init(task->vmap, buf, PAGE_SIZE, KERNEL_MEMORY_SIZE / PAGE_SIZE);
 
     u32 addr = (u32)task + PAGE_SIZE;
 
