@@ -198,6 +198,13 @@ static void put_page(u32 addr)
     LOGK("PUT page 0x%p\n", addr);
 }
 
+// 得到 cr2 寄存器
+u32 get_cr2()
+{
+    // 直接将 mov eax, cr2，返回值在 eax 中
+    asm volatile("movl %cr2, %eax\n");
+}
+
 // 得到 cr3 寄存器
 u32 get_cr3()
 {
@@ -410,9 +417,62 @@ void unlink_page(u32 vaddr)
     u32 paddr = PAGE(entry->index);
 
     DEBUGK("UNLINK from 0x%p to 0x%p\n", vaddr, paddr);
-    if (memory_map[entry->index] == 1)
-    {
-        put_page(paddr);
-    }
+    put_page(paddr);
+
     flush_tlb(vaddr);
+}
+
+// 拷贝当前页目录
+page_entry_t *copy_pde()
+{
+    task_t *task = running_task();
+    page_entry_t *pde = (page_entry_t *)alloc_kpage(1); // todo free
+    memcpy(pde, (void *)task->pde, PAGE_SIZE);
+
+    // 将最后一个页表指向页目录自己，方便修改
+    page_entry_t *entry = &pde[1023];
+    entry_init(entry, IDX(pde));
+
+    return pde;
+}
+
+typedef struct page_error_code_t
+{
+    u8 present : 1;
+    u8 write : 1;
+    u8 user : 1;
+    u8 reserved0 : 1;
+    u8 fetch : 1;
+    u8 protection : 1;
+    u8 shadow : 1;
+    u16 reserved1 : 8;
+    u8 sgx : 1;
+    u16 reserved2;
+} _packed page_error_code_t;
+
+void page_fault(
+    u32 vector,
+    u32 edi, u32 esi, u32 ebp, u32 esp,
+    u32 ebx, u32 edx, u32 ecx, u32 eax,
+    u32 gs, u32 fs, u32 es, u32 ds,
+    u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags)
+{
+    assert(vector == 0xe);
+    u32 vaddr = get_cr2();
+    LOGK("fault address 0x%p\n", vaddr);
+
+    page_error_code_t *code = (page_error_code_t *)&error;
+    task_t *task = running_task();
+
+    assert(KERNEL_MEMORY_SIZE <= vaddr < USER_STACK_TOP);
+
+    if (!code->present && (vaddr > USER_STACK_BOTTOM))
+    {
+        u32 page = PAGE(IDX(vaddr));
+        link_page(page);
+        // BMB;
+        return;
+    }
+
+    panic("page fault!!!");
 }
