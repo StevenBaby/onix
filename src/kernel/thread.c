@@ -5,7 +5,7 @@
 #include <onix/stdio.h>
 #include <onix/arena.h>
 
-// #include <asm/unistd.h>
+// #include <asm/unistd_32.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -33,18 +33,9 @@ static void user_init_thread()
     while (true)
     {
         // test();
-        BMB;
-        char *ptr = (char *)0x900000;
-        brk(ptr);
-
-        BMB;
-        ptr -= 0x1000;
-        ptr[3] = 0xff;
-        BMB;
-        brk((char *)0x800000);
-        BMB;
-        sleep(10000);
+        printf("init thread %d %d %d...\n", getpid(), getppid(), counter++);
         // printf("task is in user mode %d\n", counter++);
+        sleep(1000);
     }
 }
 
@@ -62,6 +53,7 @@ void test_thread()
 
     while (true)
     {
+        printf("test thread %d %d %d...\n", getpid(), getppid(), counter++);
         // LOGK("test task %d....\n", counter++);
         // BMB;
         sleep(2000);

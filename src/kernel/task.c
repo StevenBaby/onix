@@ -35,11 +35,28 @@ static task_t *get_free_task()
     {
         if (task_table[i] == NULL)
         {
-            task_table[i] = (task_t *)alloc_kpage(1); // todo free_kpage
-            return task_table[i];
+            task_t *task = (task_t *)alloc_kpage(1); // todo free_kpage
+            memset(task, 0, PAGE_SIZE);
+            task->pid = i;
+            task_table[i] = task;
+            return task;
         }
     }
     panic("No more tasks");
+}
+
+// 获取进程 id
+pid_t sys_getpid()
+{
+    task_t *task = running_task();
+    return task->pid;
+}
+
+// 获取父进程 id
+pid_t sys_getppid()
+{
+    task_t *task = running_task();
+    return task->ppid;
 }
 
 // 从任务数组中查找某种状态的任务，自己除外
@@ -230,7 +247,6 @@ void schedule()
 static task_t *task_create(target_t target, const char *name, u32 priority, u32 uid)
 {
     task_t *task = get_free_task();
-    memset(task, 0, PAGE_SIZE);
 
     u32 stack = (u32)task + PAGE_SIZE;
 

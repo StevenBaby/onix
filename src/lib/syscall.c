@@ -55,6 +55,16 @@ void sleep(u32 ms)
     _syscall1(SYS_NR_SLEEP, ms);
 }
 
+pid_t getpid()
+{
+    return _syscall0(SYS_NR_GETPID);
+}
+
+pid_t getppid()
+{
+    return _syscall0(SYS_NR_GETPPID);
+}
+
 int32 brk(void *addr)
 {
     return _syscall1(SYS_NR_BRK, (u32)addr);
