@@ -5,6 +5,8 @@
 #include <onix/stdio.h>
 #include <onix/arena.h>
 
+// #include <asm/unistd.h>
+
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
 void idle_thread()
@@ -23,12 +25,6 @@ void idle_thread()
     }
 }
 
-void test_recursion()
-{
-    char tmp[0x400];
-    test_recursion();
-}
-
 static void user_init_thread()
 {
     u32 counter = 0;
@@ -37,10 +33,18 @@ static void user_init_thread()
     while (true)
     {
         // test();
-        printf("task is in user mode %d\n", counter++);
         BMB;
-        // test_recursion();
-        sleep(1000);
+        char *ptr = (char *)0x900000;
+        brk(ptr);
+
+        BMB;
+        ptr -= 0x1000;
+        ptr[3] = 0xff;
+        BMB;
+        brk((char *)0x800000);
+        BMB;
+        sleep(10000);
+        // printf("task is in user mode %d\n", counter++);
     }
 }
 
@@ -58,8 +62,8 @@ void test_thread()
 
     while (true)
     {
-        LOGK("test task %d....\n", counter++);
-        BMB;
+        // LOGK("test task %d....\n", counter++);
+        // BMB;
         sleep(2000);
     }
 }
