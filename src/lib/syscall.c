@@ -45,6 +45,11 @@ u32 test()
     return _syscall0(SYS_NR_TEST);
 }
 
+pid_t fork()
+{
+    return _syscall0(SYS_NR_FORK);
+}
+
 void yield()
 {
     _syscall0(SYS_NR_YIELD);

@@ -322,6 +322,65 @@ void task_to_user_mode(target_t target)
         "jmp interrupt_exit\n" ::"m"(iframe));
 }
 
+extern void interrupt_exit();
+
+static void task_build_stack(task_t *task)
+{
+    u32 addr = (u32)task + PAGE_SIZE;
+    addr -= sizeof(intr_frame_t);
+    intr_frame_t *iframe = (intr_frame_t *)addr;
+    iframe->eax = 0;
+
+    addr -= sizeof(task_frame_t);
+    task_frame_t *frame = (task_frame_t *)addr;
+
+    frame->ebp = 0xaa55aa55;
+    frame->ebx = 0xaa55aa55;
+    frame->edi = 0xaa55aa55;
+    frame->esi = 0xaa55aa55;
+
+    frame->eip = interrupt_exit;
+
+    task->stack = (u32 *)frame;
+}
+
+pid_t task_fork()
+{
+    // LOGK("fork is called\n");
+    task_t *task = running_task();
+
+    // 当前进程没有阻塞，且正在执行
+    assert(task->node.next == NULL && task->node.prev == NULL && task->state == TASK_RUNNING);
+
+    // 拷贝内核栈 和 PCB
+    task_t *child = get_free_task();
+    pid_t pid = child->pid;
+    memcpy(child, task, PAGE_SIZE);
+
+    child->pid = pid;
+    child->ppid = task->pid;
+    child->ticks = child->priority;
+    child->state = TASK_READY;
+
+    // 拷贝用户进程虚拟内存位图
+    child->vmap = kmalloc(sizeof(bitmap_t)); // todo kfree
+    memcpy(child->vmap, task->vmap, sizeof(bitmap_t));
+
+    // 拷贝虚拟位图缓存
+    void *buf = (void *)alloc_kpage(1); // todo free_kpage
+    memcpy(buf, task->vmap->bits, PAGE_SIZE);
+    child->vmap->bits = buf;
+
+    // 拷贝页目录
+    child->pde = (u32)copy_pde();
+
+    // 构造 child 内核栈
+    task_build_stack(child); // ROP
+    // schedule();
+
+    return child->pid;
+}
+
 static void task_setup()
 {
     task_t *task = running_task();
