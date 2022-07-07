@@ -281,8 +281,8 @@ void task_to_user_mode(target_t target)
     task_t *task = running_task();
 
     // 创建用户进程虚拟内存位图
-    task->vmap = kmalloc(sizeof(bitmap_t)); // todo kfree
-    void *buf = (void *)alloc_kpage(1);     // todo free_kpage
+    task->vmap = kmalloc(sizeof(bitmap_t));
+    void *buf = (void *)alloc_kpage(1);
     bitmap_init(task->vmap, buf, PAGE_SIZE, KERNEL_MEMORY_SIZE / PAGE_SIZE);
 
     // 创建用户进程页表
@@ -363,11 +363,11 @@ pid_t task_fork()
     child->state = TASK_READY;
 
     // 拷贝用户进程虚拟内存位图
-    child->vmap = kmalloc(sizeof(bitmap_t)); // todo kfree
+    child->vmap = kmalloc(sizeof(bitmap_t));
     memcpy(child->vmap, task->vmap, sizeof(bitmap_t));
 
     // 拷贝虚拟位图缓存
-    void *buf = (void *)alloc_kpage(1); // todo free_kpage
+    void *buf = (void *)alloc_kpage(1);
     memcpy(buf, task->vmap->bits, PAGE_SIZE);
     child->vmap->bits = buf;
 
@@ -379,6 +379,35 @@ pid_t task_fork()
     // schedule();
 
     return child->pid;
+}
+
+void task_exit(int status)
+{
+    task_t *task = running_task();
+
+    // 当前进程没有阻塞，且正在执行
+    assert(task->node.next == NULL && task->node.prev == NULL && task->state == TASK_RUNNING);
+
+    task->state = TASK_DIED;
+    task->status = status;
+
+    free_pde();
+
+    free_kpage((u32)task->vmap->bits, 1);
+    kfree(task->vmap);
+
+    // 将子进程的父进程赋值为自己的父进程
+    for (size_t i = 0; i < NR_TASKS; i++)
+    {
+        task_t *child = task_table[i];
+        if (!child)
+            continue;
+        if (child->ppid != task->pid)
+            continue;
+        child->ppid = task->ppid;
+    }
+    LOGK("task 0x%p exit....\n", task);
+    schedule();
 }
 
 static void task_setup()

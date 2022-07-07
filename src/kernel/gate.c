@@ -50,6 +50,8 @@ void syscall_init()
     }
 
     syscall_table[SYS_NR_TEST] = sys_test;
+
+    syscall_table[SYS_NR_EXIT] = task_exit;
     syscall_table[SYS_NR_FORK] = task_fork;
 
     syscall_table[SYS_NR_SLEEP] = task_sleep;

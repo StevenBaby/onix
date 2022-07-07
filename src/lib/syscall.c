@@ -45,6 +45,11 @@ u32 test()
     return _syscall0(SYS_NR_TEST);
 }
 
+void exit(int status)
+{
+    _syscall1(SYS_NR_EXIT, (u32)status);
+}
+
 pid_t fork()
 {
     return _syscall0(SYS_NR_FORK);
