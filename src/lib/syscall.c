@@ -55,6 +55,11 @@ pid_t fork()
     return _syscall0(SYS_NR_FORK);
 }
 
+pid_t waitpid(pid_t pid, int32 *status)
+{
+    return _syscall2(SYS_NR_WAITPID, pid, (u32)status);
+}
+
 void yield()
 {
     _syscall0(SYS_NR_YIELD);

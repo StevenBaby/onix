@@ -38,6 +38,7 @@ typedef struct task_t
     struct bitmap_t *vmap;    // 进程虚拟内存位图
     u32 brk;                  // 进程堆内存最高地址
     int status;               // 进程特殊状态
+    pid_t waitpid;            // 进程等待的 pid
     u32 magic;                // 内核魔数，用于检测栈溢出
 } task_t;
 
@@ -87,6 +88,7 @@ void schedule();
 
 void task_exit(int status);
 pid_t task_fork();
+pid_t task_waitpid(pid_t pid, int32 *status);
 
 void task_yield();
 void task_block(task_t *task, list_t *blist, task_state_t state);

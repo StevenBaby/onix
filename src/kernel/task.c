@@ -35,7 +35,7 @@ static task_t *get_free_task()
     {
         if (task_table[i] == NULL)
         {
-            task_t *task = (task_t *)alloc_kpage(1); // todo free_kpage
+            task_t *task = (task_t *)alloc_kpage(1);
             memset(task, 0, PAGE_SIZE);
             task->pid = i;
             task_table[i] = task;
@@ -397,7 +397,7 @@ void task_exit(int status)
     kfree(task->vmap);
 
     // 将子进程的父进程赋值为自己的父进程
-    for (size_t i = 0; i < NR_TASKS; i++)
+    for (size_t i = 2; i < NR_TASKS; i++)
     {
         task_t *child = task_table[i];
         if (!child)
@@ -407,7 +407,62 @@ void task_exit(int status)
         child->ppid = task->ppid;
     }
     LOGK("task 0x%p exit....\n", task);
+
+    task_t *parent = task_table[task->ppid];
+    if (parent->state == TASK_WAITING &&
+        (parent->waitpid == -1 || parent->waitpid == task->pid))
+    {
+        task_unblock(parent);
+    }
+
     schedule();
+}
+
+pid_t task_waitpid(pid_t pid, int32 *status)
+{
+    task_t *task = running_task();
+    task_t *child = NULL;
+
+    while (true)
+    {
+        bool has_child = false;
+        for (size_t i = 2; i < NR_TASKS; i++)
+        {
+            task_t *ptr = task_table[i];
+            if (!ptr)
+                continue;
+
+            if (ptr->ppid != task->pid)
+                continue;
+            if (pid != ptr->pid && pid != -1)
+                continue;
+
+            if (ptr->state == TASK_DIED)
+            {
+                child = ptr;
+                task_table[i] = NULL;
+                goto rollback;
+            }
+
+            has_child = true;
+        }
+        if (has_child)
+        {
+            task->waitpid = pid;
+            task_block(task, NULL, TASK_WAITING);
+            continue;
+        }
+        break;
+    }
+
+    // 没找到符合条件的子进程
+    return -1;
+
+rollback:
+    *status = child->status;
+    u32 ret = child->pid;
+    free_kpage((u32)child, 1);
+    return ret;
 }
 
 static void task_setup()

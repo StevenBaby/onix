@@ -400,7 +400,7 @@ u32 keyboard_read(char *buf, u32 count)
         while (fifo_empty(&fifo))
         {
             waiter = running_task();
-            task_block(waiter, NULL, TASK_WAITING);
+            task_block(waiter, NULL, TASK_BLOCKED);
         }
         buf[nr++] = fifo_get(&fifo);
     }
