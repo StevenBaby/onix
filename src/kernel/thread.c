@@ -43,6 +43,9 @@ static void user_init_thread()
         BMB;
         brk((char *)0x800000);
         BMB;
+
+        ptr = (char *) 0x801000;
+        ptr[1] = 'a';
         sleep(10000);
         // printf("task is in user mode %d\n", counter++);
     }
