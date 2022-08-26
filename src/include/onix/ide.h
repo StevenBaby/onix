@@ -26,6 +26,7 @@ typedef struct ide_ctrl_t
     u16 iobase;                    // IO 寄存器基址
     ide_disk_t disks[IDE_DISK_NR]; // 磁盘
     ide_disk_t *active;            // 当前选择的磁盘
+    struct task_t *waiter;         // 等待控制器的进程
 } ide_ctrl_t;
 
 int ide_pio_read(ide_disk_t *disk, void *buf, u8 count, idx_t lba);
