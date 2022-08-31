@@ -11,7 +11,7 @@ floppya: type=1_44
 # no floppyb
 ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-master: type=disk, path="../build/master.img", mode=flat
-ata0-slave: type=none
+ata0-slave: type=disk, path="../build/slave.img", mode=flat
 ata1: enabled=true, ioaddr1=0x170, ioaddr2=0x370, irq=15
 ata1-master: type=none
 ata1-slave: type=none

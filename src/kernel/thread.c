@@ -52,8 +52,6 @@ static void user_init_thread()
 void init_thread()
 {
     char temp[100]; // 为栈顶有足够的空间
-    set_interrupt_state(true);
-    test();
     task_to_user_mode(user_init_thread);
 }
 
