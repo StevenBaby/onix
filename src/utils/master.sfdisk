@@ -1,0 +1,9 @@
+label: dos
+label-id: 0x00000000
+device: ../build/master.img
+unit: sectors
+sector-size: 512
+
+../build/master.img1 : start=        2048, size=       16384, type=83
+../build/master.img2 : start=       18432, size=       13824, type=5
+../build/master.img5 : start=       20480, size=       11776, type=83
