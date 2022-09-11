@@ -5,6 +5,7 @@
 #include <onix/fifo.h>
 #include <onix/mutex.h>
 #include <onix/task.h>
+#include <onix/device.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -391,7 +392,7 @@ void keyboard_handler(int vector)
     }
 }
 
-u32 keyboard_read(char *buf, u32 count)
+u32 keyboard_read(void *dev, char *buf, u32 count)
 {
     lock_acquire(&lock);
     int nr = 0;
@@ -423,4 +424,9 @@ void keyboard_init()
 
     set_interrupt_handler(IRQ_KEYBOARD, keyboard_handler);
     set_interrupt_mask(IRQ_KEYBOARD, true);
+
+    device_install(
+        DEV_CHAR, DEV_KEYBOARD,
+        NULL, "keyboard", 0,
+        NULL, keyboard_read, NULL);
 }

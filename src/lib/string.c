@@ -11,6 +11,20 @@ char *strcpy(char *dest, const char *src)
     }
 }
 
+char *strncpy(char *dest, const char *src, size_t count)
+{
+    char *ptr = dest;
+    size_t nr = 0;
+    for (; nr < count; nr++)
+    {
+        *ptr++ = *src;
+        if (*src++ == EOS)
+            return dest;
+    }
+    dest[count - 1] = EOS;
+    return dest;
+}
+
 char *strcat(char *dest, const char *src)
 {
     char *ptr = dest;

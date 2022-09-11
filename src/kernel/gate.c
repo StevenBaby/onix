@@ -5,6 +5,7 @@
 #include <onix/task.h>
 #include <onix/console.h>
 #include <onix/memory.h>
+#include <onix/device.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -27,14 +28,27 @@ static void sys_default()
 
 static u32 sys_test()
 {
+    char ch;
+    device_t *device;
+
+    device = device_find(DEV_KEYBOARD, 0);
+    assert(device);
+    device_read(device->dev, &ch, 1, 0, 0);
+
+    device = device_find(DEV_CONSOLE, 0);
+    assert(device);
+    device_write(device->dev, &ch, 1, 0, 0);
+
     return 255;
 }
+
+extern int32 console_write();
 
 int32 sys_write(fd_t fd, char *buf, u32 len)
 {
     if (fd == stdout || fd == stderr)
     {
-        return console_write(buf, len);
+        return console_write(NULL, buf, len);
     }
     // todo
     panic("write!!!!");

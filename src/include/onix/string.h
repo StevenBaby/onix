@@ -4,6 +4,7 @@
 #include <onix/types.h>
 
 char *strcpy(char *dest, const char *src);
+char *strncpy(char *dest, const char *src, size_t count);
 char *strcat(char *dest, const char *src);
 size_t strlen(const char *str);
 int strcmp(const char *lhs, const char *rhs);
