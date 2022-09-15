@@ -8,6 +8,7 @@
 #include <onix/string.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
+#include <onix/device.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -228,6 +229,21 @@ static void ide_pio_write_sector(ide_disk_t *disk, u16 *buf)
     }
 }
 
+// 磁盘控制
+int ide_pio_ioctl(ide_disk_t *disk, int cmd, void *args, int flags)
+{
+    switch (cmd)
+    {
+    case DEV_CMD_SECTOR_START:
+        return 0;
+    case DEV_CMD_SECTOR_COUNT:
+        return disk->total_lba;
+    default:
+        panic("device command %d can't recognize!!!", cmd);
+        break;
+    }
+}
+
 // PIO 方式读取磁盘
 int ide_pio_read(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
 {
@@ -306,12 +322,28 @@ int ide_pio_write(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
             ctrl->waiter = task;
             task_block(task, NULL, TASK_BLOCKED);
         }
-
+        LOGK("write sector wait 1s, pid %d\n", task->pid);
+        task_sleep(100);// todo remove after test
         ide_busy_wait(ctrl, IDE_SR_NULL);
     }
 
     lock_release(&ctrl->lock);
     return 0;
+}
+
+// 分区控制
+int ide_pio_part_ioctl(ide_part_t *part, int cmd, void *args, int flags)
+{
+    switch (cmd)
+    {
+    case DEV_CMD_SECTOR_START:
+        return part->start;
+    case DEV_CMD_SECTOR_COUNT:
+        return part->count;
+    default:
+        panic("device command %d can't recognize!!!", cmd);
+        break;
+    }
 }
 
 // 读分区
@@ -480,11 +512,39 @@ static void ide_ctrl_init()
     free_kpage((u32)buf, 1);
 }
 
+static void ide_install()
+{
+    for (size_t cidx = 0; cidx < IDE_CTRL_NR; cidx++)
+    {
+        ide_ctrl_t *ctrl = &controllers[cidx];
+        for (size_t didx = 0; didx < IDE_DISK_NR; didx++)
+        {
+            ide_disk_t *disk = &ctrl->disks[didx];
+            if (!disk->total_lba)
+                continue;
+            dev_t dev = device_install(
+                DEV_BLOCK, DEV_IDE_DISK, disk, disk->name, 0,
+                ide_pio_ioctl, ide_pio_read, ide_pio_write);
+            for (size_t i = 0; i < IDE_PART_NR; i++)
+            {
+                ide_part_t *part = &disk->parts[i];
+                if (!part->count)
+                    continue;
+                device_install(
+                    DEV_BLOCK, DEV_IDE_PART, part, part->name, dev,
+                    ide_pio_part_ioctl, ide_pio_part_read, ide_pio_part_write);
+            }
+        }
+    }
+}
+
 // ide 硬盘初始化
 void ide_init()
 {
     LOGK("ide init...\n");
     ide_ctrl_init();
+
+    ide_install(); // 安装设备
 
     // 注册硬盘中断，并打开屏蔽字
     set_interrupt_handler(IRQ_HARDDISK, ide_handler);
