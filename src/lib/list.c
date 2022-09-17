@@ -110,3 +110,26 @@ u32 list_size(list_t *list)
     }
     return size;
 }
+
+// 链表插入排序
+void list_insert_sort(list_t *list, list_node_t *node, int offset)
+{
+    // 从链表找到第一个比当前节点 key 点更大的节点，进行插入到前面
+    list_node_t *anchor = &list->tail;
+    int key = element_node_key(node, offset);
+    for (list_node_t *ptr = list->head.next; ptr != &list->tail; ptr = ptr->next)
+    {
+        int compare = element_node_key(ptr, offset);
+        if (compare > key)
+        {
+            anchor = ptr;
+            break;
+        }
+    }
+
+    assert(node->next == NULL);
+    assert(node->prev == NULL);
+
+    // 插入链表
+    list_insert_before(anchor, node);
+}

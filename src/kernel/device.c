@@ -89,6 +89,7 @@ void device_init()
         device->write = NULL;
 
         list_init(&device->request_list);
+        device->direct = DIRECT_UP;
     }
 }
 
@@ -118,6 +119,8 @@ device_t *device_get(dev_t dev)
 // 执行块设备请求
 static void do_request(request_t *req)
 {
+    LOGK("dev %d do request idx %d\n", req->dev, req->idx);
+
     switch (req->type)
     {
     case REQ_READ:
@@ -130,6 +133,38 @@ static void do_request(request_t *req)
         panic("req type %d unknown!!!");
         break;
     }
+}
+
+// 获得下一个请求
+static request_t *request_nextreq(device_t *device, request_t *req)
+{
+    list_t *list = &device->request_list;
+
+    if (device->direct == DIRECT_UP && req->node.next == &list->tail)
+    {
+        device->direct = DIRECT_DOWN;
+    }
+    else if (device->direct == DIRECT_DOWN && req->node.prev == &list->head)
+    {
+        device->direct = DIRECT_UP;
+    }
+
+    void *next = NULL;
+    if (device->direct == DIRECT_UP)
+    {
+        next = req->node.next;
+    }
+    else
+    {
+        next = req->node.prev;
+    }
+
+    if (next == &list->head || next == &list->tail)
+    {
+        return NULL;
+    }
+
+    return element_entry(request_t, node, next);
 }
 
 // 块设备请求
@@ -154,11 +189,16 @@ void device_request(dev_t dev, void *buf, u8 count, idx_t idx, int flags, u32 ty
     req->type = type;
     req->task = NULL;
 
+    LOGK("dev %d request idx %d\n", req->dev, req->idx);
+
     // 判断列表是否为空
     bool empty = list_empty(&device->request_list);
 
     // 将请求压入链表
-    list_push(&device->request_list, &req->node);
+    // list_push(&device->request_list, &req->node);
+
+    // 将请求插入链表
+    list_insert_sort(&device->request_list, &req->node, element_node_offset(request_t, node, idx));
 
     // 如果列表不为空，则阻塞，因为已经有请求在处理了，等待处理完成；
     if (!empty)
@@ -169,13 +209,13 @@ void device_request(dev_t dev, void *buf, u8 count, idx_t idx, int flags, u32 ty
 
     do_request(req);
 
+    request_t *nextreq = request_nextreq(device, req);
+
     list_remove(&req->node);
     kfree(req);
 
-    if (!list_empty(&device->request_list))
+    if (nextreq)
     {
-        // 先来先服务
-        request_t *nextreq = element_entry(request_t, node, device->request_list.tail.prev);
         assert(nextreq->task->magic == ONIX_MAGIC);
         task_unblock(nextreq->task);
     }
