@@ -7,6 +7,7 @@
 #include <onix/memory.h>
 #include <onix/device.h>
 #include <onix/string.h>
+#include <onix/buffer.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -40,16 +41,17 @@ static u32 sys_test()
     // assert(device);
     // device_write(device->dev, &ch, 1, 0, 0);
 
-    void *buf = (void *)alloc_kpage(1);
-
-    device = device_find(DEV_IDE_PART, 0);
+    device = device_find(DEV_IDE_DISK, 0);
     assert(device);
 
-    memset(buf, running_task()->uid, 512);
+    buffer_t *buf = bread(device->dev, 0); // 读取主引导块
 
-    device_request(device->dev, buf, 1, running_task()->uid, 0, REQ_WRITE);
+    char *data = buf->data + SECTOR_SIZE;
+    memset(data, 0x5a, SECTOR_SIZE);
 
-    free_kpage((u32)buf, 1);
+    buf->dirty = true;
+
+    brelse(buf);
 
     return 255;
 }
