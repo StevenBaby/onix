@@ -77,76 +77,10 @@ $(BUILD)/system.bin: $(BUILD)/kernel.bin
 $(BUILD)/system.map: $(BUILD)/kernel.bin
 	nm $< | sort > $@
 
-$(BUILD)/master.img: $(BUILD)/boot/boot.bin \
-	$(BUILD)/boot/loader.bin \
-	$(BUILD)/system.bin \
-	$(BUILD)/system.map \
-	$(SRC)/utils/master.sfdisk \
-
-# 创建一个 16M 的硬盘镜像
-	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
-
-# 将 boot.bin 写入主引导扇区
-	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc
-
-# 将 loader.bin 写入硬盘
-	dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc
-
-# 测试 system.bin 小于 100k，否则需要修改下面的 count
-	test -n "$$(find $(BUILD)/system.bin -size -100k)"
-
-# 将 system.bin 写入硬盘
-	dd if=$(BUILD)/system.bin of=$@ bs=512 count=200 seek=10 conv=notrunc
-
-# 对硬盘进行分区
-	sfdisk $@ < $(SRC)/utils/master.sfdisk
-
-$(BUILD)/slave.img:
-
-# 创建一个 32M 的硬盘镜像
-	yes | bximage -q -hd=32 -func=create -sectsize=512 -imgmode=flat $@
-
-
-IMAGES:= $(BUILD)/master.img $(BUILD)/slave.img
-
-image: $(IMAGES)
+include utils/image.mk
+include utils/cdrom.mk
+include utils/cmd.mk
 
 .PHONY: clean
 clean:
 	rm -rf $(BUILD)
-
-.PHONY: bochs
-bochs: $(IMAGES)
-	bochs -q -f ../bochs/bochsrc -unlock
-
-.PHONY: bochsg
-bochsg: $(IMAGES)
-	bochs-gdb -q -f ../bochs/bochsrc.gdb -unlock
-
-QEMU:= qemu-system-i386 # 虚拟机
-QEMU+= -m 32M # 内存
-QEMU+= -audiodev pa,id=hda # 音频设备
-QEMU+= -machine pcspk-audiodev=hda # pcspeaker 设备
-QEMU+= -rtc base=localtime # 设备本地时间
-QEMU+= -drive file=$(BUILD)/master.img,if=ide,index=0,media=disk,format=raw # 主硬盘
-QEMU+= -drive file=$(BUILD)/slave.img,if=ide,index=1,media=disk,format=raw # 从硬盘
-
-QEMU_DISK:=-boot c
-
-QEMU_DEBUG:= -s -S
-
-.PHONY: qemu
-qemu: $(IMAGES)
-	$(QEMU) $(QEMU_DISK)
-
-.PHONY: qemug
-qemug: $(IMAGES)
-	$(QEMU) $(QEMU_DISK) $(QEMU_DEBUG)
-
-# VMWare 磁盘转换
-
-$(BUILD)/master.vmdk: $(BUILD)/master.img
-	qemu-img convert -O vmdk $< $@
-
-.PHONY:vmdk
-vmdk: $(BUILD)/master.vmdk

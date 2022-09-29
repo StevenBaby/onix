@@ -26,9 +26,10 @@ static list_t hash_table[HASH_COUNT]; // 缓存哈希表
 // 哈希函数
 u32 hash(dev_t dev, idx_t block)
 {
-    return (dev ^ block) & HASH_COUNT;
+    return (dev ^ block) % HASH_COUNT;
 }
 
+// 从哈希表中查找 buffer
 static buffer_t *get_from_hash_table(dev_t dev, idx_t block)
 {
     u32 idx = hash(dev, block);
@@ -50,7 +51,7 @@ static buffer_t *get_from_hash_table(dev_t dev, idx_t block)
         return NULL;
     }
 
-    // 如果 bf 在缓冲列表中，则移除
+    // 如果 bf 在空闲列表中，则移除
     if (list_search(&free_list, &bf->rnode))
     {
         list_remove(&bf->rnode);

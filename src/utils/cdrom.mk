@@ -1,4 +1,3 @@
-include makefile
 
 $(BUILD)/kernel.iso : $(BUILD)/kernel.bin $(SRC)/utils/grub.cfg
 
