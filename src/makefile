@@ -59,6 +59,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/arena.o \
 	$(BUILD)/kernel/keyboard.o \
 	$(BUILD)/kernel/buffer.o \
+	$(BUILD)/fs/super.o \
 	$(BUILD)/lib/bitmap.o \
 	$(BUILD)/lib/list.o \
 	$(BUILD)/lib/fifo.o \
