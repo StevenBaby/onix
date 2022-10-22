@@ -13,6 +13,8 @@
 #define IMAP_NR 8 // inode 位图块，最大值
 #define ZMAP_NR 8 // 块位图块，最大值
 
+#define BLOCK_BITS (BLOCK_SIZE * 8) // 块位图大小
+
 typedef struct inode_desc_t
 {
     u16 mode;    // 文件类型和属性(rwx 位)
@@ -52,7 +54,7 @@ typedef struct super_desc_t
 typedef struct super_block_t
 {
     super_desc_t *desc;              // 超级块描述符
-    struct buffer_t *buf;            // 超级快描述符 buffer
+    struct buffer_t *buf;            // 超级块描述符 buffer
     struct buffer_t *imaps[IMAP_NR]; // inode 位图缓冲
     struct buffer_t *zmaps[ZMAP_NR]; // 块位图缓冲
     dev_t dev;                       // 设备号
@@ -70,5 +72,10 @@ typedef struct dentry_t
 
 super_block_t *get_super(dev_t dev);  // 获得 dev 对应的超级块
 super_block_t *read_super(dev_t dev); // 读取 dev 对应的超级块
+
+idx_t balloc(dev_t dev);          // 分配一个文件块
+void bfree(dev_t dev, idx_t idx); // 释放一个文件块
+idx_t ialloc(dev_t dev);          // 分配一个文件系统 inode
+void ifree(dev_t dev, idx_t idx); // 释放一个文件系统 inode
 
 #endif
