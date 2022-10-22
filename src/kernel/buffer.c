@@ -133,7 +133,10 @@ buffer_t *getblk(dev_t dev, idx_t block)
 {
     buffer_t *bf = get_from_hash_table(dev, block);
     if (bf)
+    {
+        assert(bf->valid);
         return bf;
+    }
 
     bf = get_free_buffer();
     assert(bf->count == 0);

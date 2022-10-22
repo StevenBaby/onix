@@ -102,15 +102,23 @@ static void mount_root()
     // 读根文件系统超级块
     root = read_super(device->dev);
 
-    device = device_find(DEV_IDE_PART, 1);
-    assert(device);
-    super_block_t *sb = read_super(device->dev);
+    // 初始化根目录 inode
+    root->iroot = iget(device->dev, 1);  // 获得根目录 inode
+    root->imount = iget(device->dev, 1); // 根目录挂载 inode
 
-    idx_t idx = ialloc(sb->dev);
-    ifree(sb->dev, idx);
+    idx_t idx = 0;
+    inode_t *inode = iget(device->dev, 1);
 
-    idx = balloc(sb->dev);
-    bfree(sb->dev, idx);
+    // 直接块
+    idx = bmap(inode, 3, true);
+
+    // 一级间接块
+    idx = bmap(inode, 7 + 7, true);
+
+    // 二级间接块
+    idx = bmap(inode, 7 + 512 * 3 + 510, true);
+
+    iput(inode);
 }
 
 void super_init()
