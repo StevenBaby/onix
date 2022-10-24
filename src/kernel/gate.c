@@ -58,6 +58,7 @@ int32 sys_write(fd_t fd, char *buf, u32 len)
 }
 
 extern time_t sys_time();
+extern mode_t sys_umask();
 
 void syscall_init()
 {
@@ -83,4 +84,6 @@ void syscall_init()
     syscall_table[SYS_NR_WRITE] = sys_write;
 
     syscall_table[SYS_NR_TIME] = sys_time;
+
+    syscall_table[SYS_NR_UMASK] = sys_umask;
 }

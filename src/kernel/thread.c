@@ -58,9 +58,10 @@ void init_thread()
 void test_thread()
 {
     set_interrupt_state(true);
+    // test();
+    mode_t mode = umask(0002);
     while (true)
     {
-        test();
         sleep(10);
     }
 }

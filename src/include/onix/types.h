@@ -45,6 +45,8 @@ typedef int32 dev_t;
 typedef u32 time_t;
 typedef u32 idx_t;
 
+typedef u16 mode_t; // 文件权限
+
 typedef int32 fd_t;
 typedef enum std_fd_t
 {
