@@ -23,6 +23,10 @@
 #define INDIRECT2_BLOCK (INDIRECT1_BLOCK * INDIRECT1_BLOCK)            // 二级间接块数量
 #define TOTAL_BLOCK (DIRECT_BLOCK + INDIRECT1_BLOCK + INDIRECT2_BLOCK) // 全部块数量
 
+#define SEPARATOR1 '/'                                       // 目录分隔符 1
+#define SEPARATOR2 '\\'                                      // 目录分隔符 2
+#define IS_SEPARATOR(c) (c == SEPARATOR1 || c == SEPARATOR2) // 字符是否位目录分隔符
+
 typedef struct inode_desc_t
 {
     u16 mode;    // 文件类型和属性(rwx 位)
