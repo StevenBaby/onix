@@ -220,6 +220,7 @@ inode_t *named(char *pathname, char **next)
     buffer_t *buf = NULL;
     while (true)
     {
+        brelse(buf);
         buf = find_entry(&inode, left, next, &entry);
         if (!buf)
             goto failure;
@@ -272,14 +273,20 @@ inode_t *namei(char *pathname)
     return inode;
 }
 
+#include <onix/memory.h>
+
 void dir_test()
 {
-    char pathname[] = "/";
-    char *name = NULL;
-    inode_t *inode = named(pathname, &name);
-    iput(inode);
+    inode_t *inode = namei("/d1/d2/d3/../../../hello.txt");
 
-    inode = namei("/home/hello.txt");
-    LOGK("get inode %d\n", inode->nr);
-    iput(inode);
+    char *buf = (char *)alloc_kpage(1);
+    int i = inode_read(inode, buf, 1024, 0);
+
+    LOGK("content: %s\n", buf);
+
+    memset(buf, 'A', PAGE_SIZE);
+    inode_write(inode, buf, PAGE_SIZE, 0);
+
+    memset(buf, 'B', PAGE_SIZE);
+    inode_write(inode, buf, PAGE_SIZE, PAGE_SIZE);
 }

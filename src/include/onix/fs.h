@@ -46,7 +46,7 @@ typedef struct inode_t
     idx_t nr;             // i 节点号
     u32 count;            // 引用计数
     time_t atime;         // 访问时间
-    time_t ctime;         // 创建时间
+    time_t ctime;         // 修改时间
     list_node_t node;     // 链表结点
     dev_t mount;          // 安装设备
 } inode_t;
@@ -100,5 +100,11 @@ void iput(inode_t *inode);          // 释放 inode
 
 inode_t *named(char *pathname, char **next); // 获取 pathname 对应的父目录 inode
 inode_t *namei(char *pathname);              // 获取 pathname 对应的 inode
+
+// 从 inode 的 offset 处，读 len 个字节到 buf
+int inode_read(inode_t *inode, char *buf, u32 len, off_t offset);
+
+// 从 inode 的 offset 处，将 buf 的 len 个字节写入磁盘
+int inode_write(inode_t *inode, char *buf, u32 len, off_t offset);
 
 #endif

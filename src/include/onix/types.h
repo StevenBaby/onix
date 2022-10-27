@@ -55,4 +55,6 @@ typedef enum std_fd_t
     stderr,
 } std_fd_t;
 
+typedef int32 off_t; // 文件偏移
+
 #endif
