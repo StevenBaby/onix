@@ -90,6 +90,16 @@ int32 write(fd_t fd, char *buf, u32 len)
     return _syscall3(SYS_NR_WRITE, fd, (u32)buf, len);
 }
 
+int mkdir(char *pathname, int mode)
+{
+    return _syscall2(SYS_NR_MKDIR, (u32)pathname, (u32)mode);
+}
+
+int rmdir(char *pathname)
+{
+    return _syscall1(SYS_NR_RMDIR, (u32)pathname);
+}
+
 time_t time()
 {
     return _syscall0(SYS_NR_TIME);

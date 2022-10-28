@@ -58,9 +58,12 @@ void init_thread()
 void test_thread()
 {
     set_interrupt_state(true);
-    test();
+    // test();
+    mkdir("/world.txt", 0755);
+    rmdir("/empty");
     while (true)
     {
+        test();
         sleep(10);
     }
 }

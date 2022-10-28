@@ -16,6 +16,8 @@ typedef enum syscall_t
     SYS_NR_WAITPID = 7,
     SYS_NR_TIME = 13,
     SYS_NR_GETPID = 20,
+    SYS_NR_MKDIR = 39,
+    SYS_NR_RMDIR = 40,
     SYS_NR_BRK = 45,
     SYS_NR_UMASK = 60,
     SYS_NR_GETPPID = 64,
@@ -38,6 +40,9 @@ pid_t getppid();
 int32 brk(void *addr);
 
 int32 write(fd_t fd, char *buf, u32 len);
+
+int mkdir(char *pathname, int mode);
+int rmdir(char *pathname);
 
 time_t time();
 

@@ -273,12 +273,190 @@ inode_t *namei(char *pathname)
     return inode;
 }
 
-#include <onix/memory.h>
-
-void dir_test()
+int sys_mkdir(char *pathname, int mode)
 {
-    inode_t *inode = namei("/d1/d2/d3/../../../hello.txt");
+    char *next = NULL;
+    buffer_t *ebuf = NULL;
+    inode_t *dir = named(pathname, &next);
+
+    // 父目录不存在
+    if (!dir)
+        goto rollback;
+
+    // 目录名为空
+    if (!*next)
+        goto rollback;
+
+    // 父目录无写权限
+    if (!permission(dir, P_WRITE))
+        goto rollback;
+
+    char *name = next;
+    dentry_t *entry;
+
+    ebuf = find_entry(&dir, name, &next, &entry);
+    // 目录项已存在
+    if (ebuf)
+        goto rollback;
+
+    ebuf = add_entry(dir, name, &entry);
+    ebuf->dirty = true;
+    entry->nr = ialloc(dir->dev);
+
+    task_t *task = running_task();
+    inode_t *inode = iget(dir->dev, entry->nr);
+    inode->buf->dirty = true;
+
+    inode->desc->gid = task->gid;
+    inode->desc->uid = task->uid;
+    inode->desc->mode = (mode & 0777 & ~task->umask) | IFDIR;
+    inode->desc->size = sizeof(dentry_t) * 2; // 当前目录和父目录两个目录项
+    inode->desc->mtime = time();              // 时间戳
+    inode->desc->nlinks = 2;                  // 一个是 '.' 一个是 name
+
+    // 父目录链接数加 1
+    dir->buf->dirty = true;
+    dir->desc->nlinks++; // ..
+
+    // 写入 inode 目录中的默认目录项
+    buffer_t *zbuf = bread(inode->dev, bmap(inode, 0, true));
+    zbuf->dirty = true;
+
+    entry = (dentry_t *)zbuf->data;
+
+    strcpy(entry->name, ".");
+    entry->nr = inode->nr;
+
+    entry++;
+    strcpy(entry->name, "..");
+    entry->nr = dir->nr;
+
+    iput(inode);
+    iput(dir);
+
+    brelse(ebuf);
+    brelse(zbuf);
+    return 0;
+
+rollback:
+    brelse(ebuf);
+    iput(dir);
+    return EOF;
+}
+
+static bool is_empty(inode_t *inode)
+{
+    assert(ISDIR(inode->desc->mode));
+
+    int entries = inode->desc->size / sizeof(dentry_t);
+    if (entries < 2 || !inode->desc->zone[0])
+    {
+        LOGK("bad directory on dev %d\n", inode->dev);
+        return false;
+    }
+
+    idx_t i = 0;
+    idx_t block = 0;
+    buffer_t *buf = NULL;
+    dentry_t *entry;
+    int count = 0;
+
+    for (; i < entries; i++, entry++)
+    {
+        if (!buf || (u32)entry >= (u32)buf->data + BLOCK_SIZE)
+        {
+            brelse(buf);
+            block = bmap(inode, i / BLOCK_DENTRIES, false);
+            assert(block);
+
+            buf = bread(inode->dev, block);
+            entry = (dentry_t *)buf->data;
+        }
+        if (entry->nr)
+            count++;
+    };
+
+    brelse(buf);
+
+    if (count < 2)
+    {
+        LOGK("bad directory on dev %d\n", inode->dev);
+        return false;
+    }
+
+    return count == 2;
+}
+
+int sys_rmdir(char *pathname)
+{
+    char *next = NULL;
+    buffer_t *ebuf = NULL;
+    inode_t *dir = named(pathname, &next);
+    inode_t *inode = NULL;
+    int ret = EOF;
+
+    // 父目录不存在
+    if (!dir)
+        goto rollback;
+
+    // 目录名为空
+    if (!*next)
+        goto rollback;
+
+    // 父目录无写权限
+    if (!permission(dir, P_WRITE))
+        goto rollback;
+
+    char *name = next;
+    dentry_t *entry;
+
+    ebuf = find_entry(&dir, name, &next, &entry);
+    // 目录项不存在
+    if (!ebuf)
+        goto rollback;
+
+    inode = iget(dir->dev, entry->nr);
+    if (!inode)
+        goto rollback;
+
+    if (inode == dir)
+        goto rollback;
+
+    if (!ISDIR(inode->desc->mode))
+        goto rollback;
+
+    task_t *task = running_task();
+    if ((dir->desc->mode & ISVTX) && task->uid != inode->desc->uid)
+        goto rollback;
+
+    if (dir->dev != inode->dev || inode->count > 1)
+        goto rollback;
+
+    if (!is_empty(inode))
+        goto rollback;
+
+    assert(inode->desc->nlinks == 2);
 
     inode_truncate(inode);
+    ifree(inode->dev, inode->nr);
+
+    inode->desc->nlinks = 0;
+    inode->buf->dirty = true;
+    inode->nr = 0;
+
+    dir->desc->nlinks--;
+    dir->ctime = dir->atime = dir->desc->mtime = time();
+    dir->buf->dirty = true;
+    assert(dir->desc->nlinks > 0);
+
+    entry->nr = 0;
+    ebuf->dirty = true;
+
+    ret = 0;
+
+rollback:
     iput(inode);
+    iput(dir);
+    brelse(ebuf);
+    return ret;
 }
