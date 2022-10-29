@@ -59,8 +59,12 @@ void test_thread()
 {
     set_interrupt_state(true);
     // test();
-    mkdir("/world.txt", 0755);
-    rmdir("/empty");
+    // mkdir("/world.txt", 0755);
+    // rmdir("/empty");
+
+    link("/hello.txt", "/world.txt");
+    unlink("/hello.txt");
+
     while (true)
     {
         test();

@@ -60,6 +60,9 @@ int32 sys_write(fd_t fd, char *buf, u32 len)
 extern int sys_mkdir();
 extern int sys_rmdir();
 
+extern int sys_link();
+extern int sys_unlink();
+
 extern time_t sys_time();
 extern mode_t sys_umask();
 
@@ -88,6 +91,9 @@ void syscall_init()
 
     syscall_table[SYS_NR_MKDIR] = sys_mkdir;
     syscall_table[SYS_NR_RMDIR] = sys_rmdir;
+
+    syscall_table[SYS_NR_LINK] = sys_link;
+    syscall_table[SYS_NR_UNLINK] = sys_unlink;
 
     syscall_table[SYS_NR_TIME] = sys_time;
 
