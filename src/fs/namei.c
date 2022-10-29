@@ -566,3 +566,71 @@ rollback:
     iput(dir);
     return ret;
 }
+
+inode_t *inode_open(char *pathname, int flag, int mode)
+{
+    inode_t *dir = NULL;
+    inode_t *inode = NULL;
+    buffer_t *buf = NULL;
+    dentry_t *entry = NULL;
+    char *next = NULL;
+    dir = named(pathname, &next);
+    if (!dir)
+        goto rollback;
+
+    if (!*next)
+        goto rollback;
+
+    if ((flag & O_TRUNC) && ((flag & O_ACCMODE) == O_RDONLY))
+        flag |= O_RDWR;
+
+    char *name = next;
+    buf = find_entry(&dir, name, &next, &entry);
+    if (buf)
+    {
+        inode = iget(dir->dev, entry->nr);
+        goto makeup;
+    }
+
+    if (!(flag & O_CREAT))
+        goto rollback;
+
+    if (!permission(dir, P_WRITE))
+        goto rollback;
+
+    buf = add_entry(dir, name, &entry);
+    entry->nr = ialloc(dir->dev);
+    inode = iget(dir->dev, entry->nr);
+
+    task_t *task = running_task();
+
+    mode &= (0777 & ~task->umask);
+    mode |= IFREG;
+
+    inode->desc->uid = task->uid;
+    inode->desc->gid = task->gid;
+    inode->desc->mode = mode;
+    inode->desc->mtime = time();
+    inode->desc->size = 0;
+    inode->desc->nlinks = 1;
+    inode->buf->dirty = true;
+
+makeup:
+    if (ISDIR(inode->desc->mode) || !permission(inode, flag & O_ACCMODE))
+        goto rollback;
+
+    inode->atime = time();
+
+    if (flag & O_TRUNC)
+        inode_truncate(inode);
+
+    brelse(buf);
+    iput(dir);
+    return inode;
+
+rollback:
+    brelse(buf);
+    iput(dir);
+    iput(inode);
+    return NULL;
+}
