@@ -64,6 +64,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \
 	$(BUILD)/fs/namei.o \
+	$(BUILD)/fs/file.o \
 	$(BUILD)/lib/bitmap.o \
 	$(BUILD)/lib/list.o \
 	$(BUILD)/lib/fifo.o \

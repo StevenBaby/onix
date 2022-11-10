@@ -17,6 +17,7 @@ extern void task_init();
 extern void syscall_init();
 extern void tss_init();
 extern void buffer_init();
+extern void file_init();
 extern void super_init();
 extern void inode_init();
 extern void hang();
@@ -39,6 +40,7 @@ void kernel_init()
     task_init();
 
     buffer_init();
+    file_init();
     inode_init();
     super_init();
 
