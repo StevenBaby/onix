@@ -4,6 +4,7 @@
 #include <onix/task.h>
 #include <onix/stdio.h>
 #include <onix/arena.h>
+#include <onix/fs.h>
 
 // #include <asm/unistd_32.h>
 
@@ -27,24 +28,11 @@ void idle_thread()
 
 static void user_init_thread()
 {
-    int status;
+    fd_t fd = open("/world.txt", O_CREAT | O_RDWR, 0755);
+    close(fd);
+
     while (true)
     {
-        // test();
-        // pid_t pid = fork();
-
-        // if (pid)
-        // {
-        //     printf("fork after parent %d, %d, %d\n", pid, getpid(), getppid());
-        //     pid_t child = waitpid(pid, &status);
-        //     printf("wait pid %d status %d %d\n", child, status, time());
-        // }
-        // else
-        // {
-        //     printf("fork after child %d, %d, %d\n", pid, getpid(), getppid());
-        //     // sleep(1000);
-        //     exit(0);
-        // }
         sleep(1000);
     }
 }

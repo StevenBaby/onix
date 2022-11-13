@@ -43,3 +43,46 @@ void file_init()
         file->inode = NULL;
     }
 }
+
+fd_t sys_open(char *filename, int flags, int mode)
+{
+    inode_t *inode = inode_open(filename, flags, mode);
+    if (!inode)
+        return EOF;
+
+    task_t *task = running_task();
+    fd_t fd = task_get_fd(task);
+    file_t *file = get_file();
+    assert(task->files[fd] == NULL);
+    task->files[fd] = file;
+
+    file->inode = inode;
+    file->flags = flags;
+    file->count = 1;
+    file->mode = inode->desc->mode;
+    file->offset = 0;
+
+    if (flags & O_APPEND)
+    {
+        file->offset = file->inode->desc->size;
+    }
+    return fd;
+}
+
+int sys_creat(char *filename, int mode)
+{
+    return sys_open(filename, O_CREAT | O_TRUNC, mode);
+}
+
+void sys_close(fd_t fd)
+{
+    assert(fd < TASK_FILE_NR);
+    task_t *task = running_task();
+    file_t *file = task->files[fd];
+    if (!file)
+        return;
+
+    assert(file->inode);
+    put_file(file);
+    task_put_fd(task, fd);
+}

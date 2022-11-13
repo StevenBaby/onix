@@ -85,6 +85,21 @@ int32 brk(void *addr)
     return _syscall1(SYS_NR_BRK, (u32)addr);
 }
 
+fd_t open(char *filename, int flags, int mode)
+{
+    return _syscall3(SYS_NR_OPEN, (u32)filename, (u32)flags, (u32)mode);
+}
+
+fd_t creat(char *filename, int mode)
+{
+    return _syscall2(SYS_NR_CREAT, (u32)filename, (u32)mode);
+}
+
+void close(fd_t fd)
+{
+    _syscall1(SYS_NR_CLOSE, (u32)fd);
+}
+
 int32 write(fd_t fd, char *buf, u32 len)
 {
     return _syscall3(SYS_NR_WRITE, fd, (u32)buf, len);
