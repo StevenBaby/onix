@@ -21,6 +21,7 @@ typedef enum syscall_t
     SYS_NR_LINK = 9,
     SYS_NR_UNLINK = 10,
     SYS_NR_TIME = 13,
+    SYS_NR_LSEEK = 19,
     SYS_NR_GETPID = 20,
     SYS_NR_MKDIR = 39,
     SYS_NR_RMDIR = 40,
@@ -56,6 +57,8 @@ void close(fd_t fd);
 int read(fd_t fd, char *buf, int len);
 // 写文件
 int write(fd_t fd, char *buf, int len);
+// 设置文件偏移量
+int lseek(fd_t fd, off_t offset, int whence);
 
 // 创建目录
 int mkdir(char *pathname, int mode);

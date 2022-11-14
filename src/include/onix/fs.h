@@ -105,6 +105,13 @@ typedef struct file_t
     int mode;       // 文件模式
 } file_t;
 
+typedef enum whence_t
+{
+    SEEK_SET = 1, // 直接设置偏移
+    SEEK_CUR,     // 当前位置偏移
+    SEEK_END      // 结束位置偏移
+} whence_t;
+
 super_block_t *get_super(dev_t dev);  // 获得 dev 对应的超级块
 super_block_t *read_super(dev_t dev); // 读取 dev 对应的超级块
 
