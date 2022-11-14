@@ -1,6 +1,7 @@
 #include <onix/fs.h>
 #include <onix/assert.h>
 #include <onix/task.h>
+#include <onix/device.h>
 
 #define FILE_NR 128
 
@@ -85,4 +86,55 @@ void sys_close(fd_t fd)
     assert(file->inode);
     put_file(file);
     task_put_fd(task, fd);
+}
+
+int sys_read(fd_t fd, char *buf, int count)
+{
+    if (fd == stdin)
+    {
+        device_t *device = device_find(DEV_KEYBOARD, 0);
+        return device_read(device->dev, buf, count, 0, 0);
+    }
+
+    task_t *task = running_task();
+    file_t *file = task->files[fd];
+    assert(file);
+    assert(count > 0);
+
+    if ((file->flags & O_ACCMODE) == O_WRONLY)
+        return EOF;
+
+    inode_t *inode = file->inode;
+    int len = inode_read(inode, buf, count, file->offset);
+    if (len != EOF)
+    {
+        file->offset += len;
+    }
+    return len;
+}
+
+int sys_write(unsigned int fd, char *buf, int count)
+{
+    if (fd == stdout || fd == stderr)
+    {
+        device_t *device = device_find(DEV_CONSOLE, 0);
+        return device_write(device->dev, buf, count, 0, 0);
+    }
+
+    task_t *task = running_task();
+    file_t *file = task->files[fd];
+    assert(file);
+    assert(count > 0);
+
+    if ((file->flags & O_ACCMODE) == O_RDONLY)
+        return EOF;
+
+    inode_t *inode = file->inode;
+    int len = inode_write(inode, buf, count, file->offset);
+    if (len != EOF)
+    {
+        file->offset += len;
+    }
+
+    return len;
 }
