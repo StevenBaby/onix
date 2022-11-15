@@ -169,3 +169,8 @@ int sys_lseek(fd_t fd, off_t offset, whence_t whence)
     }
     return file->offset;
 }
+
+int sys_readdir(fd_t fd, dirent_t *dir, u32 count)
+{
+    return sys_read(fd, (char *)dir, sizeof(dirent_t));
+}

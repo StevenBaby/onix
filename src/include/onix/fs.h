@@ -105,6 +105,8 @@ typedef struct file_t
     int mode;       // 文件模式
 } file_t;
 
+typedef dentry_t dirent_t;
+
 typedef enum whence_t
 {
     SEEK_SET = 1, // 直接设置偏移

@@ -14,4 +14,6 @@ u8 bin_to_bcd(u8 value);
 
 u32 div_round_up(u32 num, u32 size);
 
+int atoi(const char *str);
+
 #endif
