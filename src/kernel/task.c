@@ -276,8 +276,12 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     task->vmap = &kernel_map;
     task->pde = KERNEL_PAGE_DIR; // page directory entry
     task->brk = KERNEL_MEMORY_SIZE;
-    task->iroot = get_root_inode();
-    task->ipwd = get_root_inode();
+    task->iroot = task->ipwd = get_root_inode();
+    task->iroot->count += 2;
+
+    task->pwd = (void *)alloc_kpage(1);
+    strcpy(task->pwd, "/");
+
     task->umask = 0022; // 对应 0755
 
     task->magic = ONIX_MAGIC;
@@ -385,6 +389,22 @@ pid_t task_fork()
     // 拷贝页目录
     child->pde = (u32)copy_pde();
 
+    // 拷贝 pwd
+    child->pwd = (char *)alloc_kpage(1);
+    strncpy(child->pwd, task->pwd, PAGE_SIZE);
+
+    // 工作目录引用加一
+    task->ipwd->count++;
+    task->iroot->count++;
+
+    // 文件引用加一
+    for (size_t i = 0; i < TASK_FILE_NR; i++)
+    {
+        file_t *file = child->files[i];
+        if (file)
+            file->count++;
+    }
+
     // 构造 child 内核栈
     task_build_stack(child); // ROP
     // schedule();
@@ -406,6 +426,19 @@ void task_exit(int status)
 
     free_kpage((u32)task->vmap->bits, 1);
     kfree(task->vmap);
+
+    free_kpage((u32)task->pwd, 1);
+    iput(task->ipwd);
+    iput(task->iroot);
+
+    for (size_t i = 0; i < TASK_FILE_NR; i++)
+    {
+        file_t *file = task->files[i];
+        if (file)
+        {
+            close(i);
+        }
+    }
 
     // 将子进程的父进程赋值为自己的父进程
     for (size_t i = 2; i < NR_TASKS; i++)

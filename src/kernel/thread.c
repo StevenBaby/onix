@@ -30,14 +30,11 @@ void idle_thread()
 static void user_init_thread()
 {
     char buf[256];
-    memset(buf, 'A', sizeof(buf));
 
-    fd_t fd;
-    int len = 0;
-    fd = open("/hello.txt", O_RDWR, 0755);
-    lseek(fd, 5, SEEK_SET);
-    len = write(fd, buf, sizeof(buf));
-    close(fd);
+    chroot("/d1");
+    chdir("/d2");
+    getcwd(buf, sizeof(buf));
+    printf("current work directory: %s\n", buf);
 
     while (true)
     {

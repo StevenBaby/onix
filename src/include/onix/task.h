@@ -41,6 +41,7 @@ typedef struct task_t
     u32 brk;                            // 进程堆内存最高地址
     int status;                         // 进程特殊状态
     pid_t waitpid;                      // 进程等待的 pid
+    char *pwd;                          // 进程当前目录
     struct inode_t *ipwd;               // 进程当前目录 inode program work directory
     struct inode_t *iroot;              // 进程根目录 inode
     u16 umask;                          // 进程用户权限

@@ -634,3 +634,118 @@ rollback:
     iput(inode);
     return NULL;
 }
+
+char *sys_getcwd(char *buf, size_t size)
+{
+    task_t *task = running_task();
+    strncpy(buf, task->pwd, size);
+    return buf;
+}
+
+// 计算 当前路径 pwd 和新路径 pathname, 存入 pwd
+void abspath(char *pwd, const char *pathname)
+{
+    char *cur = NULL;
+    char *ptr = NULL;
+    if (IS_SEPARATOR(pathname[0]))
+    {
+        cur = pwd + 1;
+        *cur = 0;
+        pathname++;
+    }
+    else
+    {
+        cur = strrsep(pwd) + 1;
+        *cur = 0;
+    }
+
+    while (pathname[0])
+    {
+        ptr = strsep(pathname);
+        if (!ptr)
+        {
+            break;
+        }
+
+        int len = (ptr - pathname) + 1;
+        *ptr = '/';
+        if (!memcmp(pathname, "./", 2))
+        {
+            /* code */
+        }
+        else if (!memcmp(pathname, "../", 3))
+        {
+            if (cur - 1 != pwd)
+            {
+                *(cur - 1) = 0;
+                cur = strrsep(pwd) + 1;
+                *cur = 0;
+            }
+        }
+        else
+        {
+            strncpy(cur, pathname, len + 1);
+            cur += len;
+        }
+        pathname += len;
+    }
+
+    if (!pathname[0])
+        return;
+
+    if (!strcmp(pathname, "."))
+        return;
+
+    if (strcmp(pathname, ".."))
+    {
+        strcpy(cur, pathname);
+        cur += strlen(pathname);
+        *cur = '/';
+        return;
+    }
+    if (cur - 1 != pwd)
+    {
+        *(cur - 1) = 0;
+        cur = strrsep(pwd) + 1;
+        *cur = 0;
+    }
+}
+
+int sys_chdir(char *pathname)
+{
+    task_t *task = running_task();
+    inode_t *inode = namei(pathname);
+    if (!inode)
+        goto rollback;
+    if (!ISDIR(inode->desc->mode) || inode == task->ipwd)
+        goto rollback;
+
+    abspath(task->pwd, pathname);
+
+    iput(task->ipwd);
+    task->ipwd = inode;
+    return 0;
+
+rollback:
+    iput(inode);
+    return EOF;
+}
+
+int sys_chroot(char *pathname)
+{
+    task_t *task = running_task();
+    inode_t *inode = namei(pathname);
+
+    if (!inode)
+        goto rollback;
+    if (!ISDIR(inode->desc->mode) || inode == task->iroot)
+        goto rollback;
+
+    iput(task->iroot);
+    task->iroot = inode;
+    return 0;
+
+rollback:
+    iput(inode);
+    return EOF;
+}
