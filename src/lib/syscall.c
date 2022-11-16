@@ -169,3 +169,13 @@ void clear()
 {
     _syscall0(SYS_NR_CLEAR);
 }
+
+int stat(char *filename, stat_t *statbuf)
+{
+    return _syscall2(SYS_NR_STAT, (u32)filename, (u32)statbuf);
+}
+
+int fstat(fd_t fd, stat_t *statbuf)
+{
+    return _syscall2(SYS_NR_FSTAT, (u32)fd, (u32)statbuf);
+}

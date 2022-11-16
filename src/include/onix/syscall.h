@@ -2,6 +2,7 @@
 #define ONIX_SYSCALL_H
 
 #include <onix/types.h>
+#include <onix/stat.h>
 
 #if 0
 #include <asm/unistd_32.h>
@@ -22,8 +23,10 @@ typedef enum syscall_t
     SYS_NR_UNLINK = 10,
     SYS_NR_CHDIR = 12,
     SYS_NR_TIME = 13,
+    SYS_NR_STAT = 18,
     SYS_NR_LSEEK = 19,
     SYS_NR_GETPID = 20,
+    SYS_NR_FSTAT = 28,
     SYS_NR_MKDIR = 39,
     SYS_NR_RMDIR = 40,
     SYS_NR_BRK = 45,
@@ -91,5 +94,9 @@ mode_t umask(mode_t mask);
 
 // 清屏
 void clear();
+
+// 获取文件状态
+int stat(char *filename, stat_t *statbuf);
+int fstat(fd_t fd, stat_t *statbuf);
 
 #endif

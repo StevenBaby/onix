@@ -59,6 +59,9 @@ extern mode_t sys_umask();
 
 extern void console_clear();
 
+extern int sys_stat();
+extern int sys_fstat();
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -104,4 +107,7 @@ void syscall_init()
     syscall_table[SYS_NR_GETCWD] = sys_getcwd;
 
     syscall_table[SYS_NR_CLEAR] = console_clear;
+
+    syscall_table[SYS_NR_STAT] = sys_stat;
+    syscall_table[SYS_NR_FSTAT] = sys_fstat;
 }
