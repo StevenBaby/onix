@@ -69,6 +69,19 @@ static inode_t *find_inode(dev_t dev, idx_t nr)
     return NULL;
 }
 
+static inode_t *fit_inode(inode_t *inode)
+{
+    if (!inode->mount)
+        return inode;
+
+    super_block_t *sb = get_super(inode->mount);
+    assert(sb);
+    iput(inode);
+    inode = sb->iroot;
+    inode->count++;
+    return inode;
+}
+
 // 获得设备 dev 的 nr inode
 inode_t *iget(dev_t dev, idx_t nr)
 {
@@ -77,8 +90,7 @@ inode_t *iget(dev_t dev, idx_t nr)
     {
         inode->count++;
         inode->atime = time();
-
-        return inode;
+        return fit_inode(inode);
     }
 
     super_block_t *sb = get_super(dev);
