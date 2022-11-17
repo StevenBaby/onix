@@ -304,14 +304,10 @@ int sys_mkdir(char *pathname, int mode)
     entry->nr = ialloc(dir->dev);
 
     task_t *task = running_task();
-    inode_t *inode = iget(dir->dev, entry->nr);
-    inode->buf->dirty = true;
+    inode_t *inode = new_inode(dir->dev, entry->nr);
 
-    inode->desc->gid = task->gid;
-    inode->desc->uid = task->uid;
     inode->desc->mode = (mode & 0777 & ~task->umask) | IFDIR;
     inode->desc->size = sizeof(dentry_t) * 2; // 当前目录和父目录两个目录项
-    inode->desc->mtime = time();              // 时间戳
     inode->desc->nlinks = 2;                  // 一个是 '.' 一个是 name
 
     // 父目录链接数加 1
@@ -600,20 +596,14 @@ inode_t *inode_open(char *pathname, int flag, int mode)
 
     buf = add_entry(dir, name, &entry);
     entry->nr = ialloc(dir->dev);
-    inode = iget(dir->dev, entry->nr);
+    inode = new_inode(dir->dev, entry->nr);
 
     task_t *task = running_task();
 
     mode &= (0777 & ~task->umask);
     mode |= IFREG;
 
-    inode->desc->uid = task->uid;
-    inode->desc->gid = task->gid;
     inode->desc->mode = mode;
-    inode->desc->mtime = time();
-    inode->desc->size = 0;
-    inode->desc->nlinks = 1;
-    inode->buf->dirty = true;
 
 makeup:
     if (!permission(inode, flag & O_ACCMODE))
@@ -704,6 +694,7 @@ void abspath(char *pwd, const char *pathname)
         strcpy(cur, pathname);
         cur += strlen(pathname);
         *cur = '/';
+        *(cur + 1) = '\0';
         return;
     }
     if (cur - 1 != pwd)
@@ -751,4 +742,47 @@ int sys_chroot(char *pathname)
 rollback:
     iput(inode);
     return EOF;
+}
+
+int sys_mknod(char *filename, int mode, int dev)
+{
+    char *next = NULL;
+    inode_t *dir = NULL;
+    buffer_t *buf = NULL;
+    inode_t *inode = NULL;
+    int ret = EOF;
+
+    dir = named(filename, &next);
+    if (!dir)
+        goto rollback;
+
+    if (!(*next))
+        goto rollback;
+
+    if (!permission(dir, P_WRITE))
+        goto rollback;
+
+    char *name = next;
+    dentry_t *entry;
+    buf = find_entry(&dir, name, &next, &entry);
+    if (buf) // 目录项存在
+        goto rollback;
+
+    buf = add_entry(dir, name, &entry);
+    buf->dirty = true;
+    entry->nr = ialloc(dir->dev);
+
+    inode = new_inode(dir->dev, entry->nr);
+
+    inode->desc->mode = mode;
+    if (ISBLK(mode) || ISCHR(mode))
+        inode->desc->zone[0] = dev;
+
+    ret = 0;
+
+rollback:
+    brelse(buf);
+    iput(inode);
+    iput(dir);
+    return ret;
 }

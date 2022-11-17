@@ -8,6 +8,7 @@
 #include <onix/string.h>
 #include <onix/stdlib.h>
 #include <onix/stat.h>
+#include <onix/task.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -88,7 +89,7 @@ inode_t *iget(dev_t dev, idx_t nr)
     inode = get_free_inode();
     inode->dev = dev;
     inode->nr = nr;
-    inode->count ++;
+    inode->count++;
 
     // 加入超级块 inode 链表
     list_push(&sb->inode_list, &inode->node);
@@ -103,6 +104,24 @@ inode_t *iget(dev_t dev, idx_t nr)
 
     inode->ctime = inode->desc->mtime;
     inode->atime = time();
+
+    return inode;
+}
+
+inode_t *new_inode(dev_t dev, idx_t nr)
+{
+    task_t *task = running_task();
+    inode_t *inode = iget(dev, nr);
+    assert(inode->desc->nlinks == 0);
+
+    inode->buf->dirty = true;
+
+    inode->desc->mode = 0777 & (~task->umask);
+    inode->desc->uid = task->uid;
+    inode->desc->size = 0;
+    inode->desc->mtime = inode->atime = time();
+    inode->desc->gid = task->gid;
+    inode->desc->nlinks = 1;
 
     return inode;
 }

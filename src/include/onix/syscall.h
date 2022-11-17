@@ -23,6 +23,7 @@ typedef enum syscall_t
     SYS_NR_UNLINK = 10,
     SYS_NR_CHDIR = 12,
     SYS_NR_TIME = 13,
+    SYS_NR_MKNOD = 14,
     SYS_NR_STAT = 18,
     SYS_NR_LSEEK = 19,
     SYS_NR_GETPID = 20,
@@ -87,6 +88,9 @@ int rmdir(char *pathname);
 int link(char *oldname, char *newname);
 // 删除硬链接（删除文件）
 int unlink(char *filename);
+
+// 创建设备文件
+int mknod(char *filename, int mode, int dev);
 
 time_t time();
 
