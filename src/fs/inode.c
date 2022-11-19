@@ -124,7 +124,7 @@ inode_t *new_inode(dev_t dev, idx_t nr)
 {
     task_t *task = running_task();
     inode_t *inode = iget(dev, nr);
-    assert(inode->desc->nlinks == 0);
+    // assert(inode->desc->nlinks == 0);
 
     inode->buf->dirty = true;
 

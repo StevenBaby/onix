@@ -42,6 +42,7 @@ typedef enum syscall_t
     SYS_NR_GETCWD = 183,
 
     SYS_NR_CLEAR = 200,
+    SYS_NR_MKFS = 201,
 } syscall_t;
 
 u32 test();
@@ -109,5 +110,8 @@ void clear();
 // 获取文件状态
 int stat(char *filename, stat_t *statbuf);
 int fstat(fd_t fd, stat_t *statbuf);
+
+// 格式化文件系统
+int mkfs(char *devname, int icount);
 
 #endif
