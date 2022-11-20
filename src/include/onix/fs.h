@@ -150,4 +150,7 @@ void inode_truncate(inode_t *inode);
 file_t *get_file();
 void put_file(file_t *file);
 
+// 格式化文件系统
+int devmkfs(dev_t dev, u32 icount);
+
 #endif
