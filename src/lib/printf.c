@@ -1,7 +1,7 @@
 /* (C) Copyright 2022 Steven;
-* @author: Steven kangweibaby@163.com
-* @date: 2022-06-28
-*/
+ * @author: Steven kangweibaby@163.com
+ * @date: 2022-06-28
+ */
 
 #include <onix/stdarg.h>
 #include <onix/stdio.h>
@@ -20,7 +20,7 @@ int printf(const char *fmt, ...)
 
     va_end(args);
 
-    write(stdout, buf, i);
+    write(STDOUT_FILENO, buf, i);
 
     return i;
 }
