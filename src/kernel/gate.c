@@ -67,6 +67,10 @@ extern int sys_mknod();
 extern int sys_mount();
 extern int sys_umount();
 
+extern int sys_brk();
+extern int sys_mmap();
+extern int sys_munmap();
+
 extern int sys_mkfs();
 
 void syscall_init()
@@ -89,6 +93,8 @@ void syscall_init()
     syscall_table[SYS_NR_GETPPID] = sys_getppid;
 
     syscall_table[SYS_NR_BRK] = sys_brk;
+    syscall_table[SYS_NR_MMAP] = sys_mmap;
+    syscall_table[SYS_NR_MUNMAP] = sys_munmap;
 
     syscall_table[SYS_NR_READ] = sys_read;
     syscall_table[SYS_NR_WRITE] = sys_write;
