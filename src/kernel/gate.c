@@ -35,6 +35,8 @@ static u32 sys_test()
     return 255;
 }
 
+extern void sys_execve();
+
 extern int sys_read();
 extern int sys_write();
 extern int sys_lseek();
@@ -85,6 +87,8 @@ void syscall_init()
     syscall_table[SYS_NR_EXIT] = task_exit;
     syscall_table[SYS_NR_FORK] = task_fork;
     syscall_table[SYS_NR_WAITPID] = task_waitpid;
+
+    syscall_table[SYS_NR_EXECVE] = sys_execve;
 
     syscall_table[SYS_NR_SLEEP] = task_sleep;
     syscall_table[SYS_NR_YIELD] = task_yield;

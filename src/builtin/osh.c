@@ -452,6 +452,8 @@ static int cmd_parse(char *cmd, char *argv[], char token)
 
 int osh_main()
 {
+    execve("/hello.out", NULL, NULL);
+
     memset(cmd, 0, sizeof(cmd));
     memset(cwd, 0, sizeof(cwd));
 
