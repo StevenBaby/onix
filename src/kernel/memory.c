@@ -11,6 +11,7 @@
 #include <onix/fs.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
+// #define LOGK(fmt, args...)
 
 #define ZONE_VALID 1    // ards 可用内存区域
 #define ZONE_RESERVED 2 // ards 不可用区域
@@ -537,7 +538,7 @@ int32 sys_brk(void *addr)
     task_t *task = running_task();
     assert(task->uid != KERNEL_USER);
 
-    assert(KERNEL_MEMORY_SIZE <= brk && brk < USER_STACK_BOTTOM);
+    assert(task->end <= brk && brk <= USER_MMAP_ADDR);
 
     u32 old_brk = task->brk;
 
@@ -582,8 +583,11 @@ void *sys_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t off
         page_entry_t *entry = get_entry(page, false);
         entry->user = true;
         entry->write = false;
+        entry->readonly = true;
+
         if (prot & PROT_WRITE)
         {
+            entry->readonly = false;
             entry->write = true;
         }
         if (flags & MAP_SHARED)
@@ -662,8 +666,9 @@ void page_fault(
 
         page_entry_t *entry = get_entry(vaddr, false);
 
-        assert(entry->present);
-        assert(!entry->shared);
+        assert(entry->present);   // 目前写内存应该是存在的
+        assert(!entry->shared);   // 共享内存页，不应该引发缺页
+        assert(!entry->readonly); // 只读内存页，不应该被写
 
         assert(memory_map[entry->index] > 0);
         if (memory_map[entry->index] == 1)
