@@ -63,31 +63,10 @@ void builtin_logo()
 
 void builtin_test(int argc, char *argv[])
 {
-    // test();
-    // mkfs("/dev/hdb1", 0);
-
-    u32 status;
-
-    int *counter = (int *)mmap(0, sizeof(int), PROT_WRITE, MAP_SHARED, EOF, 0);
-    pid_t pid = fork();
-
-    if (pid)
+    printf("osh test starting...\n");
+    while (true)
     {
-        // pid_t child = waitpid(pid, &status);
-        // printf("wait pid %d status %d %d\n", child, status, time());
-        while (true)
-        {
-            (*counter)++;
-            sleep(300);
-        }
-    }
-    else
-    {
-        while (true)
-        {
-            printf("counter %d\n", *counter);
-            sleep(100);
-        }
+        test();
     }
 }
 
@@ -479,6 +458,8 @@ static int cmd_parse(char *cmd, char *argv[], char token)
 
 int osh_main()
 {
+    builtin_test(0, NULL);
+
     memset(cmd, 0, sizeof(cmd));
     memset(cwd, 0, sizeof(cwd));
 

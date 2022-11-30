@@ -59,6 +59,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/rtc.o \
 	$(BUILD)/kernel/ramdisk.o \
 	$(BUILD)/kernel/ide.o \
+	$(BUILD)/kernel/serial.o \
 	$(BUILD)/kernel/memory.o \
 	$(BUILD)/kernel/arena.o \
 	$(BUILD)/kernel/keyboard.o \
