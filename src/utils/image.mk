@@ -4,7 +4,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/system.bin \
 	$(BUILD)/system.map \
 	$(SRC)/utils/master.sfdisk \
-	$(BUILD)/builtin/hello.out \
+	$(BUILD)/builtin/env.out \
 
 # 创建一个 16M 的硬盘镜像
 	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
@@ -37,6 +37,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	sudo chown ${USER} /mnt 
 
 # 创建目录
+	mkdir -p /mnt/bin
 	mkdir -p /mnt/dev
 	mkdir -p /mnt/mnt
 
@@ -44,7 +45,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	echo "hello onix!!!, from root direcotry file..." > /mnt/hello.txt
 
 # 拷贝程序
-	cp $(BUILD)/builtin/hello.out /mnt/hello.out
+	cp $(BUILD)/builtin/env.out /mnt/bin
 
 # 卸载文件系统
 	sudo umount /mnt

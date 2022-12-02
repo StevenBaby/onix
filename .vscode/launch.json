@@ -31,6 +31,32 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
+            "name": "onix - Build and debug app",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/builtin/${fileBasenameNoExtension}.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "make: build onix app",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
             "name": "gcc - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",

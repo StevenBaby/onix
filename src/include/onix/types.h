@@ -19,6 +19,12 @@
 #define false 0
 #endif
 
+// 标记弱符号
+#define weak __attribute__((__weak__))
+
+// 标记不会返回的函数
+#define noreturn __attribute__((__noreturn__))
+
 // 用于定义特殊的结构体
 #define _packed __attribute__((packed))
 
