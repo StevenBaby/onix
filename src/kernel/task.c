@@ -465,7 +465,7 @@ void task_exit(int status)
             continue;
         child->ppid = task->ppid;
     }
-    LOGK("task 0x%p exit....\n", task);
+    LOGK("task %s 0x%p exit....\n", task->name, task);
 
     task_t *parent = task_table[task->ppid];
     if (parent->state == TASK_WAITING &&
