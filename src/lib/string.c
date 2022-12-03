@@ -99,10 +99,11 @@ int memcmp(const void *lhs, const void *rhs, size_t count)
 {
     char *lptr = (char *)lhs;
     char *rptr = (char *)rhs;
-    while ((count-- > 0) && *lptr == *rptr)
+    while ((count > 0) && *lptr == *rptr)
     {
         lptr++;
         rptr++;
+        count--;
     }
     if (count == 0)
         return 0;

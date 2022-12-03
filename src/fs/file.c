@@ -206,3 +206,34 @@ int sys_readdir(fd_t fd, dirent_t *dir, u32 count)
 {
     return sys_read(fd, (char *)dir, sizeof(dirent_t));
 }
+
+static int dupfd(fd_t fd, fd_t arg)
+{
+    task_t *task = running_task();
+    if (fd >= TASK_FILE_NR || !task->files[fd])
+        return EOF;
+
+    for (; arg < TASK_FILE_NR; arg++)
+    {
+        if (!task->files[arg])
+            break;
+    }
+
+    if (arg >= TASK_FILE_NR)
+        return EOF;
+
+    task->files[arg] = task->files[fd];
+    task->files[arg]->count++;
+    return arg;
+}
+
+fd_t sys_dup(fd_t oldfd)
+{
+    return dupfd(oldfd, 0);
+}
+
+fd_t sys_dup2(fd_t oldfd, fd_t newfd)
+{
+    close(newfd);
+    return dupfd(oldfd, newfd);
+}

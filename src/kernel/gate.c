@@ -54,6 +54,9 @@ static u32 sys_test()
 
 extern void sys_execve();
 
+extern fd_t sys_dup();
+extern fd_t sys_dup2();
+
 extern int sys_read();
 extern int sys_write();
 extern int sys_lseek();
@@ -116,6 +119,9 @@ void syscall_init()
     syscall_table[SYS_NR_BRK] = sys_brk;
     syscall_table[SYS_NR_MMAP] = sys_mmap;
     syscall_table[SYS_NR_MUNMAP] = sys_munmap;
+
+    syscall_table[SYS_NR_DUP] = sys_dup;
+    syscall_table[SYS_NR_DUP2] = sys_dup2;
 
     syscall_table[SYS_NR_READ] = sys_read;
     syscall_table[SYS_NR_WRITE] = sys_write;

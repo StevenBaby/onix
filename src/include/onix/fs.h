@@ -27,6 +27,8 @@
 #define SEPARATOR2 '\\'                                      // 目录分隔符 2
 #define IS_SEPARATOR(c) (c == SEPARATOR1 || c == SEPARATOR2) // 字符是否位目录分隔符
 
+#define ACC_MODE(x) ("\004\002\006\377"[(x) & O_ACCMODE])
+
 enum file_flag
 {
     O_RDONLY = 00,      // 只读方式

@@ -133,6 +133,16 @@ int munmap(void *addr, size_t length)
     return _syscall2(SYS_NR_MUNMAP, (u32)addr, length);
 }
 
+fd_t dup(fd_t oldfd)
+{
+    return _syscall1(SYS_NR_DUP, oldfd);
+}
+
+fd_t dup2(fd_t oldfd, fd_t newfd)
+{
+    return _syscall2(SYS_NR_DUP2, oldfd, newfd);
+}
+
 fd_t open(char *filename, int flags, int mode)
 {
     return _syscall3(SYS_NR_OPEN, (u32)filename, (u32)flags, (u32)mode);
