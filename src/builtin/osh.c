@@ -19,13 +19,19 @@
 
 static char cwd[MAX_PATH_LEN];
 static char cmd[MAX_CMD_LEN];
-static char *argv[MAX_ARG_NR];
+static char *args[MAX_ARG_NR];
 static char buf[BUFLEN];
 
-static char onix_logo[][52] = {
-    "                                ____       _      \n\t",
-    "                               / __ \\___  (_)_ __ \n\t",
-    "                              / /_/ / _ \\/ /\\ \\ / \n\t",
+static char *envp[] = {
+    "HOME=/",
+    "PATH=/bin",
+    NULL,
+};
+
+static char *onix_logo[] = {
+    "                                ____       _      \n\0",
+    "                               / __ \\___  (_)_ __ \n\0",
+    "                              / /_/ / _ \\/ /\\ \\ / \n\0",
     "                              \\____/_//_/_//_\\_\\  \n\0",
 };
 
@@ -58,7 +64,10 @@ void print_prompt()
 void builtin_logo()
 {
     clear();
-    printf((char *)onix_logo);
+    for (size_t i = 0; i < 4; i++)
+    {
+        printf(onix_logo[i]);
+    }
 }
 
 void builtin_test(int argc, char *argv[])
@@ -285,27 +294,21 @@ void builtin_mkfs(int argc, char *argv[])
     mkfs(argv[1], 0);
 }
 
-void builtin_exec(int argc, char *argv[])
+void builtin_exec(char *filename, int argc, char *argv[])
 {
-    if (argc < 2)
-    {
-        return;
-    }
-
     int status;
     pid_t pid = fork();
     if (pid)
     {
         // printf("fork after parent %d, %d, %d\n", pid, getpid(), getppid());
         pid_t child = waitpid(pid, &status);
-        printf("wait pid %d status %d %d\n", child, status, time());
+        // printf("wait pid %d status %d %d\n", child, status, time());
+        return;
     }
-    else
-    {
-        // execve 除非文件不合法，否则不会返回
-        int i = execve(argv[1], NULL, NULL);
-        exit(i);
-    }
+
+    // execve 函数不会返回，除非出错
+    int i = execve(filename, argv, envp);
+    exit(i);
 }
 
 static void execute(int argc, char *argv[])
@@ -376,11 +379,15 @@ static void execute(int argc, char *argv[])
     {
         return builtin_mkfs(argc, argv);
     }
-    if (!strcmp(line, "exec"))
+
+    stat_t statbuf;
+    sprintf(buf, "/bin/%s.out", argv[0]);
+    if (stat(buf, &statbuf) == EOF)
     {
-        return builtin_exec(argc, argv);
+        printf("osh: command not found: %s\n", argv[0]);
+        return;
     }
-    printf("osh: command not found: %s\n", argv[0]);
+    return builtin_exec(buf, argc - 1, &argv[1]);
 }
 
 void readline(char *buf, u32 count)
@@ -473,12 +480,12 @@ int osh_main()
         {
             continue;
         }
-        int argc = cmd_parse(cmd, argv, ' ');
+        int argc = cmd_parse(cmd, args, ' ');
         if (argc < 0 || argc >= MAX_ARG_NR)
         {
             continue;
         }
-        execute(argc, argv);
+        execute(argc, args);
     }
     return 0;
 }
