@@ -94,6 +94,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/fs/file.o \
 	$(BUILD)/fs/stat.o \
 	$(BUILD)/fs/dev.o \
+	$(BUILD)/fs/pipe.o \
 	$(BUILD)/lib/bitmap.o \
 	$(BUILD)/lib/list.o \
 	$(BUILD)/lib/fifo.o \

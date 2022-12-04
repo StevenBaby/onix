@@ -34,6 +34,7 @@ typedef enum syscall_t
     SYS_NR_MKDIR = 39,
     SYS_NR_RMDIR = 40,
     SYS_NR_DUP = 41,
+    SYS_NR_PIPE = 42,
     SYS_NR_BRK = 45,
     SYS_NR_UMASK = 60,
     SYS_NR_CHROOT = 61,
@@ -95,6 +96,9 @@ void close(fd_t fd);
 // 复制文件描述符
 fd_t dup(fd_t oldfd);
 fd_t dup2(fd_t oldfd, fd_t newfd);
+
+// 创建管道
+int pipe(fd_t pipefd[2]);
 
 // 读文件
 int read(fd_t fd, char *buf, int len);

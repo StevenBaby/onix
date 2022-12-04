@@ -7,8 +7,10 @@
 #include <onix/arena.h>
 #include <onix/string.h>
 #include <onix/stdlib.h>
+#include <onix/memory.h>
 #include <onix/stat.h>
 #include <onix/task.h>
+#include <onix/fifo.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -42,6 +44,42 @@ static void put_free_inode(inode_t *inode)
 inode_t *get_root_inode()
 {
     return inode_table;
+}
+
+// 获取根 inode
+inode_t *get_pipe_inode()
+{
+    inode_t *inode = get_free_inode();
+    // 区别于 EOF 这里是无效的设备，但是被占用了
+    inode->dev = -2;
+    // 申请内存，表示缓冲队列
+    inode->desc = (inode_desc_t *)kmalloc(sizeof(fifo_t));
+    // 管道缓冲区一页内存
+    inode->buf = (void *)alloc_kpage(1);
+    // 两个文件
+    inode->count = 2;
+    // 管道标志
+    inode->pipe = true;
+    // 初始化输入输出设备
+    fifo_init((fifo_t *)inode->desc, (char *)inode->buf, PAGE_SIZE);
+    return inode;
+}
+
+void put_pipe_inode(inode_t *inode)
+{
+    if (!inode)
+        return;
+    inode->count--;
+    if (inode->count)
+        return;
+    inode->pipe = false;
+
+    // 释放描述符 fifo
+    kfree(inode->desc);
+    // 释放缓冲区
+    free_kpage((u32)inode->buf, 1);
+    // 释放 inode
+    put_free_inode(inode);
 }
 
 // 计算 inode nr 对应的块号
@@ -144,6 +182,11 @@ void iput(inode_t *inode)
     if (!inode)
         return;
 
+    if (inode->pipe)
+    {
+        return put_pipe_inode(inode);
+    }
+
     // TODO: need write... ?
     if (inode->buf->dirty)
     {
@@ -173,6 +216,9 @@ void inode_init()
     {
         inode_t *inode = &inode_table[i];
         inode->dev = EOF;
+        inode->pipe = false;
+        inode->rxwaiter = NULL;
+        inode->txwaiter = NULL;
     }
 }
 

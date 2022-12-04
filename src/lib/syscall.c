@@ -143,6 +143,11 @@ fd_t dup2(fd_t oldfd, fd_t newfd)
     return _syscall2(SYS_NR_DUP2, oldfd, newfd);
 }
 
+int pipe(fd_t pipefd[2])
+{
+    return _syscall1(SYS_NR_PIPE, (u32)pipefd);
+}
+
 fd_t open(char *filename, int flags, int mode)
 {
     return _syscall3(SYS_NR_OPEN, (u32)filename, (u32)flags, (u32)mode);
