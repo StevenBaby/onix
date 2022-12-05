@@ -26,33 +26,13 @@ void idle_thread()
     }
 }
 
-static void user_init_thread()
-{
-    while (true)
-    {
-        u32 status;
-        pid_t pid = fork();
-        if (pid)
-        {
-            pid_t child = waitpid(pid, &status);
-            printf("wait pid %d status %d %d\n", child, status, time());
-        }
-        else
-        {
-            int err = execve("/bin/osh.out", NULL, NULL);
-            printf("execve /bin/osh.out error %d\n", err);
-            exit(err);
-        }
-    }
-}
-
 extern void dev_init();
 
 void init_thread()
 {
     char temp[100]; // 为栈顶有足够的空间
     dev_init();
-    task_to_user_mode(user_init_thread);
+    task_to_user_mode();
 }
 
 void test_thread()

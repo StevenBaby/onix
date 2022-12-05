@@ -42,6 +42,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	ld -m elf_i386 -r $^ -o $@
 
 BUILTIN_APPS := \
+	$(BUILD)/builtin/init.out \
 	$(BUILD)/builtin/osh.out \
 	$(BUILD)/builtin/env.out \
 	$(BUILD)/builtin/echo.out \
@@ -104,11 +105,10 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/vsprintf.o \
 	$(BUILD)/lib/stdlib.o \
 	$(BUILD)/lib/syscall.o \
-	$(BUILD)/lib/printf.o \
 
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@
- 
+
 $(BUILD)/system.bin: $(BUILD)/kernel.bin
 	objcopy -O binary $< $@
 

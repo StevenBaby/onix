@@ -299,9 +299,11 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
     return task;
 }
 
+extern int sys_execve();
+
 // 调用该函数的地方不能有任何局部变量
 // 调用前栈顶需要准备足够的空间
-void task_to_user_mode(target_t target)
+void task_to_user_mode()
 {
     task_t *task = running_task();
 
@@ -338,13 +340,12 @@ void task_to_user_mode(target_t target)
 
     iframe->error = ONIX_MAGIC;
 
-    iframe->eip = (u32)target;
+    iframe->eip = 0;
     iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
     iframe->esp = USER_STACK_TOP;
 
-    asm volatile(
-        "movl %0, %%esp\n"
-        "jmp interrupt_exit\n" ::"m"(iframe));
+    int err = sys_execve("/bin/init.out", NULL, NULL);
+    panic("exec /bin/init.out failure");
 }
 
 extern void interrupt_exit();

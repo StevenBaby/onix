@@ -108,7 +108,7 @@ void task_unblock(task_t *task);
 void task_sleep(u32 ms);
 void task_wakeup();
 
-void task_to_user_mode(target_t target);
+void task_to_user_mode();
 
 pid_t sys_getpid();
 pid_t sys_getppid();
