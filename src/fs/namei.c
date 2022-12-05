@@ -31,41 +31,6 @@ bool permission(inode_t *inode, u16 mask)
     return false;
 }
 
-// 获取第一个分隔符
-char *strsep(const char *str)
-{
-    char *ptr = (char *)str;
-    while (true)
-    {
-        if (IS_SEPARATOR(*ptr))
-        {
-            return ptr;
-        }
-        if (*ptr++ == EOS)
-        {
-            return NULL;
-        }
-    }
-}
-
-// 获取最后一个分隔符
-char *strrsep(const char *str)
-{
-    char *last = NULL;
-    char *ptr = (char *)str;
-    while (true)
-    {
-        if (IS_SEPARATOR(*ptr))
-        {
-            last = ptr;
-        }
-        if (*ptr++ == EOS)
-        {
-            return last;
-        }
-    }
-}
-
 // 判断文件名是否相等
 static bool match_name(const char *name, const char *entry_name, char **next)
 {

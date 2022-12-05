@@ -142,3 +142,42 @@ void *memchr(const void *str, int ch, size_t count)
         ptr++;
     }
 }
+
+#define SEPARATOR1 '/'                                       // 目录分隔符 1
+#define SEPARATOR2 '\\'                                      // 目录分隔符 2
+#define IS_SEPARATOR(c) (c == SEPARATOR1 || c == SEPARATOR2) // 字符是否位目录分隔符
+
+// 获取第一个分隔符
+char *strsep(const char *str)
+{
+    char *ptr = (char *)str;
+    while (true)
+    {
+        if (IS_SEPARATOR(*ptr))
+        {
+            return ptr;
+        }
+        if (*ptr++ == EOS)
+        {
+            return NULL;
+        }
+    }
+}
+
+// 获取最后一个分隔符
+char *strrsep(const char *str)
+{
+    char *last = NULL;
+    char *ptr = (char *)str;
+    while (true)
+    {
+        if (IS_SEPARATOR(*ptr))
+        {
+            last = ptr;
+        }
+        if (*ptr++ == EOS)
+        {
+            return last;
+        }
+    }
+}
