@@ -49,6 +49,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/cat.out \
 	$(BUILD)/builtin/ls.out \
 	$(BUILD)/builtin/dup.out \
+	$(BUILD)/builtin/err.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
