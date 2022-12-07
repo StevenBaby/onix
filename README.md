@@ -1,6 +1,6 @@
 # Onix - 操作系统实现
 
-![](./docs/others/images/onix.jpg)
+![](./docs/others/images/snapshot.png)
 
 - [本项目地址](https://github.com/StevenBaby/onix)
 
