@@ -4,7 +4,7 @@
 
 - [本项目地址](https://github.com/StevenBaby/onix)
 
-- [相关 bilibili 视频](https://www.bilibili.com/medialist/play/491131440?from=space&business=space_collection&business_id=146887)
+- [相关 bilibili 视频](https://www.bilibili.com/video/BV1gR4y1u7or/)
 
 - [问题及答案](./docs/others/问题及答案%20(Question%20and%20Answer).md)
 
