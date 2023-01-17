@@ -36,7 +36,7 @@ int atoi(const char *str)
 {
     if (str == NULL)
         return 0;
-    bool sign = 1;
+    int sign = 1;
     int result = 0;
     if (*str == '-')
     {

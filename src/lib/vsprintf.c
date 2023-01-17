@@ -58,10 +58,10 @@ static char *number(char *str, unsigned long num, int base, int size, int precis
     c = (flags & ZEROPAD) ? '0' : ' ';
 
     // 如果 flags 指出是带符号数并且数值 num 小于 0，则置符号变量 sign=负号，并使 num 取绝对值
-    if (flags & SIGN && num < 0)
+    if (flags & SIGN && (long)num < 0)
     {
         sign = '-';
-        num = -num;
+        num = -(long)num;
     }
     else
         // 否则如果 flags 指出是加号，则置 sign=加号，否则若类型带空格标志则 sign=空格，否则置 0
