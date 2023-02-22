@@ -26,6 +26,27 @@ void idle_thread()
     }
 }
 
+extern int main();
+
+int init_user_thread()
+{
+    while (true)
+    {
+        u32 status;
+        pid_t pid = fork();
+        if (pid)
+        {
+            pid_t child = waitpid(pid, &status);
+            printf("wait pid %d status %d %d\n", child, status, time());
+        }
+        else
+        {
+            main();
+        }
+    }
+    return 0;
+}
+
 extern void dev_init();
 
 void init_thread()

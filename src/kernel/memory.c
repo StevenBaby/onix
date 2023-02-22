@@ -14,6 +14,12 @@
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 // #define LOGK(fmt, args...)
 
+#ifdef ONIX_DEBUG
+#define USER_MEMORY true
+#else
+#define USER_MEMORY false
+#endif
+
 #define ZONE_VALID 1    // ards 可用内存区域
 #define ZONE_RESERVED 2 // ards 不可用区域
 
@@ -261,7 +267,7 @@ void mapping_init()
 
         page_entry_t *dentry = &pde[didx];
         entry_init(dentry, IDX((u32)pte));
-        dentry->user = 0; // 只能被内核访问
+        dentry->user = USER_MEMORY; // 只能被内核访问
 
         for (idx_t tidx = 0; tidx < 1024; tidx++, index++)
         {
@@ -271,8 +277,8 @@ void mapping_init()
 
             page_entry_t *tentry = &pte[tidx];
             entry_init(tentry, index);
-            tentry->user = 0;      // 只能被内核访问
-            memory_map[index] = 1; // 设置物理内存数组，该页被占用
+            tentry->user = USER_MEMORY; // 只能被内核访问
+            memory_map[index] = 1;      // 设置物理内存数组，该页被占用
         }
     }
 
