@@ -12,6 +12,7 @@ CFLAGS+= -fno-pie				# 不需要位置无关的可执行程序 position independ
 CFLAGS+= -nostdlib				# 不需要标准库
 CFLAGS+= -fno-stack-protector	# 不需要栈保护
 CFLAGS+= -DONIX					# 定义 ONIX
+CFLAGS+= -DONIX_DEBUG			# 定义 ONIX_DEBUG
 CFLAGS:=$(strip ${CFLAGS})
 
 DEBUG:= -g
@@ -106,6 +107,8 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/vsprintf.o \
 	$(BUILD)/lib/stdlib.o \
 	$(BUILD)/lib/syscall.o \
+	$(BUILD)/lib/printf.o \
+	$(BUILD)/builtin/osh.o \
 
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@

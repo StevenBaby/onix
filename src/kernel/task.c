@@ -300,6 +300,7 @@ static task_t *task_create(target_t target, const char *name, u32 priority, u32 
 }
 
 extern int sys_execve();
+extern int init_user_thread();
 
 // 调用该函数的地方不能有任何局部变量
 // 调用前栈顶需要准备足够的空间
@@ -340,12 +341,20 @@ void task_to_user_mode()
 
     iframe->error = ONIX_MAGIC;
 
-    iframe->eip = 0;
+    iframe->eip = (u32)init_user_thread;
     iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
     iframe->esp = USER_STACK_TOP;
 
+#ifdef ONIX_DEBUG
+    // ROP 技术，直接从中断返回
+    // 通过 eip 跳转到 entry 执行
+    asm volatile(
+        "movl %0, %%esp\n"
+        "jmp interrupt_exit\n" ::"m"(iframe));
+#else
     int err = sys_execve("/bin/init.out", NULL, NULL);
     panic("exec /bin/init.out failure");
+#endif
 }
 
 extern void interrupt_exit();
