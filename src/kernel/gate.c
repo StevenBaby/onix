@@ -81,8 +81,6 @@ extern int sys_unlink();
 extern time_t sys_time();
 extern mode_t sys_umask();
 
-extern void console_clear();
-
 extern int sys_stat();
 extern int sys_fstat();
 
@@ -149,8 +147,6 @@ void syscall_init()
     syscall_table[SYS_NR_CHDIR] = sys_chdir;
     syscall_table[SYS_NR_CHROOT] = sys_chroot;
     syscall_table[SYS_NR_GETCWD] = sys_getcwd;
-
-    syscall_table[SYS_NR_CLEAR] = console_clear;
 
     syscall_table[SYS_NR_STAT] = sys_stat;
     syscall_table[SYS_NR_FSTAT] = sys_fstat;
