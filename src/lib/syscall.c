@@ -243,11 +243,6 @@ mode_t umask(mode_t mask)
     return _syscall1(SYS_NR_UMASK, (u32)mask);
 }
 
-void clear()
-{
-    _syscall0(SYS_NR_CLEAR);
-}
-
 int stat(char *filename, stat_t *statbuf)
 {
     return _syscall2(SYS_NR_STAT, (u32)filename, (u32)statbuf);
