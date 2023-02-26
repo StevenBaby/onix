@@ -359,7 +359,7 @@ void keyboard_handler(int vector)
 
     // 计算 shift 状态
     bool shift = false;
-    if (capslock_state && ('a' <= keymap[makecode][0] <= 'z'))
+    if (capslock_state && ('a' <= keymap[makecode][0] && keymap[makecode][0] <= 'z'))
     {
         shift = !shift;
     }
