@@ -18,6 +18,7 @@ typedef struct arena_descriptor_t
 {
     u32 total_block;  // 一页内存分成了多少块
     u32 block_size;   // 块大小
+    int page_count;   // 空闲页数量
     list_t free_list; // 空闲列表
 } arena_descriptor_t;
 
