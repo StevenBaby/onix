@@ -102,8 +102,8 @@ pid_t task_fork();
 pid_t task_waitpid(pid_t pid, int32 *status);
 
 void task_yield();
-void task_block(task_t *task, list_t *blist, task_state_t state);
-void task_unblock(task_t *task);
+int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms);
+void task_unblock(task_t *task, int reason);
 
 void task_sleep(u32 ms);
 void task_wakeup();

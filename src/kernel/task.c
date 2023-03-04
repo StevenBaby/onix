@@ -11,6 +11,7 @@
 #include <onix/global.h>
 #include <onix/arena.h>
 #include <onix/fs.h>
+#include <onix/errno.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -116,8 +117,15 @@ void task_yield()
     schedule();
 }
 
+void task_timeout(task_t *task)
+{
+    bool intr = interrupt_disable();
+    task_unblock(task, -ETIME);
+    set_interrupt_state(intr);
+}
+
 // 任务阻塞
-void task_block(task_t *task, list_t *blist, task_state_t state)
+int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
 {
     assert(!get_interrupt_state());
     assert(task->node.next == NULL);
@@ -139,10 +147,12 @@ void task_block(task_t *task, list_t *blist, task_state_t state)
     {
         schedule();
     }
+
+    return task->status;
 }
 
 // 解除任务阻塞
-void task_unblock(task_t *task)
+void task_unblock(task_t *task, int reason)
 {
     assert(!get_interrupt_state());
 
@@ -151,6 +161,7 @@ void task_unblock(task_t *task)
     assert(task->node.next == NULL);
     assert(task->node.prev == NULL);
 
+    task->status = reason;
     task->state = TASK_READY;
 }
 
@@ -193,7 +204,7 @@ void task_wakeup()
         ptr = ptr->next;
 
         task->ticks = 0;
-        task_unblock(task);
+        task_unblock(task, EOK);
     }
 }
 
@@ -479,7 +490,7 @@ void task_exit(int status)
     if (parent->state == TASK_WAITING &&
         (parent->waitpid == -1 || parent->waitpid == task->pid))
     {
-        task_unblock(parent);
+        task_unblock(parent, EOK);
     }
 
     schedule();
@@ -516,7 +527,7 @@ pid_t task_waitpid(pid_t pid, int32 *status)
         if (has_child)
         {
             task->waitpid = pid;
-            task_block(task, NULL, TASK_WAITING);
+            task_block(task, NULL, TASK_WAITING, TIMELESS);
             continue;
         }
         break;
