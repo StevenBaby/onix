@@ -9,6 +9,7 @@
 #include <onix/assert.h>
 #include <onix/debug.h>
 #include <onix/device.h>
+#include <onix/errno.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -128,7 +129,7 @@ static void ide_handler(int vector)
     if (ctrl->waiter)
     {
         // 如果有进程阻塞，则取消阻塞
-        task_unblock(ctrl->waiter);
+        task_unblock(ctrl->waiter, EOK);
         ctrl->waiter = NULL;
     }
 }
@@ -273,7 +274,7 @@ int ide_pio_read(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
         {
             // 阻塞自己等待中断的到来，等待磁盘准备数据
             ctrl->waiter = task;
-            task_block(task, NULL, TASK_BLOCKED);
+            task_block(task, NULL, TASK_BLOCKED, TIMELESS);
         }
 
         ide_busy_wait(ctrl, IDE_SR_DRQ);
@@ -320,7 +321,7 @@ int ide_pio_write(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
         {
             // 阻塞自己等待磁盘写数据完成
             ctrl->waiter = task;
-            task_block(task, NULL, TASK_BLOCKED);
+            task_block(task, NULL, TASK_BLOCKED, TIMELESS);
         }
         ide_busy_wait(ctrl, IDE_SR_NULL);
     }
