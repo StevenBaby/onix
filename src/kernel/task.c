@@ -12,6 +12,7 @@
 #include <onix/arena.h>
 #include <onix/fs.h>
 #include <onix/errno.h>
+#include <onix/timer.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -117,13 +118,6 @@ void task_yield()
     schedule();
 }
 
-void task_timeout(task_t *task)
-{
-    bool intr = interrupt_disable();
-    task_unblock(task, -ETIME);
-    set_interrupt_state(intr);
-}
-
 // 任务阻塞
 int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
 {
@@ -136,9 +130,13 @@ int task_block(task_t *task, list_t *blist, task_state_t state, int timeout_ms)
         blist = &block_list;
     }
 
-    list_push(blist, &task->node);
-
     assert(state != TASK_READY && state != TASK_RUNNING);
+
+    list_push(blist, &task->node);
+    if (timeout_ms > 0)
+    {
+        timer_add(timeout_ms, NULL, NULL);
+    }
 
     task->state = state;
 
@@ -169,43 +167,9 @@ void task_sleep(u32 ms)
 {
     assert(!get_interrupt_state()); // 不可中断
 
-    u32 ticks = ms / jiffy;        // 需要睡眠的时间片
-    ticks = ticks > 0 ? ticks : 1; // 至少休眠一个时间片
+    task_t *task = running_task();
 
-    // 记录目标全局时间片，在那个时刻需要唤醒任务
-    task_t *current = running_task();
-    current->ticks = jiffies + ticks;
-
-    // 从睡眠链表找到第一个比当前任务唤醒时间点更晚的任务，进行插入排序
-    list_insert_sort(&sleep_list, &current->node, element_node_offset(task_t, node, ticks));
-
-    // 阻塞状态是睡眠
-    current->state = TASK_SLEEPING;
-
-    // 调度执行其他任务
-    schedule();
-}
-
-void task_wakeup()
-{
-    assert(!get_interrupt_state()); // 不可中断
-
-    // 从睡眠链表中找到 ticks 小于等于 jiffies 的任务，恢复执行
-    list_t *list = &sleep_list;
-    for (list_node_t *ptr = list->head.next; ptr != &list->tail;)
-    {
-        task_t *task = element_entry(task_t, node, ptr);
-        if (task->ticks > jiffies)
-        {
-            break;
-        }
-
-        // unblock 会将指针清空
-        ptr = ptr->next;
-
-        task->ticks = 0;
-        task_unblock(task, EOK);
-    }
+    task_block(task, &sleep_list, TASK_SLEEPING, ms);
 }
 
 // 激活任务
@@ -454,6 +418,8 @@ void task_exit(int status)
 
     task->state = TASK_DIED;
     task->status = status;
+
+    timer_remove(task);
 
     free_pde();
 

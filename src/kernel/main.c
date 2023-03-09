@@ -9,6 +9,7 @@ extern void mapping_init();
 extern void arena_init();
 extern void interrupt_init();
 extern void clock_init();
+extern void timer_init();
 extern void time_init();
 extern void rtc_init();
 extern void keyboard_init();
@@ -33,6 +34,7 @@ void kernel_init()
 
     interrupt_init();
     clock_init();
+    timer_init();
     keyboard_init();
     time_init();
     serial_init();
