@@ -51,6 +51,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/ls.out \
 	$(BUILD)/builtin/dup.out \
 	$(BUILD)/builtin/err.out \
+	$(BUILD)/builtin/count.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
@@ -81,6 +82,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/interrupt.o \
 	$(BUILD)/kernel/handler.o \
 	$(BUILD)/kernel/clock.o \
+	$(BUILD)/kernel/timer.o \
 	$(BUILD)/kernel/time.o \
 	$(BUILD)/kernel/rtc.o \
 	$(BUILD)/kernel/ramdisk.o \

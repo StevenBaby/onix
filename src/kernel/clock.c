@@ -3,6 +3,7 @@
 #include <onix/assert.h>
 #include <onix/debug.h>
 #include <onix/task.h>
+#include <onix/timer.h>
 
 #define PIT_CHAN0_REG 0X40
 #define PIT_CHAN2_REG 0X42
@@ -16,42 +17,36 @@
 #define SPEAKER_REG 0x61
 #define BEEP_HZ 440
 #define BEEP_COUNTER (OSCILLATOR / BEEP_HZ)
+#define BEEP_MS 100
 
 u32 volatile jiffies = 0;
 u32 jiffy = JIFFY;
 
-u32 volatile beeping = 0;
+bool volatile beeping = 0;
 
 void start_beep()
 {
     if (!beeping)
     {
         outb(SPEAKER_REG, inb(SPEAKER_REG) | 0b11);
-    }
-    beeping = jiffies + 5;
-}
+        beeping = true;
 
-void stop_beep()
-{
-    if (beeping && jiffies > beeping)
-    {
+        task_sleep(BEEP_MS);
+
         outb(SPEAKER_REG, inb(SPEAKER_REG) & 0xfc);
-        beeping = 0;
+        beeping = false;
     }
 }
-
-extern void task_wakeup();
 
 void clock_handler(int vector)
 {
     assert(vector == 0x20);
     send_eoi(vector); // 发送中断处理结束
 
-    stop_beep();   // 检测并停止蜂鸣器
-    task_wakeup(); // 唤醒睡眠结束的任务
-
     jiffies++;
     // DEBUGK("clock jiffies %d ...\n", jiffies);
+
+    timer_wakeup();
 
     task_t *task = running_task();
     assert(task->magic == ONIX_MAGIC);
