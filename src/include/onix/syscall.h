@@ -36,10 +36,13 @@ typedef enum syscall_t
     SYS_NR_DUP = 41,
     SYS_NR_PIPE = 42,
     SYS_NR_BRK = 45,
+    SYS_NR_SETPGID = 57,
     SYS_NR_UMASK = 60,
     SYS_NR_CHROOT = 61,
     SYS_NR_DUP2 = 63,
     SYS_NR_GETPPID = 64,
+    SYS_NR_GETPGRP = 65,
+    SYS_NR_SETSID = 66,
     SYS_NR_READDIR = 89,
     SYS_NR_MMAP = 90,
     SYS_NR_MUNMAP = 91,
@@ -80,6 +83,14 @@ void sleep(u32 ms);
 
 pid_t getpid();
 pid_t getppid();
+
+// 设置进程组
+pid_t setpgrp();
+int setpgid(int pid, int pgid);
+// 获得进程组
+pid_t getpgrp();
+// 设置会话
+pid_t setsid();
 
 int brk(void *addr);
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);

@@ -7,6 +7,7 @@
 #define KERNEL_USER 0
 #define NORMAL_USER 1000
 
+#define TASK_NR 64
 #define TASK_NAME_LEN 16
 #define TASK_FILE_NR 16 // 进程文件数量
 
@@ -36,6 +37,8 @@ typedef struct task_t
     u32 gid;                            // 用户组 id
     pid_t pid;                          // 任务 id
     pid_t ppid;                         // 父任务 id
+    pid_t pgid;                         // 进程组
+    pid_t sid;                          // 进程会话
     u32 pde;                            // 页目录物理地址
     struct bitmap_t *vmap;              // 进程虚拟内存位图
     u32 text;                           // 代码段地址
@@ -115,5 +118,7 @@ pid_t sys_getppid();
 
 fd_t task_get_fd(task_t *task);
 void task_put_fd(task_t *task, fd_t fd);
+
+bool task_leader(task_t *task);
 
 #endif
