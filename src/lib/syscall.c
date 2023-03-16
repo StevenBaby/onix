@@ -118,6 +118,26 @@ pid_t getppid()
     return _syscall0(SYS_NR_GETPPID);
 }
 
+int setpgid(int pid, int pgid)
+{
+    return _syscall2(SYS_NR_SETPGID, pid, pgid);
+}
+
+pid_t setpgrp()
+{
+    setpgid(0, 0);
+}
+
+int getpgrp()
+{
+    return _syscall0(SYS_NR_GETPGRP);
+}
+
+int setsid()
+{
+    return _syscall0(SYS_NR_SETSID);
+}
+
 int32 brk(void *addr)
 {
     return _syscall1(SYS_NR_BRK, (u32)addr);
