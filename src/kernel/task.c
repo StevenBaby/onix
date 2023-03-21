@@ -13,6 +13,8 @@
 #include <onix/fs.h>
 #include <onix/errno.h>
 #include <onix/timer.h>
+#include <onix/device.h>
+#include <onix/tty.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -428,6 +430,14 @@ void task_exit(int status)
     if (task_leader(task))
     {
         // TODO: kill session
+    }
+
+    // 释放 TTY 设备
+    if (task_leader(task) && task->tty > 0)
+    {
+        device_t *device = device_get(task->tty);
+        tty_t *tty = (tty_t *)device->ptr;
+        tty->pgid = 0;
     }
 
     timer_remove(task);

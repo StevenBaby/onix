@@ -4,6 +4,7 @@
 #include <onix/types.h>
 #include <onix/list.h>
 
+#define DEVICE_NR 64 // 设备数量
 #define NAMELEN 16
 
 // 设备类型
@@ -20,6 +21,7 @@ enum device_subtype_t
     DEV_CONSOLE = 1, // 控制台
     DEV_KEYBOARD,    // 键盘
     DEV_SERIAL,      // 串口
+    DEV_TTY,         // TTY 设备
     DEV_IDE_DISK,    // IDE 磁盘
     DEV_IDE_PART,    // IDE 磁盘分区
     DEV_RAMDISK,     // 虚拟磁盘

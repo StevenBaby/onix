@@ -11,6 +11,7 @@
 #include <onix/fs.h>
 #include <onix/stat.h>
 #include <onix/time.h>
+#include <onix/tty.h>
 
 #define MAX_CMD_LEN 256
 #define MAX_ARG_NR 16
@@ -309,6 +310,11 @@ pid_t builtin_command(char *filename, char *argv[], fd_t infd, fd_t outfd, fd_t 
 
     // 设置进程组 pgid
     setpgid(0, *pgid);
+    if (*pgid == 0)
+    {
+        // 设置 TTY 前台进程组为第一个进程
+        ioctl(STDIN_FILENO, TIOCSPGRP, getpid());
+    }
 
     int i = execve(filename, argv, envp);
     exit(i);
@@ -366,11 +372,18 @@ void builtin_exec(int argc, char *argv[])
     }
 
     int pid = builtin_command(name, bargv, infd, dupfd[1], dupfd[2], &pgid);
-    for (size_t i = 0; i <= count; i++)
+
+    // 等待所有子进程运行结束
+    for (size_t i = 0; i <= count;)
     {
         pid_t child = waitpid(-1, &status);
+        if (child > 0)
+            i++;
         // printf("child %d exit\n", child);
     }
+
+    // 设置 TTY 进程组为 osh
+    ioctl(STDIN_FILENO, TIOCSPGRP, getpid());
 }
 
 static void execute(int argc, char *argv[])
@@ -455,8 +468,8 @@ void readline(char *buf, u32 count)
         {
         case '\n':
         case '\r':
+            ch = *ptr;
             *ptr = 0;
-            ch = '\n';
             write(STDOUT_FILENO, &ch, 1);
             return;
         case '\b':
@@ -532,7 +545,10 @@ static int cmd_parse(char *cmd, char *argv[])
 
 int main()
 {
+    // 新建会话
     setsid();
+    // 设置 TTY 进程组为 osh
+    ioctl(STDIN_FILENO, TIOCSPGRP, getpid());
 
     memset(cmd, 0, sizeof(cmd));
     memset(cwd, 0, sizeof(cwd));

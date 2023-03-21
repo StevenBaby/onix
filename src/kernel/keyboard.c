@@ -278,6 +278,8 @@ static void set_leds()
     keyboard_ack();
 }
 
+extern int tty_rx_notify();
+
 void keyboard_handler(int vector)
 {
     assert(vector == 0x21);
@@ -385,6 +387,11 @@ void keyboard_handler(int vector)
         return;
 
     // LOGK("keydown %c \n", ch);
+
+    // 通知 tty 设备处理输入字符
+    if (tty_rx_notify(&ch, ctrl_state, shift_state, alt_state) > 0)
+        return;
+
     fifo_put(&fifo, ch);
     if (waiter != NULL)
     {
@@ -402,7 +409,7 @@ u32 keyboard_read(void *dev, char *buf, u32 count)
         while (fifo_empty(&fifo))
         {
             waiter = running_task();
-            task_block(waiter, NULL, TASK_WAITING, TIMELESS);
+            task_block(waiter, NULL, TASK_BLOCKED, TIMELESS);
         }
         buf[nr++] = fifo_get(&fifo);
     }
