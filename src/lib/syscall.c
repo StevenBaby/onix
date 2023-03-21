@@ -138,6 +138,21 @@ int setsid()
     return _syscall0(SYS_NR_SETSID);
 }
 
+int stty()
+{
+    return _syscall0(SYS_NR_STTY);
+}
+
+int gtty()
+{
+    return _syscall0(SYS_NR_GTTY);
+}
+
+int ioctl(fd_t fd, int cmd, int args)
+{
+    return _syscall3(SYS_NR_IOCTL, fd, cmd, args);
+}
+
 int32 brk(void *addr)
 {
     return _syscall1(SYS_NR_BRK, (u32)addr);

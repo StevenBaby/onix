@@ -8,8 +8,6 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-#define DEVICE_NR 64 // 设备数量
-
 static device_t devices[DEVICE_NR]; // 设备数组
 
 // 获取空设备

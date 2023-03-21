@@ -31,11 +31,14 @@ typedef enum syscall_t
     SYS_NR_MOUNT = 21,
     SYS_NR_UMOUNT = 22,
     SYS_NR_FSTAT = 28,
+    SYS_NR_STTY = 31,
+    SYS_NR_GTTY = 32,
     SYS_NR_MKDIR = 39,
     SYS_NR_RMDIR = 40,
     SYS_NR_DUP = 41,
     SYS_NR_PIPE = 42,
     SYS_NR_BRK = 45,
+    SYS_NR_IOCTL = 54,
     SYS_NR_SETPGID = 57,
     SYS_NR_UMASK = 60,
     SYS_NR_CHROOT = 61,
@@ -91,6 +94,14 @@ int setpgid(int pid, int pgid);
 pid_t getpgrp();
 // 设置会话
 pid_t setsid();
+
+// 终端设置
+int stty();
+// 获取终端设置信息
+int gtty();
+
+// 操作 IO 设备
+int ioctl(fd_t fd, int cmd, int args);
 
 int brk(void *addr);
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
