@@ -39,6 +39,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/printf.o \
 	$(BUILD)/lib/assert.o \
 	$(BUILD)/lib/time.o \
+	$(BUILD)/lib/restorer.o \
 
 	ld -m elf_i386 -r $^ -o $@
 
@@ -49,6 +50,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/echo.out \
 	$(BUILD)/builtin/cat.out \
 	$(BUILD)/builtin/ls.out \
+	$(BUILD)/builtin/kill.out \
 	$(BUILD)/builtin/dup.out \
 	$(BUILD)/builtin/err.out \
 	$(BUILD)/builtin/count.out \
@@ -95,6 +97,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/buffer.o \
 	$(BUILD)/kernel/system.o \
 	$(BUILD)/kernel/execve.o \
+	$(BUILD)/kernel/signal.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \
@@ -113,6 +116,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/syscall.o \
 	$(BUILD)/lib/printf.o \
 	$(BUILD)/builtin/osh.o \
+	$(BUILD)/lib/restorer.o \
 
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@

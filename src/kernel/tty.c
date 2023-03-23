@@ -6,10 +6,32 @@
 #include <onix/mutex.h>
 #include <onix/debug.h>
 #include <onix/errno.h>
+#include <onix/syscall.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
+extern task_t *task_table[TASK_NR]; // 任务表
 static tty_t typewriter;
+
+// 向前台组进程发送 SIGINT 信号
+int tty_intr()
+{
+    tty_t *tty = &typewriter;
+    if (!tty->pgid)
+    {
+        return 0;
+    }
+    for (size_t i = 0; i < TASK_NR; i++)
+    {
+        task_t *task = task_table[i];
+        if (!task)
+            continue;
+        if (task->pgid != tty->pgid)
+            continue;
+        kill(task->pid, SIGINT);
+    }
+    return 0;
+}
 
 int tty_rx_notify(char *ch, bool ctrl, bool shift, bool alt)
 {
@@ -30,7 +52,9 @@ int tty_rx_notify(char *ch, bool ctrl, bool shift, bool alt)
     case 'c':
     case 'C':
         LOGK("CTRL + C Pressed\n");
-        break;
+        tty_intr();
+        *ch = '\n';
+        return 0;
     case 'l':
     case 'L':
         // 清屏
