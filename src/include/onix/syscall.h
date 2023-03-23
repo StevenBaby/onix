@@ -33,11 +33,13 @@ typedef enum syscall_t
     SYS_NR_FSTAT = 28,
     SYS_NR_STTY = 31,
     SYS_NR_GTTY = 32,
+    SYS_NR_KILL = 37,
     SYS_NR_MKDIR = 39,
     SYS_NR_RMDIR = 40,
     SYS_NR_DUP = 41,
     SYS_NR_PIPE = 42,
     SYS_NR_BRK = 45,
+    SYS_NR_SIGNAL = 48,
     SYS_NR_IOCTL = 54,
     SYS_NR_SETPGID = 57,
     SYS_NR_UMASK = 60,
@@ -46,6 +48,9 @@ typedef enum syscall_t
     SYS_NR_GETPPID = 64,
     SYS_NR_GETPGRP = 65,
     SYS_NR_SETSID = 66,
+    SYS_NR_SIGACTION = 67,
+    SYS_NR_SGETMASK = 68,
+    SYS_NR_SSETMASK = 69,
     SYS_NR_READDIR = 89,
     SYS_NR_MMAP = 90,
     SYS_NR_MUNMAP = 91,
@@ -165,5 +170,11 @@ int fstat(fd_t fd, stat_t *statbuf);
 
 // 格式化文件系统
 int mkfs(char *devname, int icount);
+
+int stty();
+int gtty();
+
+// 发送信号
+int kill(pid_t pid, int signal);
 
 #endif

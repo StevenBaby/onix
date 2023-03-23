@@ -2,6 +2,7 @@
 ; 中断处理函数入口 
 
 extern handler_table
+extern task_signal
 
 section .text
 
@@ -38,6 +39,9 @@ interrupt_exit:
 
     ; 对应 push eax，调用结束恢复栈
     add esp, 4
+
+    ; 调用信号处理函数
+    call task_signal
 
     ; 恢复下文寄存器信息
     popa
