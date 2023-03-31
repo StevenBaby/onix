@@ -27,7 +27,6 @@ static list_t hash_table[HASH_COUNT]; // 缓存哈希表
 // 哈希函数
 u32 hash(dev_t dev, idx_t block)
 {
-    // https://www.zhihu.com/question/20806796/answer/159392465
     return (dev ^ block) % HASH_COUNT;
 }
 
