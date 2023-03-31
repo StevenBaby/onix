@@ -29,8 +29,8 @@
 #define ISCHR(m) (((m)&IFMT) == IFCHR)   // 是字符设备文件
 #define ISBLK(m) (((m)&IFMT) == IFBLK)   // 是块设备文件
 #define ISFIFO(m) (((m)&IFMT) == IFIFO)  // 是 FIFO 特殊文件
-#define ISLNK(m) (((m)&IFMT) == ISLNK)   // 是符号连接文件
-#define ISSOCK(m) (((m)&IFMT) == ISSOCK) // 是套接字文件
+#define ISLNK(m) (((m)&IFMT) == IFLNK)   // 是符号连接文件
+#define ISSOCK(m) (((m)&IFMT) == IFSOCK) // 是套接字文件
 #define ISFILE(m) ISREG(m)               // 更直观的一个宏
 
 // 文件访问权限
