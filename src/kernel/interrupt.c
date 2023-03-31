@@ -148,7 +148,7 @@ void exception_handler(
         message = messages[15];
     }
 
-    printk("\nEXCEPTION : %s \n", messages[vector]);
+    printk("\nEXCEPTION : %s \n", message);
     printk("   VECTOR : 0x%02X\n", vector);
     printk("    ERROR : 0x%08X\n", error);
     printk("   EFLAGS : 0x%08X\n", eflags);
