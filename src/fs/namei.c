@@ -6,7 +6,6 @@
 #include <onix/task.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
-#include <onix/stat.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
