@@ -107,6 +107,8 @@ extern int sys_sgetmask();
 extern int sys_ssetmask();
 extern int sys_sigaction();
 
+extern int sys_alarm();
+
 extern int sys_mkfs();
 
 void syscall_init()
@@ -184,4 +186,5 @@ void syscall_init()
     syscall_table[SYS_NR_SGETMASK] = sys_sgetmask;
     syscall_table[SYS_NR_SSETMASK] = sys_ssetmask;
     syscall_table[SYS_NR_SIGACTION] = sys_sigaction;
+    syscall_table[SYS_NR_ALARM] = sys_alarm;
 }

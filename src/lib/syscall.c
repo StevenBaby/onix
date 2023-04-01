@@ -104,6 +104,11 @@ int kill(pid_t pid, int signal)
     return _syscall2(SYS_NR_KILL, pid, signal);
 }
 
+int alarm(int sec)
+{
+    return _syscall1(SYS_NR_ALARM, sec);
+}
+
 void yield()
 {
     _syscall0(SYS_NR_YIELD);
