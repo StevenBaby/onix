@@ -57,6 +57,7 @@ typedef struct task_t
     struct file_t *files[TASK_FILE_NR]; // 进程文件表
     u32 signal;                         // 进程信号位图
     u32 blocked;                        // 进程信号屏蔽位图
+    struct timer_t *alarm;              // 闹钟定时器
     sigaction_t actions[MAXSIG];        // 信号处理函数
     u32 magic;                          // 内核魔数，用于检测栈溢出
 } task_t;

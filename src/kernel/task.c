@@ -172,7 +172,10 @@ void task_unblock(task_t *task, int reason)
 {
     assert(!get_interrupt_state());
 
-    list_remove(&task->node);
+    if (task->node.next)
+    {
+        list_remove(&task->node);
+    }
 
     assert(task->node.next == NULL);
     assert(task->node.prev == NULL);

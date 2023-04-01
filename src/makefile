@@ -54,6 +54,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/dup.out \
 	$(BUILD)/builtin/err.out \
 	$(BUILD)/builtin/count.out \
+	$(BUILD)/builtin/alarm.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
@@ -98,6 +99,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/system.o \
 	$(BUILD)/kernel/execve.o \
 	$(BUILD)/kernel/signal.o \
+	$(BUILD)/kernel/alarm.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \
