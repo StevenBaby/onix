@@ -53,6 +53,9 @@ void init_thread()
 {
     char temp[100]; // 为栈顶有足够的空间
     dev_init();
+
+    asm volatile("ud2\n"); // 假设我们的程序在这里发生了错误
+
     task_to_user_mode();
 }
 
