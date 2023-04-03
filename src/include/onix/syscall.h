@@ -58,7 +58,7 @@ typedef enum syscall_t
     SYS_NR_YIELD = 158,
     SYS_NR_SLEEP = 162,
     SYS_NR_GETCWD = 183,
-    SYS_NR_SHUTDOWN = 184,
+    SYS_NR_SHUTDOWN = 373, // 来自 <asm/unistd_32.h>
 
     SYS_NR_MKFS = 200,
 } syscall_t;

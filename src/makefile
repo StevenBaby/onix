@@ -18,19 +18,23 @@ CFLAGS:=$(strip ${CFLAGS})
 DEBUG:= -g
 INCLUDE:=-I$(SRC)/include
 
-TOOL_PREFIX := x86_64-linux-gnu-
+NASM:=nasm
+GCC:=gcc
+LD:=ld
+OBJCOPY:=objcopy
+NM:=nm
 
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(dir $@))
-	nasm -f bin $< -o $@
+	$(NASM) -f bin $< -o $@
 
 $(BUILD)/%.o: $(SRC)/%.asm
 	$(shell mkdir -p $(dir $@))
-	nasm -f elf32 $(DEBUG) $< -o $@
+	$(NASM) -f elf32 $(DEBUG) $< -o $@
 
 $(BUILD)/%.o: $(SRC)/%.c
 	$(shell mkdir -p $(dir $@))
-	$(TOOL_PREFIX)gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
+	$(GCC) $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
 $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/crt1.o \
@@ -43,7 +47,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/time.o \
 	$(BUILD)/lib/restorer.o \
 
-	$(TOOL_PREFIX)ld -m elf_i386 -r $^ -o $@
+	$(LD) -m elf_i386 -r $^ -o $@
 
 BUILTIN_APPS := \
 	$(BUILD)/builtin/init.out \
@@ -61,7 +65,7 @@ BUILTIN_APPS := \
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
 	
-	$(TOOL_PREFIX)ld -m elf_i386 -static $^ -o $@ -Ttext 0x1001000
+	$(LD) -m elf_i386 -static $^ -o $@ -Ttext 0x1001000
 
 LDFLAGS:= -m elf_i386 \
 		-static \
@@ -124,13 +128,13 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/restorer.o \
 
 	$(shell mkdir -p $(dir $@))
-	$(TOOL_PREFIX)ld ${LDFLAGS} $^ -o $@
+	$(LD) ${LDFLAGS} $^ -o $@
 
 $(BUILD)/system.bin: $(BUILD)/kernel.bin
-	$(TOOL_PREFIX)objcopy -O binary $< $@
+	$(OBJCOPY) -O binary $< $@
 
 $(BUILD)/system.map: $(BUILD)/kernel.bin
-	$(TOOL_PREFIX)nm $< | sort > $@
+	$(NM) $< | sort > $@
 
 include utils/image.mk
 include utils/cdrom.mk

@@ -10,9 +10,11 @@
 *.lock
 *.vmdk
 *.log
+*.pyc
 
 build
 bochs/src
 bochs/pkg
 
 .DS_Store
+__pycache__

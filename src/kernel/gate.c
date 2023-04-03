@@ -12,7 +12,7 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-#define SYSCALL_SIZE 256
+#define SYSCALL_SIZE 512
 
 handler_t syscall_table[SYSCALL_SIZE];
 
@@ -111,7 +111,7 @@ extern int sys_alarm();
 
 extern int sys_mkfs();
 
-extern void acpi_shutdown();
+extern void sys_shutdown();
 
 void syscall_init()
 {
@@ -190,5 +190,5 @@ void syscall_init()
     syscall_table[SYS_NR_SIGACTION] = sys_sigaction;
     syscall_table[SYS_NR_ALARM] = sys_alarm;
 
-    syscall_table[SYS_NR_SHUTDOWN] = acpi_shutdown;
+    syscall_table[SYS_NR_SHUTDOWN] = sys_shutdown;
 }

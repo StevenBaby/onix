@@ -328,5 +328,5 @@ int sigaction(int sig, sigaction_t *action, sigaction_t *oldaction)
 
 void shutdown()
 {
-    return _syscall0(SYS_NR_SHUTDOWN);
+    _syscall0(SYS_NR_SHUTDOWN);
 }

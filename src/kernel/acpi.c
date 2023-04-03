@@ -2,6 +2,7 @@
 #include <onix/acpi.h>
 #include <onix/string.h>
 #include <onix/debug.h>
+#include <onix/io.h>
 
 u32 *SMI_CMD;
 u8 ACPI_ENABLE;
@@ -15,7 +16,7 @@ u16 SCI_EN;
 u8 PM1_CNT_LEN;
 
 // check if the given address has a valid header
-unsigned int *acpi_check_RSDPtr(unsigned int *ptr)
+u32 *acpi_check_RSDPtr(u32 *ptr)
 {
     char *sig = "RSD PTR ";
     struct RSDPtr *rsdp = (struct RSDPtr *)ptr;
@@ -36,7 +37,7 @@ unsigned int *acpi_check_RSDPtr(unsigned int *ptr)
         // found valid rsdpd
         if (check == 0)
         {
-            return (unsigned int *)rsdp->RsdtAddress;
+            return (u32 *)rsdp->RsdtAddress;
         }
     }
 
@@ -44,13 +45,13 @@ unsigned int *acpi_check_RSDPtr(unsigned int *ptr)
 }
 
 // finds the acpi header and returns the address of the rsdt
-unsigned int *acpi_get_RSDPtr(void)
+u32 *acpi_get_RSDPtr(void)
 {
-    unsigned int *addr;
-    unsigned int *rsdp;
+    u32 *addr;
+    u32 *rsdp;
 
     // search below the 1mb mark for RSDP signature
-    for (addr = (unsigned int *)0x000E0000; (int)addr < 0x00100000; addr += 0x10 / sizeof(addr))
+    for (addr = (u32 *)0x000E0000; (int)addr < 0x00100000; addr += 0x10 / sizeof(addr))
     {
         rsdp = acpi_check_RSDPtr(addr);
         if (rsdp != NULL)
@@ -62,7 +63,7 @@ unsigned int *acpi_get_RSDPtr(void)
     ebda = ebda * 0x10 & 0x000FFFFF; // transform segment into linear address
 
     // search Extended BIOS Data Area for the Root System Description Pointer signature
-    for (addr = (unsigned int *)ebda; (int)addr < ebda + 1024; addr += 0x10 / sizeof(addr))
+    for (addr = (u32 *)ebda; (int)addr < ebda + 1024; addr += 0x10 / sizeof(addr))
     {
         rsdp = acpi_check_RSDPtr(addr);
         if (rsdp != NULL)
@@ -75,20 +76,20 @@ unsigned int *acpi_get_RSDPtr(void)
 int acpi_enable(void)
 {
     // check if acpi is enabled
-    if ((inw((unsigned int)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
+    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
     {
         // check if acpi can be enabled
-        outb((unsigned int)SMI_CMD, ACPI_ENABLE); // send acpi enable command
+        outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
         // give 3 seconds time to enable acpi
         int i;
         for (i = 0; i < 300; i++)
-            if ((inw((unsigned int)PM1a_CNT) & SCI_EN) == 1)
+            if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
                 break;
 
         if (PM1b_CNT != 0)
             for (; i < 300; i++)
             {
-                if ((inw((unsigned int)PM1b_CNT) & SCI_EN) == 1)
+                if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
                     break;
             }
 
@@ -97,9 +98,10 @@ int acpi_enable(void)
     return -1;
 }
 
-int init_acpi(void)
+// 初始化 ACPI
+int acpi_init(void)
 {
-    unsigned int *ptr = acpi_get_RSDPtr();
+    u32 *ptr = acpi_get_RSDPtr();
 
     // check if address is correct  ( if acpi is available on this pc )
     // the RSDT contains an unknown number of pointers to acpi tables
@@ -158,7 +160,7 @@ int init_acpi(void)
     return -1;
 }
 
-void acpi_shutdown(void)
+void sys_shutdown()
 {
     // SCI_EN is set to 1 if acpi shutdown is possible
     if (SCI_EN == 0)
@@ -166,8 +168,8 @@ void acpi_shutdown(void)
 
     acpi_enable();
 
-    // send the shutdown command
-    outw((unsigned int)PM1a_CNT, SLP_TYPa | SLP_EN);
+    // 发送关机命令
+    outw((u32)PM1a_CNT, SLP_TYPa | SLP_EN);
     if (PM1b_CNT != 0)
-        outw((unsigned int)PM1b_CNT, SLP_TYPb | SLP_EN);
+        outw((u32)PM1b_CNT, SLP_TYPb | SLP_EN);
 }
