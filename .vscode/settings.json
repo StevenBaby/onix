@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "fs.h": "c",
+        "types.h": "c",
+        "stat.h": "c",
+        "buffer.h": "c",
+        "stdlib.h": "c",
+        "task.h": "c",
+        "device.h": "c",
+        "list.h": "c"
+    }
+}

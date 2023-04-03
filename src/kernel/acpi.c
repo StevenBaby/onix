@@ -3,8 +3,6 @@
 #include <onix/string.h>
 #include <onix/debug.h>
 
-// osdev https://forum.osdev.org/viewtopic.php?t=16990
-
 u32 *SMI_CMD;
 u8 ACPI_ENABLE;
 u8 ACPI_DISABLE;
