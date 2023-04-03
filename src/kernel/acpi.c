@@ -72,23 +72,6 @@ unsigned int *acpi_get_RSDPtr(void)
     return NULL;
 }
 
-// checks for a given header and validates checksum
-int acpi_check_header(unsigned int *ptr, char *sig)
-{
-    char check = 0;
-    if (memcmp(ptr, sig, 4) == 0)
-    {
-        char *checkPtr = (char *)ptr;
-        int len = *(ptr + 1);
-        while (0 < len--)
-        {
-            check += *checkPtr;
-            checkPtr++;
-        }
-    }
-    return !(check == 0);
-}
-
 int acpi_enable(void)
 {
     // check if acpi is enabled
