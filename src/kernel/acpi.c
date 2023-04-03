@@ -15,7 +15,7 @@ u16 SCI_EN;
 u8 PM1_CNT_LEN;
 
 // check if the given address has a valid header
-unsigned int *acpiCheckRSDPtr(unsigned int *ptr)
+unsigned int *acpi_check_RSDPtr(unsigned int *ptr)
 {
     char *sig = "RSD PTR ";
     struct RSDPtr *rsdp = (struct RSDPtr *)ptr;
@@ -50,7 +50,7 @@ unsigned int *acpiCheckRSDPtr(unsigned int *ptr)
 }
 
 // finds the acpi header and returns the address of the rsdt
-unsigned int *acpiGetRSDPtr(void)
+unsigned int *acpi_get_RSDPtr(void)
 {
     unsigned int *addr;
     unsigned int *rsdp;
@@ -58,7 +58,7 @@ unsigned int *acpiGetRSDPtr(void)
     // search below the 1mb mark for RSDP signature
     for (addr = (unsigned int *)0x000E0000; (int)addr < 0x00100000; addr += 0x10 / sizeof(addr))
     {
-        rsdp = acpiCheckRSDPtr(addr);
+        rsdp = acpi_check_RSDPtr(addr);
         if (rsdp != NULL)
             return rsdp;
     }
@@ -70,7 +70,7 @@ unsigned int *acpiGetRSDPtr(void)
     // search Extended BIOS Data Area for the Root System Description Pointer signature
     for (addr = (unsigned int *)ebda; (int)addr < ebda + 1024; addr += 0x10 / sizeof(addr))
     {
-        rsdp = acpiCheckRSDPtr(addr);
+        rsdp = acpi_check_RSDPtr(addr);
         if (rsdp != NULL)
             return rsdp;
     }
@@ -79,7 +79,7 @@ unsigned int *acpiGetRSDPtr(void)
 }
 
 // checks for a given header and validates checksum
-int acpiCheckHeader(unsigned int *ptr, char *sig)
+int acpi_check_header(unsigned int *ptr, char *sig)
 {
     if (memcmp(ptr, sig, 4) == 0)
     {
@@ -97,7 +97,7 @@ int acpiCheckHeader(unsigned int *ptr, char *sig)
     return -1;
 }
 
-int acpiEnable(void)
+int acpi_enable(void)
 {
     // check if acpi is enabled
     if ((inw((unsigned int)PM1a_CNT) & SCI_EN) == 0)
@@ -147,10 +147,10 @@ int acpiEnable(void)
 
 int init_acpi(void)
 {
-    unsigned int *ptr = acpiGetRSDPtr();
+    unsigned int *ptr = acpi_get_RSDPtr();
 
     // check if address is correct  ( if acpi is available on this pc )
-    if (ptr != NULL && acpiCheckHeader(ptr, "RSDT") == 0)
+    if (ptr != NULL && acpi_check_header(ptr, "RSDT") == 0)
     {
         // the RSDT contains an unknown number of pointers to acpi tables
         int entrys = *(ptr + 1);
@@ -160,11 +160,11 @@ int init_acpi(void)
         while (0 < entrys--)
         {
             // check if the desired table is reached
-            if (acpiCheckHeader((unsigned int *)*ptr, "FACP") == 0)
+            if (acpi_check_header((unsigned int *)*ptr, "FACP") == 0)
             {
                 entrys = -2;
                 struct FACP *facp = (struct FACP *)*ptr;
-                if (acpiCheckHeader((unsigned int *)facp->DSDT, "DSDT") == 0)
+                if (acpi_check_header((unsigned int *)facp->DSDT, "DSDT") == 0)
                 {
                     // search the \_S5 package in the DSDT
                     char *S5Addr = (char *)facp->DSDT + 36; // skip header
@@ -241,7 +241,7 @@ void acpi_shutdown(void)
     if (SCI_EN == 0)
         return;
 
-    acpiEnable();
+    acpi_enable();
 
     // send the shutdown command
     outw((unsigned int)PM1a_CNT, SLP_TYPa | SLP_EN);
