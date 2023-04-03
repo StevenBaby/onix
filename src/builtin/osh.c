@@ -450,6 +450,10 @@ static void execute(int argc, char *argv[])
     {
         return builtin_mkfs(argc, argv);
     }
+    if (!strcmp(line, "shutdown"))
+    {
+        shutdown();
+    }
     return builtin_exec(argc, argv);
 }
 
