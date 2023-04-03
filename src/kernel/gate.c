@@ -111,6 +111,8 @@ extern int sys_alarm();
 
 extern int sys_mkfs();
 
+extern void acpi_shutdown();
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -187,4 +189,6 @@ void syscall_init()
     syscall_table[SYS_NR_SSETMASK] = sys_ssetmask;
     syscall_table[SYS_NR_SIGACTION] = sys_sigaction;
     syscall_table[SYS_NR_ALARM] = sys_alarm;
+
+    syscall_table[SYS_NR_SHUTDOWN] = acpi_shutdown;
 }
