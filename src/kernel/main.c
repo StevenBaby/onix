@@ -10,15 +10,16 @@ extern void interrupt_init();
 extern void clock_init();
 extern void timer_init();
 extern void syscall_init();
-extern void task_init();
+extern void tss_init();
+extern void hang();
 
 void kernel_init()
 {
-    tss_init();        // 初始化任务状态段
-    acpi_init();       // 初始化 ACPI
-    memory_map_init(); // 初始化物理内存数组
-    mapping_init();    // 初始化内存映射
-    arena_init();      // 初始化内核堆内存
+    tss_init();
+    acpi_init();
+    memory_map_init();
+    mapping_init();
+    arena_init();
 
     interrupt_init(); // 初始化中断
     timer_init();     // 初始化定时器

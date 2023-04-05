@@ -2,6 +2,7 @@
 #include <onix/acpi.h>
 #include <onix/string.h>
 #include <onix/debug.h>
+#include <onix/stdlib.h>
 #include <onix/io.h>
 
 u32 *SMI_CMD;
@@ -15,11 +16,13 @@ u16 SLP_EN;
 u16 SCI_EN;
 u8 PM1_CNT_LEN;
 
+FADT *acpiFadt;
+
 // check if the given address has a valid header
 u32 *acpi_check_RSDPtr(u32 *ptr)
 {
     char *sig = "RSD PTR ";
-    struct RSDPtr *rsdp = (struct RSDPtr *)ptr;
+    RSDPtr *rsdp = (RSDPtr *)ptr;
     u8 *bptr;
     u8 check = 0;
     int i;
@@ -28,7 +31,7 @@ u32 *acpi_check_RSDPtr(u32 *ptr)
     {
         // check checksum rsdpd
         bptr = (u8 *)ptr;
-        for (i = 0; i < sizeof(struct RSDPtr); i++)
+        for (i = 0; i < sizeof(RSDPtr); i++)
         {
             check += *bptr;
             bptr++;
@@ -112,11 +115,11 @@ int acpi_init(void)
     while (entrys-- > 0)
     {
         entrys = -2;
-        struct FACP *facp = (struct FACP *)*ptr;
+        acpiFadt = (FADT *)*ptr;
 
         // search the \_S5 package in the DSDT
-        char *S5Addr = (char *)facp->DSDT + 36; // skip header
-        int dsdtLength = *(facp->DSDT + 1) - 36;
+        char *S5Addr = (char *)acpiFadt->Dsdt + 36; // skip header
+        int dsdtLength = *((u32 *)acpiFadt->Dsdt + 1) - 36;
         while (0 < dsdtLength--)
         {
             if (memcmp(S5Addr, "_S5_", 4) == 0)
@@ -138,25 +141,27 @@ int acpi_init(void)
                 S5Addr++; // skip u8prefix
             SLP_TYPb = *(S5Addr) << 10;
 
-            SMI_CMD = facp->SMI_CMD;
+            SMI_CMD = acpiFadt->SMI_CommandPort;
 
-            ACPI_ENABLE = facp->ACPI_ENABLE;
-            ACPI_DISABLE = facp->ACPI_DISABLE;
+            ACPI_ENABLE = acpiFadt->AcpiEnable;
+            ACPI_DISABLE = acpiFadt->AcpiDisable;
 
-            PM1a_CNT = facp->PM1a_CNT_BLK;
-            PM1b_CNT = facp->PM1b_CNT_BLK;
+            PM1a_CNT = acpiFadt->PM1aControlBlock;
+            PM1b_CNT = acpiFadt->PM1bControlBlock;
 
-            PM1_CNT_LEN = facp->PM1_CNT_LEN;
+            PM1_CNT_LEN = acpiFadt->PM1ControlLength;
 
             SLP_EN = 1 << 13;
             SCI_EN = 1;
+
+            acpi_enable();
 
             return 0;
         }
         ptr++;
     }
 
-    DEBUGK("no valid FACP present.\n");
+    DEBUGK("no valid FADT present.\n");
     return -1;
 }
 
@@ -166,10 +171,18 @@ void sys_shutdown()
     if (SCI_EN == 0)
         return;
 
-    acpi_enable();
-
     // 发送关机命令
     outw((u32)PM1a_CNT, SLP_TYPa | SLP_EN);
     if (PM1b_CNT != 0)
         outw((u32)PM1b_CNT, SLP_TYPb | SLP_EN);
+}
+
+void sys_reboot()
+{
+    u8 good = 0x02;
+    while (good & 0x02)
+        good = inb(0x64);
+    outb(0x64, 0xFE);
+    
+    hang();
 }
