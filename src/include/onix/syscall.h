@@ -55,6 +55,7 @@ typedef enum syscall_t
     SYS_NR_READDIR = 89,
     SYS_NR_MMAP = 90,
     SYS_NR_MUNMAP = 91,
+    SYS_NR_REBOOT = 142, // 来自 <asm/unistd.h>
     SYS_NR_YIELD = 158,
     SYS_NR_SLEEP = 162,
     SYS_NR_GETCWD = 183,
@@ -182,6 +183,8 @@ int kill(pid_t pid, int signal);
 // 设置闹钟
 int alarm(int sec);
 
+// 关机重启
 void shutdown();
+void reboot();
 
 #endif
