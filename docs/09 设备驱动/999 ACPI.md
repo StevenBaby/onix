@@ -101,6 +101,7 @@ typedef struct ACPI_FADT
 # 重启
 
 重启之前。需要把缓存读空
+
 重启比较简单，直接向键盘控制器(0x64)发送reset(0xFE)或者向acpi的reset寄存器发送reset指令即可
 
 ```c++
