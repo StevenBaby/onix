@@ -24,11 +24,14 @@ extern void buffer_init();
 extern void file_init();
 extern void super_init();
 extern void inode_init();
+extern void acpi_init();
+
 extern void hang();
 
 void kernel_init()
 {
     tss_init();
+    acpi_init();
     memory_map_init();
     mapping_init();
     arena_init();
