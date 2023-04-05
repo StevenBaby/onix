@@ -325,3 +325,8 @@ int sigaction(int sig, sigaction_t *action, sigaction_t *oldaction)
 {
     return _syscall3(SYS_NR_SIGACTION, (u32)sig, (u32)action, (u32)oldaction);
 }
+
+void shutdown()
+{
+    _syscall0(SYS_NR_SHUTDOWN);
+}
