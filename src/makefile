@@ -18,13 +18,11 @@ CFLAGS:=$(strip ${CFLAGS})
 DEBUG:= -g
 INCLUDE:=-I$(SRC)/include
 
-TOOL_PREFIX = x86_64-linux-gnu-
-
 NASM:=nasm
-GCC:=$(TOOL_PREFIX)gcc
-LD:=$(TOOL_PREFIX)ld
-OBJCOPY:=$(TOOL_PREFIX)objcopy
-NM:=$(TOOL_PREFIX)nm
+GCC:=gcc
+LD:=ld
+OBJCOPY:=objcopy
+NM:=nm
 
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(dir $@))
