@@ -1,56 +1,29 @@
-
-#include <onix/debug.h>
 #include <onix/interrupt.h>
 
-#define LOGK(fmt, args...) DEBUGK(fmt, ##args)
-
+extern void tss_init();
 extern void memory_map_init();
 extern void mapping_init();
 extern void arena_init();
+
 extern void interrupt_init();
 extern void clock_init();
 extern void timer_init();
-extern void time_init();
-extern void rtc_init();
-extern void keyboard_init();
-extern void serial_init();
-extern void tty_init();
-extern void ide_init();
-extern void ramdisk_init();
-extern void task_init();
 extern void syscall_init();
-extern void tss_init();
-extern void buffer_init();
-extern void file_init();
-extern void super_init();
-extern void inode_init();
-extern void hang();
+extern void task_init();
 
 void kernel_init()
 {
-    tss_init();
-    memory_map_init();
-    mapping_init();
-    arena_init();
+    tss_init();        // 初始化任务状态段
+    memory_map_init(); // 初始化物理内存数组
+    mapping_init();    // 初始化内存映射
+    arena_init();      // 初始化内核堆内存
 
-    interrupt_init();
-    clock_init();
-    timer_init();
-    keyboard_init();
-    tty_init();
-    time_init();
-    serial_init();
-    // rtc_init();
-    ide_init();
-    ramdisk_init();
+    interrupt_init(); // 初始化中断
+    timer_init();     // 初始化定时器
+    clock_init();     // 初始化时钟
 
-    syscall_init();
-    task_init();
-
-    buffer_init();
-    file_init();
-    inode_init();
-    super_init();
+    syscall_init(); // 初始化系统调用
+    task_init();    // 初始化任务
 
     set_interrupt_state(true);
 }

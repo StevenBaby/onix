@@ -134,7 +134,7 @@ static void ide_handler(int vector)
     }
 }
 
-static u32 ide_error(ide_ctrl_t *ctrl)
+static void ide_error(ide_ctrl_t *ctrl)
 {
     u8 error = inb(ctrl->iobase + IDE_ERR);
     if (error & IDE_ER_BBK)
@@ -270,12 +270,9 @@ int ide_pio_read(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
     for (size_t i = 0; i < count; i++)
     {
         task_t *task = running_task();
-        if (task->state == TASK_RUNNING) // 系统初始化时，不能使用异步方式
-        {
-            // 阻塞自己等待中断的到来，等待磁盘准备数据
-            ctrl->waiter = task;
-            task_block(task, NULL, TASK_BLOCKED, TIMELESS);
-        }
+        // 阻塞自己等待中断的到来，等待磁盘准备数据
+        ctrl->waiter = task;
+        assert(task_block(task, NULL, TASK_BLOCKED, TIMELESS) == EOK);
 
         ide_busy_wait(ctrl, IDE_SR_DRQ);
 
@@ -317,12 +314,11 @@ int ide_pio_write(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
         ide_pio_write_sector(disk, (u16 *)offset);
 
         task_t *task = running_task();
-        if (task->state == TASK_RUNNING) // 系统初始化时，不能使用异步方式
-        {
-            // 阻塞自己等待磁盘写数据完成
-            ctrl->waiter = task;
-            task_block(task, NULL, TASK_BLOCKED, TIMELESS);
-        }
+
+        // 阻塞自己等待磁盘写数据完成
+        ctrl->waiter = task;
+        assert(task_block(task, NULL, TASK_BLOCKED, TIMELESS) == EOK);
+
         ide_busy_wait(ctrl, IDE_SR_NULL);
     }
 
@@ -548,9 +544,6 @@ static void ide_install()
 void ide_init()
 {
     LOGK("ide init...\n");
-    ide_ctrl_init();
-
-    ide_install(); // 安装设备
 
     // 注册硬盘中断，并打开屏蔽字
     set_interrupt_handler(IRQ_HARDDISK, ide_handler);
@@ -558,4 +551,8 @@ void ide_init()
     set_interrupt_mask(IRQ_HARDDISK, true);
     set_interrupt_mask(IRQ_HARDDISK2, true);
     set_interrupt_mask(IRQ_CASCADE, true);
+
+    ide_ctrl_init();
+
+    ide_install(); // 安装设备
 }

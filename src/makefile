@@ -78,7 +78,8 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/debug.o \
 	$(BUILD)/kernel/global.o \
 	$(BUILD)/kernel/task.o \
-	$(BUILD)/kernel/thread.o \
+	$(BUILD)/kernel/init.o \
+	$(BUILD)/kernel/idle.o \
 	$(BUILD)/kernel/mutex.o \
 	$(BUILD)/kernel/gate.o \
 	$(BUILD)/kernel/schedule.o \
