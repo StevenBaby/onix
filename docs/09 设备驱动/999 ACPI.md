@@ -48,6 +48,12 @@ struct FACP
 };
 ```
 
+重启则比较简单，目前我知道的有两种方式：
+
+1. 向键盘控制器(端口0x64)发送reset指令(0xfe)。
+
+2. 向acpi的reset寄存器发送FADT表中的ResetValue。
+
 ## 参考
 
 [^forum]: <https://forum.osdev.org/viewtopic.php?t=16990>
