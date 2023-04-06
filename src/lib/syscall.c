@@ -330,3 +330,8 @@ void shutdown()
 {
     _syscall0(SYS_NR_SHUTDOWN);
 }
+
+void reboot()
+{
+    _syscall0(SYS_NR_REBOOT);
+}

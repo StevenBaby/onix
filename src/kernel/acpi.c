@@ -2,6 +2,7 @@
 #include <onix/acpi.h>
 #include <onix/string.h>
 #include <onix/debug.h>
+#include <onix/stdlib.h>
 #include <onix/io.h>
 
 u32 *SMI_CMD;
@@ -13,13 +14,13 @@ u16 SLP_TYPa;
 u16 SLP_TYPb;
 u16 SLP_EN;
 u16 SCI_EN;
-u8 PM1_CNT_LEN;
 
-// check if the given address has a valid header
+ACPI_FADT *acpiFadt;
+
 u32 *acpi_check_RSDPtr(u32 *ptr)
 {
     char *sig = "RSD PTR ";
-    struct RSDPtr *rsdp = (struct RSDPtr *)ptr;
+    RSDPtr *rsdp = (RSDPtr *)ptr;
     u8 *bptr;
     u8 check = 0;
     int i;
@@ -28,7 +29,7 @@ u32 *acpi_check_RSDPtr(u32 *ptr)
     {
         // check checksum rsdpd
         bptr = (u8 *)ptr;
-        for (i = 0; i < sizeof(struct RSDPtr); i++)
+        for (i = 0; i < sizeof(RSDPtr); i++)
         {
             check += *bptr;
             bptr++;
@@ -73,31 +74,6 @@ u32 *acpi_get_RSDPtr(void)
     return NULL;
 }
 
-int acpi_enable(void)
-{
-    // check if acpi is enabled
-    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
-    {
-        // check if acpi can be enabled
-        outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
-        // give 3 seconds time to enable acpi
-        int i;
-        for (i = 0; i < 300; i++)
-            if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
-                break;
-
-        if (PM1b_CNT != 0)
-            for (; i < 300; i++)
-            {
-                if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
-                    break;
-            }
-
-        return 0;
-    }
-    return -1;
-}
-
 // 初始化 ACPI
 int acpi_init(void)
 {
@@ -112,11 +88,11 @@ int acpi_init(void)
     while (entrys-- > 0)
     {
         entrys = -2;
-        struct FACP *facp = (struct FACP *)*ptr;
+        acpiFadt = (ACPI_FADT *)*ptr;
 
         // search the \_S5 package in the DSDT
-        char *S5Addr = (char *)facp->DSDT + 36; // skip header
-        int dsdtLength = *(facp->DSDT + 1) - 36;
+        char *S5Addr = (char *)acpiFadt->Dsdt + 36; // skip header
+        int dsdtLength = *(acpiFadt->Dsdt + 1) - 36;
         while (0 < dsdtLength--)
         {
             if (memcmp(S5Addr, "_S5_", 4) == 0)
@@ -138,15 +114,13 @@ int acpi_init(void)
                 S5Addr++; // skip u8prefix
             SLP_TYPb = *(S5Addr) << 10;
 
-            SMI_CMD = facp->SMI_CMD;
+            SMI_CMD = acpiFadt->SMI_CommandPort;
 
-            ACPI_ENABLE = facp->ACPI_ENABLE;
-            ACPI_DISABLE = facp->ACPI_DISABLE;
+            ACPI_ENABLE = acpiFadt->AcpiEnable;
+            ACPI_DISABLE = acpiFadt->AcpiDisable;
 
-            PM1a_CNT = facp->PM1a_CNT_BLK;
-            PM1b_CNT = facp->PM1b_CNT_BLK;
-
-            PM1_CNT_LEN = facp->PM1_CNT_LEN;
+            PM1a_CNT = acpiFadt->PM1aControlBlock;
+            PM1b_CNT = acpiFadt->PM1bControlBlock;
 
             SLP_EN = 1 << 13;
             SCI_EN = 1;
@@ -156,8 +130,56 @@ int acpi_init(void)
         ptr++;
     }
 
-    DEBUGK("no valid FACP present.\n");
+    DEBUGK("no valid FADT present.\n");
     return -1;
+}
+
+int acpi_enable(void)
+{
+    // check if acpi is enabled
+    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0)
+    {
+        // check if acpi can be enabled
+        if (SMI_CMD != 0 && ACPI_ENABLE != 0)
+        {
+            outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
+            // give 3 seconds time to enable acpi
+            int i;
+            for (i = 0; i < 300; i++)
+            {
+                if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
+                    break;
+                sleep(10);
+            }
+            if (PM1b_CNT != 0)
+                for (; i < 300; i++)
+                {
+                    if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
+                        break;
+                    sleep(10);
+                }
+            if (i < 300)
+            {
+                DEBUGK("enabled acpi.\n");
+                return 0;
+            }
+            else
+            {
+                DEBUGK("couldn't enable acpi.\n");
+                return -1;
+            }
+        }
+        else
+        {
+            DEBUGK("no known way to enable acpi.\n");
+            return -1;
+        }
+    }
+    else
+    {
+        // DEBUGK("acpi was already enabled.\n");
+        return 0;
+    }
 }
 
 void sys_shutdown()
@@ -172,4 +194,16 @@ void sys_shutdown()
     outw((u32)PM1a_CNT, SLP_TYPa | SLP_EN);
     if (PM1b_CNT != 0)
         outw((u32)PM1b_CNT, SLP_TYPb | SLP_EN);
+}
+
+void sys_reboot()
+{
+    while (inb(0x64) & 0x3)
+        inb(0x60);
+    outb(0x64, 0xfe);
+
+    // 第一种不行使用第二种
+
+    while (1)
+        outb(acpiFadt->ResetReg.Address, acpiFadt->ResetValue);
 }

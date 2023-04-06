@@ -112,6 +112,7 @@ extern int sys_alarm();
 extern int sys_mkfs();
 
 extern void sys_shutdown();
+extern void sys_reboot();
 
 void syscall_init()
 {
@@ -191,4 +192,5 @@ void syscall_init()
     syscall_table[SYS_NR_ALARM] = sys_alarm;
 
     syscall_table[SYS_NR_SHUTDOWN] = sys_shutdown;
+    syscall_table[SYS_NR_REBOOT] = sys_reboot;
 }

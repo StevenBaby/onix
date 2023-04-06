@@ -454,6 +454,10 @@ static void execute(int argc, char *argv[])
     {
         shutdown();
     }
+    if (!strcmp(line, "reboot"))
+    {
+        reboot();
+    }
     return builtin_exec(argc, argv);
 }
 
