@@ -327,6 +327,21 @@ page_entry_t *get_entry(u32 vaddr, bool create)
     return &pte[TIDX(vaddr)];
 }
 
+// 获取虚拟地址 vaddr 对应的物理地址
+u32 get_paddr(u32 vaddr)
+{
+    page_entry_t *pde = get_pde();
+    page_entry_t *entry = &pde[DIDX(vaddr)];
+    if (!entry->present)
+        return 0;
+
+    entry = get_entry(vaddr, false);
+    if (!entry->present)
+        return 0;
+
+    return PAGE(entry->index) | (vaddr & 0xfff);
+}
+
 // 刷新虚拟地址 vaddr 的 块表 TLB
 void flush_tlb(u32 vaddr)
 {
@@ -453,20 +468,21 @@ page_entry_t *copy_pde()
 {
     task_t *task = running_task();
 
-    page_entry_t *pde = (page_entry_t *)alloc_kpage(1);
-    memcpy(pde, (void *)task->pde, PAGE_SIZE);
-
-    // 将最后一个页表指向页目录自己，方便修改
-    page_entry_t *entry = &pde[1023];
-    entry_init(entry, IDX(pde));
-
-    page_entry_t *dentry;
+    page_entry_t *pde = (page_entry_t *)task->pde;
+    page_entry_t *dentry = NULL;
+    page_entry_t *entry = NULL;
 
     for (size_t didx = (sizeof(KERNEL_PAGE_TABLE) / 4); didx < 1023; didx++)
     {
         dentry = &pde[didx];
         if (!dentry->present)
             continue;
+
+        // 将所有页表也置为只读
+        assert(memory_map[dentry->index] > 0);
+        dentry->write = false;
+        memory_map[dentry->index]++;
+        assert(memory_map[dentry->index] < 255);
 
         page_entry_t *pte = (page_entry_t *)(PDE_MASK | (didx << 12));
 
@@ -489,10 +505,14 @@ page_entry_t *copy_pde()
 
             assert(memory_map[entry->index] < 255);
         }
-
-        u32 paddr = copy_page(pte);
-        dentry->index = IDX(paddr);
     }
+
+    pde = (page_entry_t *)alloc_kpage(1);
+    memcpy(pde, (void *)task->pde, PAGE_SIZE);
+
+    // 将最后一个页表指向页目录自己，方便修改
+    entry = &pde[1023];
+    entry_init(entry, IDX(pde));
 
     set_cr3(task->pde);
 
@@ -639,6 +659,52 @@ int sys_munmap(void *addr, size_t length)
     return 0;
 }
 
+// 页表写时拷贝
+// vaddr 表示虚拟地址
+// level 表示层级，页目录，页表，页框
+void copy_on_write(u32 vaddr, int level)
+{
+    // 递归返回
+    if (level == 0)
+        return;
+
+    // 获得当前虚拟地址对应的入口
+    page_entry_t *entry = get_entry(vaddr, false);
+    // 对该入口进行写时拷贝，于是页目录和页表拷贝完毕
+    copy_on_write((u32)entry, level - 1);
+
+    // 如果该地址已经可写，则返回
+    if (entry->write)
+        return;
+
+    // 物理内存引用大于 0
+    assert(memory_map[entry->index] > 0);
+
+    // 如果引用只有 1 个，则直接可写
+    if (memory_map[entry->index] == 1)
+    {
+        entry->write = true;
+        LOGK("WRITE page for 0x%p\n", vaddr);
+    }
+    else
+    {
+        // 否则，拷贝该页
+        u32 paddr = copy_page((void *)PAGE(IDX(vaddr)));
+
+        // 物理内存引用减一
+        memory_map[entry->index]--;
+
+        // 设置新的物理页，可写
+        entry->index = IDX(paddr);
+        entry->write = true;
+        LOGK("COPY page for 0x%p\n", vaddr);
+    }
+
+    // 刷新快表，很多错误发生在快表没有及时刷新 😔
+    assert(memory_map[entry->index] > 0);
+    flush_tlb(vaddr);
+}
+
 typedef struct page_error_code_t
 {
     u8 present : 1;
@@ -687,21 +753,9 @@ void page_fault(
         assert(!entry->shared);   // 共享内存页，不应该引发缺页
         assert(!entry->readonly); // 只读内存页，不应该被写
 
-        assert(memory_map[entry->index] > 0);
-        if (memory_map[entry->index] == 1)
-        {
-            entry->write = true;
-            LOGK("WRITE page for 0x%p\n", vaddr);
-        }
-        else
-        {
-            void *page = (void *)PAGE(IDX(vaddr));
-            u32 paddr = copy_page(page);
-            memory_map[entry->index]--;
-            entry_init(entry, IDX(paddr));
-            flush_tlb(vaddr);
-            LOGK("COPY page for 0x%p\n", vaddr);
-        }
+        // 页表写时拷贝
+        copy_on_write(vaddr, 3);
+
         return;
     }
 
