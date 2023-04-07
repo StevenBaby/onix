@@ -38,7 +38,7 @@ typedef struct GenericAddressStructure
     u8 BitWidth;
     u8 BitOffset;
     u8 AccessSize;
-    u32 Address[2];
+    u64 Address;
 } _packed GenericAddressStructure;
 
 typedef struct FADT

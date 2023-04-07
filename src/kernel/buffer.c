@@ -206,11 +206,10 @@ void brelse(buffer_t *bf)
     if (bf->count) // 还有人用，直接返回
         return;
 
-    // if (bf->rnode.next)
-    // {
-    //     list_remove(&bf->rnode);
-    // }
-
+    if (bf->rnode.next)
+    {
+        list_remove(&bf->rnode);
+    }
     assert(!bf->rnode.next);
     assert(!bf->rnode.prev);
     list_push(&free_list, &bf->rnode);

@@ -22,7 +22,7 @@ struct RSDPtr
     return (unsigned int *)rsdp->RsdtAddress;
 ```
 
-## 提取关机数据
+# 提取关机数据
 
 FACP 和 SSDT 是平级的关系，而 DSDT 的指针在 FACP 里面，但是 SSDT 和 DSDT 里面数据的格式是完全一样的 (当然只是数据格式，如果数据也完全一样那么我们看一个就够了)
 
@@ -102,13 +102,9 @@ typedef struct FADT
 } FADT;
 ```
 
-## 重启
-
 重启比较简单，我所知道的有两种方式，一种是直接向0x64端口发送0xfe重置cpu，另一种是向acpi的reset寄存器发送resetvalue
 
-位了确保成功率，我们两种方法都使用，第一种不行用第二种。
-
-重启后，之前初始化的内存可能不是 0，需要重置。
+位了确保成功率，我们两种方法都使用，第一种不行用第二种
 
 ## 参考
 
