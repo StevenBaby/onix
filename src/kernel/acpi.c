@@ -4,17 +4,21 @@
 #include <onix/debug.h>
 #include <onix/stdlib.h>
 #include <onix/io.h>
+#include <onix/interrupt.h>
 
 u32 *SMI_CMD;
 u8 ACPI_ENABLE;
 u8 ACPI_DISABLE;
 u32 *PM1a_CNT;
 u32 *PM1b_CNT;
+u32 *PM1a_EVT;
+u32 *PM1b_EVT;
+u32 PM1_EVT_LEN;
 u16 SLP_TYPa;
 u16 SLP_TYPb;
 u16 SLP_EN;
 u16 SCI_EN;
-u8 PM1_CNT_LEN;
+u16 SCI_Interrupt;
 
 FADT *acpiFadt;
 
@@ -76,31 +80,6 @@ u32 *acpi_get_RSDPtr(void)
     return NULL;
 }
 
-int acpi_enable(void)
-{
-    // check if acpi is enabled
-    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
-    {
-        // check if acpi can be enabled
-        outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
-        // give 3 seconds time to enable acpi
-        int i;
-        for (i = 0; i < 300; i++)
-            if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
-                break;
-
-        if (PM1b_CNT != 0)
-            for (; i < 300; i++)
-            {
-                if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
-                    break;
-            }
-
-        return 0;
-    }
-    return -1;
-}
-
 // 初始化 ACPI
 int acpi_init(void)
 {
@@ -141,18 +120,20 @@ int acpi_init(void)
                 S5Addr++; // skip u8prefix
             SLP_TYPb = *(S5Addr) << 10;
 
-            SMI_CMD = acpiFadt->SMI_CommandPort;
+            SMI_CMD = (u32 *)acpiFadt->SMI_CommandPort;
 
             ACPI_ENABLE = acpiFadt->AcpiEnable;
             ACPI_DISABLE = acpiFadt->AcpiDisable;
 
-            PM1a_CNT = acpiFadt->PM1aControlBlock;
-            PM1b_CNT = acpiFadt->PM1bControlBlock;
-
-            PM1_CNT_LEN = acpiFadt->PM1ControlLength;
+            PM1a_CNT = (u32 *)acpiFadt->PM1aControlBlock;
+            PM1b_CNT = (u32 *)acpiFadt->PM1bControlBlock;
 
             SLP_EN = 1 << 13;
             SCI_EN = 1;
+
+            PM1_EVT_LEN = acpiFadt->PM1EventLength;
+
+            SCI_Interrupt = acpiFadt->SCI_Interrupt;
 
             acpi_enable();
 
@@ -163,6 +144,39 @@ int acpi_init(void)
 
     DEBUGK("no valid FADT present.\n");
     return -1;
+}
+
+int acpi_enable(void)
+{
+    // check if acpi is enabled
+    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
+    {
+        // check if acpi can be enabled
+        outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
+        // give 3 seconds time to enable acpi
+        int i;
+        for (i = 0; i < 300; i++)
+        {
+            if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
+                break;
+        }
+        if (PM1b_CNT != 0)
+            for (; i < 300; i++)
+            {
+                if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
+                    break;
+            }
+        if (i < 300)
+        {
+            DEBUGK("enabled acpi.\n");
+            return 0;
+        }
+        else
+        {
+            DEBUGK("couldn't enable acpi.\n");
+            return -1;
+        }
+    }
 }
 
 void sys_shutdown()
@@ -179,10 +193,12 @@ void sys_shutdown()
 
 void sys_reboot()
 {
-    u8 good = 0x02;
-    while (good & 0x02)
-        good = inb(0x64);
-    outb(0x64, 0xFE);
-    
-    hang();
+    while (inb(0x64) & 0x3)
+        inb(0x60);
+    outb(0x64, 0xfe);
+
+    // 第一种不行使用第二种
+
+    while (1)
+        outb(acpiFadt->ResetReg.Address, acpiFadt->ResetValue);
 }

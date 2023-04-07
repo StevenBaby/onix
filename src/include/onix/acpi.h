@@ -7,7 +7,7 @@ typedef struct RSDPtr
     u8 OemID[6];
     u8 Revision;
     u32 *RsdtAddress;
-} RSDPtr;
+} _packed RSDPtr;
 
 typedef struct ACPISDTHeader
 {
@@ -20,7 +20,14 @@ typedef struct ACPISDTHeader
     u32 OEMRevision;
     u32 CreatorID;
     u32 CreatorRevision;
-} ACPISDTHeader;
+    u32 data[0];
+} _packed ACPISDTHeader;
+
+typedef struct ACPI_RSDT
+{
+    ACPISDTHeader header;
+    u32 Entry;
+} _packed ACPI_RSDT;
 
 typedef struct GenericAddressStructure
 {
@@ -28,14 +35,14 @@ typedef struct GenericAddressStructure
     u8 BitWidth;
     u8 BitOffset;
     u8 AccessSize;
-    u64 Address;
-} GenericAddressStructure;
+    u32 Address[2];
+} _packed GenericAddressStructure;
 
 typedef struct FADT
 {
     ACPISDTHeader h;
     u32 FirmwareCtrl;
-    u32 Dsdt;
+    u32 *Dsdt;
 
     // field used in ACPI 1.0; no longer in use, for compatibility only
     u8 Reserved;
@@ -79,15 +86,14 @@ typedef struct FADT
     u8 Reserved2;
     u32 Flags;
 
-    // 12 byte structure; see below for details
     GenericAddressStructure ResetReg;
 
     u8 ResetValue;
     u8 Reserved3[3];
 
     // 64bit pointers - Available on ACPI 2.0+
-    u64 X_FirmwareControl;
-    u64 X_Dsdt;
+    u32 X_FirmwareControl[2];
+    u32 X_Dsdt[2];
 
     GenericAddressStructure X_PM1aEventBlock;
     GenericAddressStructure X_PM1bEventBlock;
@@ -97,4 +103,7 @@ typedef struct FADT
     GenericAddressStructure X_PMTimerBlock;
     GenericAddressStructure X_GPE0Block;
     GenericAddressStructure X_GPE1Block;
-} FADT;
+} _packed FADT;
+
+void sys_shutdown();
+void sys_reboot();

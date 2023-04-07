@@ -102,9 +102,9 @@ typedef struct FADT
 } FADT;
 ```
 
-重启比较简单，我所知道的有两种方式，一种是直接想0x64端口发送0xfe重置cpu，另一种是向acpi的reset寄存器发送resetvalue
+重启比较简单，我所知道的有两种方式，一种是直接向0x64端口发送0xfe重置cpu，另一种是向acpi的reset寄存器发送resetvalue
 
-位了简单期间，我们采用第一种方式
+位了确保成功率，我们两种方法都使用，第一种不行用第二种
 
 ## 参考
 
