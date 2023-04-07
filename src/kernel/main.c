@@ -1,6 +1,7 @@
 #include <onix/interrupt.h>
 
 extern void tss_init();
+extern void acpi_init();
 extern void memory_map_init();
 extern void mapping_init();
 extern void arena_init();
@@ -14,6 +15,7 @@ extern void task_init();
 void kernel_init()
 {
     tss_init();        // 初始化任务状态段
+    acpi_init();       // 初始化 ACPI
     memory_map_init(); // 初始化物理内存数组
     mapping_init();    // 初始化内存映射
     arena_init();      // 初始化内核堆内存

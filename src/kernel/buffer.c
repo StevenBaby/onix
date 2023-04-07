@@ -93,6 +93,11 @@ static buffer_t *get_new_buffer()
         bf->count = 0;
         bf->dirty = false;
         bf->valid = false;
+
+        // 重启后，内存数据没有清零
+        bf->hnode.next = bf->hnode.prev = NULL;
+        bf->rnode.next = bf->rnode.prev = NULL;
+
         lock_init(&bf->lock);
         buffer_count++;
         buffer_ptr++;
@@ -155,6 +160,8 @@ buffer_t *bread(dev_t dev, idx_t block)
 {
     buffer_t *bf = getblk(dev, block);
     assert(bf != NULL);
+    assert(!bf->rnode.next && !bf->rnode.prev);
+
     if (bf->valid)
     {
         return bf;
@@ -203,6 +210,7 @@ void brelse(buffer_t *bf)
     // {
     //     list_remove(&bf->rnode);
     // }
+
     assert(!bf->rnode.next);
     assert(!bf->rnode.prev);
     list_push(&free_list, &bf->rnode);
