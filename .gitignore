@@ -10,9 +10,12 @@
 *.lock
 *.vmdk
 *.log
+*.pyc
 
 build
 bochs/src
 bochs/pkg
 __pycache__
+.DS_Store
 .vscode/settings.json
+
