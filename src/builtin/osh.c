@@ -452,11 +452,11 @@ static void execute(int argc, char *argv[])
     }
     if (!strcmp(line, "shutdown"))
     {
-        return shutdown();
+        shutdown();
     }
     if (!strcmp(line, "reboot"))
     {
-        return reboot();
+        reboot();
     }
     return builtin_exec(argc, argv);
 }

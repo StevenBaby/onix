@@ -4,9 +4,6 @@
 #include <onix/debug.h>
 #include <onix/stdlib.h>
 #include <onix/io.h>
-#include <onix/interrupt.h>
-
-#define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
 u32 *SMI_CMD;
 u8 ACPI_ENABLE;
@@ -21,6 +18,9 @@ u16 SLP_TYPb;
 u16 SLP_EN;
 u16 SCI_EN;
 u16 SCI_Interrupt;
+u64 reset_reg_address;
+u8 reset_value;
+u32 flags;
 
 FADT *acpiFadt;
 
@@ -82,39 +82,6 @@ u32 *acpi_get_RSDPtr(void)
     return NULL;
 }
 
-int acpi_enable(void)
-{
-    // check if acpi is enabled
-    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
-    {
-        // check if acpi can be enabled
-        outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
-        // give 3 seconds time to enable acpi
-        int i;
-        for (i = 0; i < 300; i++)
-        {
-            if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
-                break;
-        }
-        if (PM1b_CNT != 0)
-            for (; i < 300; i++)
-            {
-                if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
-                    break;
-            }
-        if (i < 300)
-        {
-            DEBUGK("enabled acpi.\n");
-            return 0;
-        }
-        else
-        {
-            DEBUGK("couldn't enable acpi.\n");
-            return -1;
-        }
-    }
-}
-
 // 初始化 ACPI
 int acpi_init(void)
 {
@@ -170,6 +137,11 @@ int acpi_init(void)
 
             SCI_Interrupt = acpiFadt->SCI_Interrupt;
 
+            reset_reg_address = acpiFadt->ResetReg.Address;
+            reset_value = acpiFadt->ResetValue;
+
+            flags = acpiFadt->Flags;
+
             acpi_enable();
 
             return 0;
@@ -179,6 +151,39 @@ int acpi_init(void)
 
     DEBUGK("no valid FADT present.\n");
     return -1;
+}
+
+int acpi_enable(void)
+{
+    // check if acpi is enabled
+    if ((inw((u32)PM1a_CNT) & SCI_EN) == 0 && SMI_CMD != 0 && ACPI_ENABLE != 0)
+    {
+        // check if acpi can be enabled
+        outb((u32)SMI_CMD, ACPI_ENABLE); // send acpi enable command
+        // give 3 seconds time to enable acpi
+        int i;
+        for (i = 0; i < 300; i++)
+        {
+            if ((inw((u32)PM1a_CNT) & SCI_EN) == 1)
+                break;
+        }
+        if (PM1b_CNT != 0)
+            for (; i < 300; i++)
+            {
+                if ((inw((u32)PM1b_CNT) & SCI_EN) == 1)
+                    break;
+            }
+        if (i < 300)
+        {
+            DEBUGK("enabled acpi.\n");
+            return 0;
+        }
+        else
+        {
+            DEBUGK("couldn't enable acpi.\n");
+            return -1;
+        }
+    }
 }
 
 void sys_shutdown()
@@ -195,14 +200,15 @@ void sys_shutdown()
 
 void sys_reboot()
 {
-    while (inb(0x64) & 0x3)
-        inb(0x60);
-    outb(0x64, 0xfe);
+    while (1)
+    {
+        // 仅限 ACPI 2.0+ 且设置了flags第十位
+        if (flags & (1 << 10))
+            outb(reset_reg_address, reset_value);
 
-    // 第一种不行使用第二种
-    // 第二种方式调试错误，待验证
-    // while (1)
-    //     outb(acpiFadt->ResetReg.Address, acpiFadt->ResetValue);
-
-    LOGK("rebooting failure!!!\n");
+        // 第一种不行使用第二种方式
+        while (inb(0x64) & 0x3)
+            inb(0x60);
+        outb(0x64, 0xfe);
+    }
 }
