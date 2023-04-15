@@ -1,14 +1,8 @@
 #include <onix/interrupt.h>
+#include <onix/task.h>
+#include <onix/syscall.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
-#include <onix/syscall.h>
-#include <onix/task.h>
-#include <onix/console.h>
-#include <onix/memory.h>
-#include <onix/device.h>
-#include <onix/string.h>
-#include <onix/buffer.h>
-#include <onix/fs.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -29,28 +23,7 @@ static void sys_default()
     panic("syscall not implemented!!!");
 }
 
-static u32 sys_test()
-{
-    char ch;
-    device_t *device;
-
-    device_t *serial = device_find(DEV_SERIAL, 0);
-    assert(serial);
-
-    device_t *keyboard = device_find(DEV_KEYBOARD, 0);
-    assert(keyboard);
-
-    device_t *console = device_find(DEV_CONSOLE, 0);
-    assert(console);
-
-    device_read(serial->dev, &ch, 1, 0, 0);
-    // device_read(keyboard->dev, &ch, 1, 0, 0);
-
-    device_write(serial->dev, &ch, 1, 0, 0);
-    device_write(console->dev, &ch, 1, 0, 0);
-
-    return 255;
-}
+extern int sys_test();
 
 extern void sys_execve();
 extern int sys_kill();
