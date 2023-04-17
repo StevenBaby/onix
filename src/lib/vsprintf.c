@@ -1,6 +1,7 @@
 #include <onix/stdarg.h>
 #include <onix/string.h>
 #include <onix/assert.h>
+#include <onix/math.h>
 
 #define ZEROPAD 0x01 // 填充零
 #define SIGN 0x02    // unsigned/signed long
@@ -87,22 +88,33 @@ static char *number(char *str, u32 *num, int base, int size, int precision, int 
     // 如果数值 num 为 0，则临时字符串='0'；否则根据给定的基数将数值 num 转换成字符形式
     if (flags & DOUBLE)
     {
-        u32 ival = (u32)(*(double *)num);
-        u32 fval = (u32)(((*(double *)num) - ival) * 1000000);
-        do
+        if (isnan(*(double *)num))
         {
-            index = (fval) % base;
-            (fval) /= base;
-            tmp[i++] = digits[index];
-        } while (fval);
-        tmp[i++] = '.';
+            tmp[i++] = 'n', tmp[i++] = 'a', tmp[i++] = 'n';
+        }
+        else if (isinf(*(double *)num))
+        {
+            tmp[i++] = 'f', tmp[i++] = 'n', tmp[i++] = 'i';
+        }
+        else
+        {
+            u32 ival = (u32)(*(double *)num);
+            u32 fval = (u32)(((*(double *)num) - ival) * 1000000);
+            do
+            {
+                index = (fval) % base;
+                (fval) /= base;
+                tmp[i++] = digits[index];
+            } while (fval);
+            tmp[i++] = '.';
 
-        do
-        {
-            index = (ival) % base;
-            (ival) /= base;
-            tmp[i++] = digits[index];
-        } while (ival);
+            do
+            {
+                index = (ival) % base;
+                (ival) /= base;
+                tmp[i++] = digits[index];
+            } while (ival);
+        }
     }
     else if ((*num) == 0)
     {
