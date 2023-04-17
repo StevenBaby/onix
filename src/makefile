@@ -5,6 +5,7 @@ MULTIBOOT2:=0x10000
 ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 64:x}')")
 
 CFLAGS:= -m32 					# 32 位的程序
+CFLAGS+= -march=pentium			# pentium 处理器
 CFLAGS+= -fno-builtin			# 不需要 gcc 内置函数
 CFLAGS+= -nostdinc				# 不需要标准头文件
 CFLAGS+= -fno-pic				# 不需要位置无关的代码  position independent code
@@ -40,6 +41,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/assert.o \
 	$(BUILD)/lib/time.o \
 	$(BUILD)/lib/restorer.o \
+	$(BUILD)/lib/math.o \
 
 	ld -m elf_i386 -r $^ -o $@
 
@@ -122,6 +124,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/stdlib.o \
 	$(BUILD)/lib/syscall.o \
 	$(BUILD)/lib/printf.o \
+	$(BUILD)/lib/math.o \
 	$(BUILD)/builtin/osh.o \
 	$(BUILD)/lib/restorer.o \
 

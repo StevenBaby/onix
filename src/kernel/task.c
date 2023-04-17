@@ -525,6 +525,8 @@ void task_exit(int status)
     if (task->fpu)
     {
         kfree(task->fpu);
+        task->fpu = NULL;
+        task->flags = 0;
     }
 
     free_kpage((u32)task->pwd, 1);
