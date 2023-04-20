@@ -102,6 +102,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/signal.o \
 	$(BUILD)/kernel/alarm.o \
 	$(BUILD)/kernel/cpu.o \
+	$(BUILD)/kernel/fpu.o \
 	$(BUILD)/kernel/test.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
