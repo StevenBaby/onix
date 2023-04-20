@@ -81,18 +81,7 @@ void builtin_logo()
 
 void builtin_test(int argc, char *argv[])
 {
-    // test();
-    pid_t pid = fork();
-    while (true)
-    {
-        double num = 1.0;
-        num += 23.3;
-        num -= 5.7;
-        num *= 2.5;
-        num /= 0.7;
-        printf("test %d called\n", getpid());
-        sleep(1000);
-    }
+    test();
 }
 
 void builtin_pwd()

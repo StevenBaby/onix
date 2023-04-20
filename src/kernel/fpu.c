@@ -50,7 +50,7 @@ void set_cr0(u32 cr0)
 // 激活 fpu
 void fpu_enable(task_t *task)
 {
-    LOGK("fpu enable...\n");
+    // LOGK("fpu enable...\n");
 
     set_cr0(get_cr0() & ~(CR0_EM | CR0_TS));
     // 如果使用的任务没有变化，则无需恢复浮点环境
@@ -93,7 +93,7 @@ void fpu_disable(task_t *task)
 
 void fpu_handler(int vector)
 {
-    LOGK("fpu handler...\n");
+    // LOGK("fpu handler...\n");
     assert(vector == INTR_NM);
     task_t *task = running_task();
     assert(task->uid);
