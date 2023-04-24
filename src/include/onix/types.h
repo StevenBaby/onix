@@ -33,6 +33,9 @@
 
 #define _inline __attribute__((always_inline)) inline
 
+// 限定函数不能访问全局变量
+#define noglobal __attribute__((__const__))
+
 typedef unsigned int size_t;
 
 typedef char int8;
