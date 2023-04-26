@@ -14,3 +14,5 @@
 build
 bochs/src
 bochs/pkg
+__pycache__
+.vscode/settings.json
