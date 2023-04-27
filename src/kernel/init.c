@@ -46,6 +46,7 @@ extern void rtc_init();
 
 extern void ide_init();
 extern void ramdisk_init();
+extern void sb16_init();
 
 extern void buffer_init();
 extern void file_init();
@@ -63,7 +64,8 @@ void init_thread()
 
     ramdisk_init(); // 初始化内存虚拟磁盘
 
-    ide_init(); // 初始化 IDE 设备
+    ide_init();  // 初始化 IDE 设备
+    sb16_init(); // 初始化声霸卡
 
     buffer_init(); // 初始化高速缓冲
     file_init();   // 初始化文件

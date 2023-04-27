@@ -1,3 +1,10 @@
+MUSIC:= ./utils/deer.mp3
+
+$(BUILD)/mono.wav: $(MUSIC)
+	ffmpeg -i $< -ac 1 -ar 44100 -acodec pcm_u8 -y $@
+
+$(BUILD)/stereo.wav: $(MUSIC)
+	ffmpeg -i $< -ac 2 -ar 44100 -acodec pcm_s16le -y $@
 
 $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/boot/loader.bin \
@@ -5,6 +12,8 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/system.map \
 	$(SRC)/utils/master.sfdisk \
 	$(BUILTIN_APPS) \
+	$(BUILD)/mono.wav \
+	$(BUILD)/stereo.wav \
 
 # 创建一个 16M 的硬盘镜像
 	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
@@ -40,6 +49,11 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	mkdir -p /mnt/bin
 	mkdir -p /mnt/dev
 	mkdir -p /mnt/mnt
+
+# 拷贝音频
+	mkdir -p /mnt/data
+	cp $(BUILD)/mono.wav /mnt/data
+	cp $(BUILD)/stereo.wav /mnt/data
 
 # 拷贝程序
 	for app in $(BUILTIN_APPS); \

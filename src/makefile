@@ -58,6 +58,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/count.out \
 	$(BUILD)/builtin/alarm.out \
 	$(BUILD)/builtin/float.out \
+	$(BUILD)/builtin/player.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
@@ -100,6 +101,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/keyboard.o \
 	$(BUILD)/kernel/tty.o \
 	$(BUILD)/kernel/isa.o \
+	$(BUILD)/kernel/sb16.o \
 	$(BUILD)/kernel/buffer.o \
 	$(BUILD)/kernel/system.o \
 	$(BUILD)/kernel/execve.o \
