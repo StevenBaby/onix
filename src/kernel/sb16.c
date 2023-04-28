@@ -57,8 +57,8 @@
 #define STATUS_READ 0x80  // read buffer status
 #define STATUS_WRITE 0x80 // write buffer status
 
-#define DMA_BUF_ADDR 0x40000 // 必须 64K 字节对齐
-#define DMA_BUF_SIZE 0x4000  // 缓冲区长度
+#define DMA_BUF_ADDR 0x90000 // 不能跨越 64K 边界
+#define DMA_BUF_SIZE 0x8000  // 缓冲区长度
 
 #define SAMPLE_RATE 44100 // 采样率
 
@@ -161,7 +161,7 @@ int sb16_ioctl(sb_t *sb, int cmd, void *args, int flags)
         isa_dma_reset(sb->channel);
         return EOK;
     case SB16_CMD_VOLUME:
-        sb_set_volume((u8)args);
+        sb_set_volume((u32)args & 0xff);
         return EOK;
     default:
         break;

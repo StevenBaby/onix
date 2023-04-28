@@ -102,6 +102,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/tty.o \
 	$(BUILD)/kernel/isa.o \
 	$(BUILD)/kernel/sb16.o \
+	$(BUILD)/kernel/floppy.o \
 	$(BUILD)/kernel/buffer.o \
 	$(BUILD)/kernel/system.o \
 	$(BUILD)/kernel/execve.o \

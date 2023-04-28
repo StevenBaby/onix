@@ -24,5 +24,11 @@ void timer_put(timer_t *timer);
 void timer_wakeup();
 // 移除 task 相关的全部定时器
 void timer_remove(struct task_t *task);
+// 更新定时器超时
+void timer_update(timer_t *timer, u32 expire_ms);
+// 获取超时时间片
+int timer_expire_jiffies(u32 expire_ms);
+// 判断是否超时
+bool timer_is_expires(u32 expires);
 
 #endif

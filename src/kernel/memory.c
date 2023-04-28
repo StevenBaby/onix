@@ -728,7 +728,7 @@ void page_fault(
 {
     assert(vector == 0xe);
     u32 vaddr = get_cr2();
-    LOGK("fault address 0x%p\n", vaddr);
+    LOGK("fault address 0x%p eip 0x%p\n", vaddr, eip);
 
     page_error_code_t *code = (page_error_code_t *)&error;
     task_t *task = running_task();

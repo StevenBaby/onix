@@ -98,6 +98,11 @@ $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 # 卸载设备
 	sudo losetup -d /dev/loop0
 
+$(BUILD)/floppya.img:
+
+# 创建一个 1.44M 的软盘镜像
+	yes | bximage -q -fd=1.44M -func=create -sectsize=512 -imgmode=flat $@
+
 .PHONY: mount0
 mount0: $(BUILD)/master.img
 	sudo losetup /dev/loop0 --partscan $<
@@ -121,6 +126,7 @@ umount1: /dev/loop1
 	-sudo losetup -d $<
 
 IMAGES:= $(BUILD)/master.img \
-	$(BUILD)/slave.img
+	$(BUILD)/slave.img \
+	$(BUILD)/floppya.img
 
 image: $(IMAGES)
