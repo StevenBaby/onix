@@ -34,6 +34,7 @@
 #define IRQ_SERIAL_2 3   // 串口 2
 #define IRQ_SERIAL_1 4   // 串口 1
 #define IRQ_PARALLEL_2 5 // 并口 2
+#define IRQ_SB16 5       // SB16 声卡
 #define IRQ_FLOPPY 6     // 软盘控制器
 #define IRQ_PARALLEL_1 7 // 并口 1
 #define IRQ_RTC 8        // 实时时钟

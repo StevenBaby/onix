@@ -2,8 +2,9 @@
 #define ONIX_TYPES_H
 
 #include <onix/onix.h>
+#include <onix/errno.h>
 
-#define EOF -1 // END OF FILE
+#define EOF -EEOF // END OF FILE
 
 #define NULL ((void *)0) // 空指针
 
