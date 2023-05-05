@@ -6,6 +6,8 @@
 #define MAX(a, b) (a < b ? b : a)
 #define MIN(a, b) (a < b ? a : b)
 
+#define ALIGN(d, a) (((d) + (a - 1)) & ~(a - 1))
+
 void delay(u32 count);
 void hang();
 

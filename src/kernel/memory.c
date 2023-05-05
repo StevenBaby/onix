@@ -89,7 +89,7 @@ void memory_init(u32 magic, u32 addr)
             if (tag->type == MULTIBOOT_TAG_TYPE_MMAP)
                 break;
             // 下一个 tag 对齐到了 8 字节
-            tag = (multi_tag_t *)((u32)tag + ((tag->size + 7) & ~7));
+            tag = (multi_tag_t *)((u32)tag + ALIGN(tag->size, 8));
         }
 
         multi_tag_mmap_t *mtag = (multi_tag_mmap_t *)tag;
