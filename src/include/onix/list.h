@@ -49,6 +49,9 @@ bool list_search(list_t *list, list_node_t *node);
 // 从链表中删除结点
 void list_remove(list_node_t *node);
 
+// 将已经在链表的结点移动到新链表上
+void list_move(list_t *list, list_node_t *node);
+
 // 判断链表是否为空
 bool list_empty(list_t *list);
 

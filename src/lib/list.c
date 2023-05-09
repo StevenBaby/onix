@@ -92,6 +92,13 @@ void list_remove(list_node_t *node)
     node->prev = NULL;
 }
 
+// 将已经在链表的结点移动到新链表上
+void list_move(list_t *list, list_node_t *node)
+{
+    list_remove(node);
+    list_push(list, node);
+}
+
 // 判断链表是否为空
 bool list_empty(list_t *list)
 {

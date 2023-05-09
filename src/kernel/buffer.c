@@ -52,6 +52,9 @@ static buffer_t *get_from_hash_table(dev_t dev, idx_t block)
         return NULL;
     }
 
+    // 根据局部性原理，需要将访问过的结点移动到表头
+    list_move(list, &bf->hnode);
+
     // 如果 bf 在空闲列表中，则移除
     if (list_search(&free_list, &bf->rnode))
     {
