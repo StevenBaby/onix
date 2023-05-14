@@ -118,9 +118,9 @@ int serial_write(serial_t *serial, char *buf, u32 count)
             outb(serial->iobase, buf[nr++]);
             continue;
         }
-        task_t *task = running_task();
-        serial->tx_waiter = task;
-        task_block(task, NULL, TASK_BLOCKED, TIMELESS);
+        // task_t *task = running_task();
+        // serial->tx_waiter = task;
+        // task_block(task, NULL, TASK_BLOCKED, TIMELESS);
     }
     lock_release(&serial->wlock);
     return nr;
@@ -150,6 +150,9 @@ void serial_init()
             serial->iobase = COM2_IOBASE;
         }
 
+        // 禁用中断
+        outb(serial->iobase + COM_INTR_ENABLE, 0);
+
         // 激活 DLAB
         outb(serial->iobase + COM_LINE_CONTROL, 0x80);
 
@@ -161,9 +164,8 @@ void serial_init()
         // 复位 DLAB 位，数据位为 8 位
         outb(serial->iobase + COM_LINE_CONTROL, 0x03);
 
-        // 0x0d = 0b1101
-        // 数据可用 + 中断/错误 + 状态变化 都发送中断
-        outb(serial->iobase + COM_INTR_ENABLE, 0x0d);
+        // 启用 FIFO, 清空 FIFO, 14 字节触发电平
+        outb(serial->iobase + COM_INTR_IDENTIFY, 0xC7);
 
         // 设置回环模式，测试串口芯片
         outb(serial->iobase + COM_MODEM_CONTROL, 0b11011);
@@ -185,6 +187,10 @@ void serial_init()
 
         // 打开中断屏蔽
         set_interrupt_mask(irq, true);
+
+        // 0x0d = 0b1101
+        // 数据可用 + 中断/错误 + 状态变化 都发送中断
+        outb(serial->iobase + COM_INTR_ENABLE, 0x0F);
 
         char name[16];
 

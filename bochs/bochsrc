@@ -51,7 +51,7 @@ mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 speaker: enabled=true, mode=system
 parport1: enabled=true, file=none
 parport2: enabled=false
-com1: enabled=false
+com1: enabled=true, mode=file, dev=../build/serial.txt
 com2: enabled=false
 com3: enabled=false
 com4: enabled=false

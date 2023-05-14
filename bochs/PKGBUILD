@@ -37,10 +37,10 @@ build() {
         --enable-disasm \
         --enable-pcidev \
         --enable-usb \
-        --with-sdl \
         --enable-all-optimizations \
         --enable-gdb-stub \
         --with-nogui \
+        # --with-sdl \
         # --enable-plugins \
         # --enable-smp \
         # --enable-x86-debugger \
