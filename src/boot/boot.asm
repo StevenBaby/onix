@@ -14,11 +14,24 @@ mov sp, 0x7c00
 mov si, booting
 call print
 
-mov edi, 0x1000; 读取的目标内存
-mov ecx, 2; 起始扇区
-mov bl, 4; 扇区数量
+;mov edi, 0x1000; 读取的目标内存
+;mov ecx, 2; 起始扇区
+;mov bl, 4; 扇区数量
 
-call read_disk
+;call read_disk
+
+; 上面的写法在实体机上运行失败
+; 使用中断加载loader, 实测可运行
+mov ah, 0x02     ; 设置AH寄存器为2（读扇区）
+mov al, 0x04     ; 设置AL寄存器为1（要读取的扇区数）
+mov ch, 0x00     ; 设置磁头号为0
+mov cl, 0x03     ; 设置扇区号为3, 从1开始编号 
+mov dh, 0x00     ; 设置磁道号为0
+mov dl, 0x80     ; 设置驱动器号为0x80（主引导盘, U盘）
+mov bx, 0x1000   ; 设置BX寄存器为0x1000（要写入数据的内存地址）
+int 0x13         ; 执行INT 0x13中断
+jc read_error;
+
 
 cmp word [0x1000], 0x55aa
 jnz error
@@ -119,7 +132,14 @@ error:
     hlt; 让 CPU 停止
     jmp $
     .msg db "Booting Error!!!", 10, 13, 0
-
+    
+read_error:
+    mov si, .msg
+    call print
+    hlt; 让CPU停止
+    jmp $
+    .msg db "read_error", 10, 13, 0; \r \n
+    
 ; 填充 0
 times 510 - ($ - $$) db 0
 
