@@ -23,7 +23,7 @@ call read_disk
 cmp word [0x1000], 0x55aa
 jnz error
 
-jmp 0:0x1002
+jmp 0:0x1008
 
 ; 阻塞
 jmp $

@@ -1,6 +1,8 @@
 [org 0x1000]
 
-dw 0x55aa; 魔数，用于判断错误
+dd 0x55aa; 魔数，用于判断错误
+
+kernel_size: dd KERNEL_SIZE; 内核大小
 
 ; 打印字符串
 mov si, loading
@@ -104,11 +106,28 @@ protect_mode:
 
     mov esp, 0x10000; 修改栈顶
 
-    mov edi, 0x10000; 读取的目标内存
-    mov ecx, 10; 起始扇区
-    mov bl, 254; 扇区数量
+    sub esp, 4 * 3; 三个变量
+    mov dword [esp], 0; 读出的数量
+    mov dword [esp + 4], 10     ; ecx 初始扇区位置
+    mov dword [esp + 8], 0x10000; edi 目标内存位置
+    BLOCK_SIZE equ 200          ; 一次读取的扇区数量
+
+.read_block:
+
+    mov edi, [esp + 8]  ; 读取的目标内存
+    mov ecx, [esp + 4]  ; 起始扇区
+    mov bl, BLOCK_SIZE  ; 扇区数量
 
     call read_disk ; 读取内核
+
+    add dword [esp + 8], BLOCK_SIZE * 512  ; edi 目标内存位置
+    add dword [esp + 4], BLOCK_SIZE        ; ecx 初始扇区位置
+
+    mov eax, [kernel_size]
+    add dword [esp], BLOCK_SIZE * 512
+    cmp dword [esp], eax; 判断已读数量与 kernel_size 的大小
+
+    jl .read_block
 
     mov eax, 0x20220205; 内核魔数
     mov ebx, ards_count; ards 数量指针
