@@ -51,6 +51,7 @@ typedef struct ide_disk_t
     u32 cylinders;                 // 柱面数
     u32 heads;                     // 磁头数
     u32 sectors;                   // 扇区数
+    u32 interface;                 // 磁盘类型
     ide_part_t parts[IDE_PART_NR]; // 硬盘分区
 } ide_disk_t;
 

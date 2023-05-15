@@ -23,8 +23,11 @@
 #define IDE_FEATURE 0x0001    // 功能寄存器
 #define IDE_SECTOR 0x0002     // 扇区数量
 #define IDE_LBA_LOW 0x0003    // LBA 低字节
+#define IDE_CHS_SECTOR 0x0003 // CHS 扇区位置
 #define IDE_LBA_MID 0x0004    // LBA 中字节
+#define IDE_CHS_CYL 0x0004    // CHS 柱面低字节
 #define IDE_LBA_HIGH 0x0005   // LBA 高字节
+#define IDE_CHS_CYH 0x0005    // CHS 柱面高字节
 #define IDE_HDDEVSEL 0x0006   // 磁盘选择寄存器
 #define IDE_STATUS 0x0007     // 状态寄存器
 #define IDE_COMMAND 0x0007    // 命令寄存器
@@ -34,9 +37,10 @@
 
 // IDE 命令
 
-#define IDE_CMD_READ 0x20     // 读命令
-#define IDE_CMD_WRITE 0x30    // 写命令
-#define IDE_CMD_IDENTIFY 0xEC // 识别命令
+#define IDE_CMD_READ 0x20       // 读命令
+#define IDE_CMD_WRITE 0x30      // 写命令
+#define IDE_CMD_IDENTIFY 0xEC   // 识别命令
+#define IDE_CMD_DIAGNOSTIC 0x90 // 诊断命令
 
 // IDE 控制器状态寄存器
 #define IDE_SR_NULL 0x00 // NULL
@@ -66,6 +70,11 @@
 
 #define IDE_LBA_MASTER 0b11100000 // 主盘 LBA
 #define IDE_LBA_SLAVE 0b11110000  // 从盘 LBA
+#define IDE_SEL_MASK 0b10110000   // CHS 模式 MASK
+
+#define IDE_INTERFACE_UNKNOWN 0
+#define IDE_INTERFACE_ATA 1
+#define IDE_INTERFACE_ATAPI 2
 
 // 分区文件系统
 // 参考 https://www.win.tue.nl/~aeb/partitions/partition_types-1.html
@@ -175,11 +184,17 @@ static u32 ide_busy_wait(ide_ctrl_t *ctrl, u8 mask)
     }
 }
 
+// 硬盘延迟
+static void ide_delay()
+{
+    task_sleep(25);
+}
+
 // 重置硬盘控制器
 static void ide_reset_controller(ide_ctrl_t *ctrl)
 {
     outb(ctrl->iobase + IDE_CONTROL, IDE_CTRL_SRST);
-    ide_busy_wait(ctrl, IDE_SR_NULL);
+    ide_delay();
     outb(ctrl->iobase + IDE_CONTROL, ctrl->control);
     ide_busy_wait(ctrl, IDE_SR_NULL);
 }
@@ -353,7 +368,57 @@ int ide_pio_part_write(ide_part_t *part, void *buf, u8 count, idx_t lba)
     return ide_pio_write(part->disk, buf, count, part->start + lba);
 }
 
-static void ide_swap_pairs(char *buf, u32 len)
+// 探测设备
+static err_t ide_probe_device(ide_disk_t *disk)
+{
+    outb(disk->ctrl->iobase + IDE_HDDEVSEL, disk->selector & IDE_SEL_MASK);
+    ide_delay();
+
+    outb(disk->ctrl->iobase + IDE_SECTOR, 0x55);
+    outb(disk->ctrl->iobase + IDE_CHS_SECTOR, 0xAA);
+
+    outb(disk->ctrl->iobase + IDE_SECTOR, 0xAA);
+    outb(disk->ctrl->iobase + IDE_CHS_SECTOR, 0x55);
+
+    outb(disk->ctrl->iobase + IDE_SECTOR, 0x55);
+    outb(disk->ctrl->iobase + IDE_CHS_SECTOR, 0xAA);
+
+    u8 sector_count = inb(disk->ctrl->iobase + IDE_SECTOR);
+    u8 sector_index = inb(disk->ctrl->iobase + IDE_CHS_SECTOR);
+
+    if (sector_count == 0x55 && sector_index == 0xAA)
+        return EOK;
+    return -EIO;
+}
+
+// 检测设备类型
+static int ide_interface_type(ide_disk_t *disk)
+{
+    outb(disk->ctrl->iobase + IDE_COMMAND, IDE_CMD_DIAGNOSTIC);
+    ide_busy_wait(disk->ctrl, IDE_SR_NULL);
+
+    outb(disk->ctrl->iobase + IDE_HDDEVSEL, disk->selector & IDE_SEL_MASK);
+    ide_delay();
+
+    u8 sector_count = inb(disk->ctrl->iobase + IDE_SECTOR);
+    u8 sector_index = inb(disk->ctrl->iobase + IDE_LBA_LOW);
+    if (sector_count != 1 || sector_index != 1)
+        return IDE_INTERFACE_UNKNOWN;
+
+    u8 cylinder_low = inb(disk->ctrl->iobase + IDE_CHS_CYL);
+    u8 cylinder_high = inb(disk->ctrl->iobase + IDE_CHS_CYH);
+    u8 state = inb(disk->ctrl->iobase + IDE_STATUS);
+
+    if (cylinder_low == 0x14 && cylinder_high == 0xeb)
+        return IDE_INTERFACE_ATAPI;
+
+    if (cylinder_low == 0 && cylinder_high == 0 && state != 0)
+        return IDE_INTERFACE_ATA;
+
+    return IDE_INTERFACE_UNKNOWN;
+}
+
+static void ide_fixstrings(char *buf, u32 len)
 {
     for (size_t i = 0; i < len; i += 2)
     {
@@ -388,20 +453,13 @@ static u32 ide_identify(ide_disk_t *disk, u16 *buf)
         goto rollback;
     }
 
-    // 简单兼容 VMWare，目前没有找到更好的办法
-    if (params->total_lba > (1 << 28))
-    {
-        params->total_lba = 0;
-        goto rollback;
-    }
-
-    ide_swap_pairs(params->serial, sizeof(params->serial));
+    ide_fixstrings(params->serial, sizeof(params->serial));
     LOGK("disk %s serial number %s\n", disk->name, params->serial);
 
-    ide_swap_pairs(params->firmware, sizeof(params->firmware));
+    ide_fixstrings(params->firmware, sizeof(params->firmware));
     LOGK("disk %s firmware version %s\n", disk->name, params->firmware);
 
-    ide_swap_pairs(params->model, sizeof(params->model));
+    ide_fixstrings(params->model, sizeof(params->model));
     LOGK("disk %s model number %s\n", disk->name, params->model);
 
     disk->total_lba = params->total_lba;
@@ -507,8 +565,26 @@ static void ide_ctrl_init()
                 disk->master = true;
                 disk->selector = IDE_LBA_MASTER;
             }
-            ide_identify(disk, buf);
-            ide_part_init(disk, buf);
+            if (ide_probe_device(disk) < 0)
+            {
+                LOGK("IDE device %s not exists...\n", disk->name);
+                continue;
+            }
+
+            disk->interface = ide_interface_type(disk);
+            LOGK("IDE device %s type %d...\n", disk->name, disk->interface);
+            if (disk->interface == IDE_INTERFACE_UNKNOWN)
+                continue;
+
+            if (disk->interface == IDE_INTERFACE_ATA)
+            {
+                ide_identify(disk, buf);
+                ide_part_init(disk, buf);
+            }
+            else if (disk->interface == IDE_INTERFACE_ATAPI)
+            {
+                LOGK("Disk %s interface is ATAPI\n", disk->name);
+            }
         }
     }
     free_kpage((u32)buf, 1);
@@ -524,17 +600,20 @@ static void ide_install()
             ide_disk_t *disk = &ctrl->disks[didx];
             if (!disk->total_lba)
                 continue;
-            dev_t dev = device_install(
-                DEV_BLOCK, DEV_IDE_DISK, disk, disk->name, 0,
-                ide_pio_ioctl, ide_pio_read, ide_pio_write);
-            for (size_t i = 0; i < IDE_PART_NR; i++)
+            if (disk->interface == IDE_INTERFACE_ATA)
             {
-                ide_part_t *part = &disk->parts[i];
-                if (!part->count)
-                    continue;
-                device_install(
-                    DEV_BLOCK, DEV_IDE_PART, part, part->name, dev,
-                    ide_pio_part_ioctl, ide_pio_part_read, ide_pio_part_write);
+                dev_t dev = device_install(
+                    DEV_BLOCK, DEV_IDE_DISK, disk, disk->name, 0,
+                    ide_pio_ioctl, ide_pio_read, ide_pio_write);
+                for (size_t i = 0; i < IDE_PART_NR; i++)
+                {
+                    ide_part_t *part = &disk->parts[i];
+                    if (!part->count)
+                        continue;
+                    device_install(
+                        DEV_BLOCK, DEV_IDE_PART, part, part->name, dev,
+                        ide_pio_part_ioctl, ide_pio_part_read, ide_pio_part_write);
+                }
             }
         }
     }
