@@ -164,7 +164,7 @@ buffer_t *bread(dev_t dev, idx_t block)
 
     if (!bf->valid)
     {
-        device_request(bf->dev, bf->data, BLOCK_SECS, bf->block * BLOCK_SECS, 0, REQ_READ);
+        assert(device_request(bf->dev, bf->data, BLOCK_SECS, bf->block * BLOCK_SECS, 0, REQ_READ) == EOK);
         bf->dirty = false;
         bf->valid = true;
     }
@@ -179,7 +179,7 @@ void bwrite(buffer_t *bf)
     assert(bf);
     if (!bf->dirty)
         return;
-    device_request(bf->dev, bf->data, BLOCK_SECS, bf->block * BLOCK_SECS, 0, REQ_WRITE);
+    assert(device_request(bf->dev, bf->data, BLOCK_SECS, bf->block * BLOCK_SECS, 0, REQ_WRITE) == EOK);
     bf->dirty = false;
     bf->valid = true;
 }

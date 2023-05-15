@@ -2,6 +2,7 @@
 #include <onix/string.h>
 #include <onix/device.h>
 #include <onix/stdio.h>
+#include <onix/errno.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 
@@ -39,7 +40,7 @@ int ramdisk_read(ramdisk_t *disk, void *buf, u8 count, idx_t lba)
     u32 len = count * SECTOR_SIZE;
     assert(((u32)addr + len) < (KERNEL_RAMDISK_MEM + KERNEL_MEMORY_SIZE));
     memcpy(buf, addr, len);
-    return count;
+    return EOK;
 }
 
 int ramdisk_write(ramdisk_t *disk, void *buf, u8 count, idx_t lba)
@@ -48,7 +49,7 @@ int ramdisk_write(ramdisk_t *disk, void *buf, u8 count, idx_t lba)
     u32 len = count * SECTOR_SIZE;
     assert(((u32)addr + len) < (KERNEL_RAMDISK_MEM + KERNEL_MEMORY_SIZE));
     memcpy(addr, buf, len);
-    return count;
+    return EOK;
 }
 
 void ramdisk_init()
