@@ -10,7 +10,7 @@ enum
     CR0_MP = 1 << 1,  // Monitor Coprocessor
     CR0_EM = 1 << 2,  // Emulation 启用模拟，表示没有 FPU
     CR0_TS = 1 << 3,  // Task Switch 任务切换，延迟保存浮点环境
-    CR0_ET = 1 << 3,  // Extension Type 保留
+    CR0_ET = 1 << 4,  // Extension Type 保留
     CR0_NE = 1 << 5,  // Numeric Error 启用内部浮点错误报告
     CR0_WP = 1 << 16, // Write Protect 写保护（禁止超级用户写入只读页）帮助写时复制
     CR0_AM = 1 << 18, // Alignment Mask 对齐掩码
