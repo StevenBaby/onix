@@ -11,15 +11,16 @@
 
 typedef struct buffer_t
 {
-    char *data;        // 数据区
-    dev_t dev;         // 设备号
-    idx_t block;       // 块号
-    int count;         // 引用计数
-    list_node_t hnode; // 哈希表拉链节点
-    list_node_t rnode; // 缓冲节点
-    lock_t lock;       // 锁
-    bool dirty;        // 是否与磁盘不一致
-    bool valid;        // 是否有效
+    char *data;              // 数据区
+    dev_t dev;               // 设备号
+    idx_t block;             // 块号
+    int count;               // 引用计数
+    list_node_t hash_node;   // 哈希表拉链节点
+    list_node_t in_use_node; // in_use 节点
+    list_node_t lru_node;    // lru 节点
+    lock_t lock;             // 锁
+    bool dirty;              // 是否与磁盘不一致
+    bool valid;              // 是否有效
 } buffer_t;
 
 buffer_t *getblk(dev_t dev, idx_t block);
