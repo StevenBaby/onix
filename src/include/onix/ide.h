@@ -10,6 +10,9 @@
 #define IDE_DISK_NR 2 // 每个控制器可挂磁盘数量，固定为 2
 #define IDE_PART_NR 4 // 每个磁盘分区数量，只支持主分区，总共 4 个
 
+#define IDE_TYPE_PIO 0  // Programming Input Output
+#define IDE_TYPE_UDMA 1 // Ultra DMA
+
 typedef struct part_entry_t
 {
     u8 bootable;             // 引导标志
@@ -40,6 +43,12 @@ typedef struct ide_part_t
     u32 count;               // 分区占用的扇区数
 } ide_part_t;
 
+typedef struct ide_prd_t
+{
+    u32 addr;
+    u32 len;
+} ide_prd_t;
+
 // IDE 磁盘
 typedef struct ide_disk_t
 {
@@ -60,11 +69,14 @@ typedef struct ide_ctrl_t
 {
     char name[8];                  // 控制器名称
     lock_t lock;                   // 控制器锁
+    int iotype;                    // 设备 IO 类型
     u16 iobase;                    // IO 寄存器基址
+    u16 bmbase;                    // PCI 总线主控寄存器基地址
     ide_disk_t disks[IDE_DISK_NR]; // 磁盘
     ide_disk_t *active;            // 当前选择的磁盘
     u8 control;                    // 控制字节
     struct task_t *waiter;         // 等待控制器的进程
+    ide_prd_t prd;                 // Physical Region Descriptor
 } ide_ctrl_t;
 
 int ide_pio_read(ide_disk_t *disk, void *buf, u8 count, idx_t lba);

@@ -64,6 +64,7 @@ typedef struct task_t
     u32 signal;                         // 进程信号位图
     u32 blocked;                        // 进程信号屏蔽位图
     struct timer_t *alarm;              // 闹钟定时器
+    struct timer_t *timer;              // 超时定时器
     sigaction_t actions[MAXSIG];        // 信号处理函数
     struct fpu_t *fpu;                  // fpu 指针
     u32 flags;                          // 特殊标记

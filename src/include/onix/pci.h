@@ -81,7 +81,7 @@ typedef struct pci_device_t
 u32 pci_inl(u8 bus, u8 dev, u8 func, u8 addr);
 void pci_outl(u8 bus, u8 dev, u8 func, u8 addr, u32 value);
 
-int pci_find_bar(pci_device_t *device, pci_bar_t *bar, int type);
+err_t pci_find_bar(pci_device_t *device, pci_bar_t *bar, int type);
 u8 pci_interrupt(pci_device_t *device);
 
 const char *pci_classname(u32 classcode);
