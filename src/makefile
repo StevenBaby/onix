@@ -14,6 +14,7 @@ CFLAGS+= -nostdlib				# 不需要标准库
 CFLAGS+= -fno-stack-protector	# 不需要栈保护
 CFLAGS+= -DONIX					# 定义 ONIX
 CFLAGS+= -DONIX_DEBUG			# 定义 ONIX_DEBUG
+CFLAGS+= -DENABLE_APIC			# 启用 APIC
 CFLAGS:=$(strip ${CFLAGS})
 
 DEBUG:= -g
@@ -116,6 +117,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/cpu.o \
 	$(BUILD)/kernel/fpu.o \
 	$(BUILD)/kernel/test.o \
+	$(BUILD)/kernel/apic.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \
@@ -141,6 +143,7 @@ $(BUILD)/kernel.bin: \
 	ld ${LDFLAGS} $^ -o $@
 
 $(BUILD)/system.bin: $(BUILD)/kernel.bin
+	objdump -x -d -s $< > $(BUILD)/kernel_dis.txt
 	objcopy -O binary $< $@
 
 $(BUILD)/system.map: $(BUILD)/kernel.bin

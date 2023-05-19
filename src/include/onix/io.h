@@ -11,4 +11,6 @@ extern void outb(u16 port, u8 value);  // 输出一个字节
 extern void outw(u16 port, u16 value); // 输出一个字
 extern void outl(u16 port, u32 value); // 输出一个双字
 
+#define io_mfence() __asm__ __volatile__("mfence":::"memory")
+
 #endif

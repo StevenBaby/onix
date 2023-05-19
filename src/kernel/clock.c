@@ -40,7 +40,11 @@ void start_beep()
 
 void clock_handler(int vector)
 {
+#ifdef ENABLE_APIC
+    assert(vector == 0x22);
+#else
     assert(vector == 0x20);
+#endif
     send_eoi(vector); // 发送中断处理结束
 
     jiffies++;
@@ -82,6 +86,11 @@ void pit_init()
 void clock_init()
 {
     pit_init();
+#ifdef ENABLE_APIC
+    set_interrupt_handler(IRQ_CASCADE, clock_handler);
+    set_interrupt_mask(IRQ_CASCADE, true);
+#else
     set_interrupt_handler(IRQ_CLOCK, clock_handler);
     set_interrupt_mask(IRQ_CLOCK, true);
+#endif
 }
