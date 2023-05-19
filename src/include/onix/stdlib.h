@@ -18,4 +18,8 @@ u32 div_round_up(u32 num, u32 size);
 
 int atoi(const char *str);
 
+void srand(u32 seed);
+
+u32 rand();
+
 #endif

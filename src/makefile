@@ -59,6 +59,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/alarm.out \
 	$(BUILD)/builtin/float.out \
 	$(BUILD)/builtin/player.out \
+	$(BUILD)/builtin/random.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
