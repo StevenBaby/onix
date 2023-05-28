@@ -10,6 +10,7 @@
 *.lock
 *.vmdk
 *.log
+*.pyc
 
 build
 bochs/src
