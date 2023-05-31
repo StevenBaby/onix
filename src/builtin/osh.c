@@ -451,6 +451,14 @@ static void execute(int argc, char *argv[])
     {
         return builtin_mkfs(argc, argv);
     }
+    if (!strcmp(line, "shutdown"))
+    {
+        return shutdown();
+    }
+    if (!strcmp(line, "reboot"))
+    {
+        return reboot();
+    }
     return builtin_exec(argc, argv);
 }
 

@@ -6,7 +6,7 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-#define SYSCALL_SIZE 256
+#define SYSCALL_SIZE 512
 
 handler_t syscall_table[SYSCALL_SIZE];
 
@@ -84,6 +84,9 @@ extern int sys_alarm();
 
 extern int sys_mkfs();
 
+extern void sys_shutdown();
+extern void sys_reboot();
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -160,4 +163,7 @@ void syscall_init()
     syscall_table[SYS_NR_SSETMASK] = sys_ssetmask;
     syscall_table[SYS_NR_SIGACTION] = sys_sigaction;
     syscall_table[SYS_NR_ALARM] = sys_alarm;
+
+    syscall_table[SYS_NR_SHUTDOWN] = sys_shutdown;
+    syscall_table[SYS_NR_REBOOT] = sys_reboot;
 }
