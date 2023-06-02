@@ -39,6 +39,7 @@
 #define IRQ_PARALLEL_1 7 // 并口 1
 #define IRQ_RTC 8        // 实时时钟
 #define IRQ_REDIRECT 9   // 重定向 IRQ2
+#define IRQ_NIC 11       // 网卡
 #define IRQ_MOUSE 12     // 鼠标
 #define IRQ_MATH 13      // 协处理器 x87
 #define IRQ_HARDDISK 14  // ATA 硬盘第一通道

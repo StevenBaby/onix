@@ -48,6 +48,7 @@ extern void ide_init();
 extern void floppy_init();
 extern void ramdisk_init();
 extern void sb16_init();
+extern void e1000_init();
 
 extern void buffer_init();
 extern void file_init();
@@ -68,6 +69,7 @@ void init_thread()
     ide_init();    // 初始化 IDE 设备
     sb16_init();   // 初始化声霸卡
     floppy_init(); // 初始化软盘
+    e1000_init();  // 初始化 e1000 网卡
 
     buffer_init(); // 初始化高速缓冲
     file_init();   // 初始化文件

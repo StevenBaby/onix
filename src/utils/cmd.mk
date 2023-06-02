@@ -24,6 +24,9 @@ QEMU+= -serial chardev:com1 # 串口 1
 # QEMU+= -serial chardev:com2 # 串口 2
 # QEMU+= -netdev bridge,id=eth0 # 网络设备
 QEMU+= -netdev tap,id=eth0,ifname=tap0,script=no,downscript=no # 网络设备
+QEMU+= -device e1000,netdev=eth0,mac=5A:5A:5A:5A:5A:33 # 网卡 e1000
+# QEMU+= -object filter-dump,id=f1,netdev=eth0,file=$(BUILD)/dump.pcap
+
 QEMU_DISK_BOOT:=-boot c
 
 QEMU_DEBUG:= -s -S
