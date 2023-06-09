@@ -13,6 +13,8 @@ extern void task_init();
 extern void fpu_init();
 extern void pci_init();
 
+extern void pbuf_init();
+
 void kernel_init()
 {
     tss_init();        // 初始化任务状态段
@@ -28,6 +30,8 @@ void kernel_init()
 
     syscall_init(); // 初始化系统调用
     task_init();    // 初始化任务
+
+    pbuf_init(); // 初始化 pbuf
 
     set_interrupt_state(true);
 }
