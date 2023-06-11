@@ -154,7 +154,7 @@ static inline double fyl2x(double y, double x)
 }
 
 // 得到 loge(2)
- static inline double fldln2(void)
+static inline double fldln2(void)
 {
     double ret;
     asm volatile(
@@ -323,7 +323,7 @@ static inline double fceil(double x)
     return ret;
 }
 
-#define FPU_EXAMINE_NAN_RETURN(x, y)                   \
+#define XX(x, y)                                       \
     bool x##sign;                                      \
     const fpu_examine_t x##exam = fxam(&(x##sign), x); \
     if (x##exam == FPU_EXAMINE_NAN)                    \
@@ -333,26 +333,26 @@ static inline double fceil(double x)
 
 double sin(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     // Taylor series expansion is another way.
     return fsin(x);
 }
 
 double cos(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return fcos(x);
 }
 
 double tan(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return ftan(x);
 }
 
 double asin(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     // 由于 fpu 没有直接计算 arcsin 的微指令
     // 不妨设直角三角形斜边为 1 ，θ 角的对边为 x，那么根据 tan 函数计算公式 tan(θ) = x / sqrt(1 - square(x))
     // 可以用 arctan(x / sqrt(1 - square(x))) 得到 θ
@@ -361,13 +361,13 @@ double asin(double x)
 
 double acos(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return fpatan(fsqrt(1 - fsquare(x)), x);
 }
 
 double atan(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return fpatan(x, 1);
 }
 
@@ -378,27 +378,27 @@ double sqrt(double x)
 
 double log(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     // 换底公式
     return fyl2x(fldln2(), x);
 }
 
 double log2(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return fyl2x(1, x);
 }
 
 double log10(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     // 换底公式
     return fyl2x(fldlg2(), x);
 }
 
 double fabs(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     double ret;
     asm volatile(
         "fabs \n"
@@ -409,15 +409,15 @@ double fabs(double x)
 
 double fmax(double x, double y)
 {
-    FPU_EXAMINE_NAN_RETURN(x, y)
-    FPU_EXAMINE_NAN_RETURN(y, x)
+    XX(x, y)
+    XX(y, x)
     return (x > y) ? x : y;
 }
 
 double fmin(double x, double y)
 {
-    FPU_EXAMINE_NAN_RETURN(x, y)
-    FPU_EXAMINE_NAN_RETURN(y, x)
+    XX(x, y)
+    XX(y, x)
     return (x < y) ? x : y;
 }
 
@@ -460,7 +460,7 @@ double trunc(double x)
 
 double round(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return xsign ? ftrunc(x - 0.5l) : ftrunc(x + 0.5l);
 }
 
@@ -781,13 +781,13 @@ double ldexp(double x, int n)
 
 double floor(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return ffloor(x);
 }
 
 double ceil(double x)
 {
-    FPU_EXAMINE_NAN_RETURN(x, x)
+    XX(x, x)
     return fceil(x);
 }
 
@@ -800,8 +800,8 @@ double fmod(double x, double y)
     // 4. If y is ±∞ and x is finite, x is returned
     // 5. If either argument is NaN, NaN is returned
 
-    FPU_EXAMINE_NAN_RETURN(x, x) // Case 5.
-    FPU_EXAMINE_NAN_RETURN(y, y) // Case 5.
+    XX(x, x) // Case 5.
+    XX(y, y) // Case 5.
 
     if (xexam == FPU_EXAMINE_INFINITY)
     {
@@ -850,3 +850,5 @@ bool isnormal(double x)
     const fpu_examine_t xexam = fxam(&xsign, x);
     return xexam == FPU_EXAMINE_NORMAL;
 }
+
+#undef XX // 避免宏污染

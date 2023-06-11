@@ -42,6 +42,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/time.o \
 	$(BUILD)/lib/restorer.o \
 	$(BUILD)/lib/math.o \
+	$(BUILD)/lib/skiplist.o \
 
 	ld -m elf_i386 -r $^ -o $@
 
@@ -60,6 +61,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/float.out \
 	$(BUILD)/builtin/player.out \
 	$(BUILD)/builtin/random.out \
+	$(BUILD)/builtin/skiplist.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
