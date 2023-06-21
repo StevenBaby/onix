@@ -119,6 +119,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/test.o \
 	$(BUILD)/kernel/e1000.o \
 	$(BUILD)/net/pbuf.o \
+	$(BUILD)/net/chksum.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \

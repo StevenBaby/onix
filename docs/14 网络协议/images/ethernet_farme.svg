@@ -1,4 +1,4 @@
-<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="681px" height="71px" viewBox="-0.5 -0.5 681 71" content="&lt;mxfile&gt;&lt;diagram id=&quot;vICqbhHz74612rLAh6xS&quot; name=&quot;Page-1&quot;&gt;7ZhPk5owGMY/zXsPCWA4AuL20ks99JxCFKaBOBhX7aGfvQkExQk73Z1xdarF0Xnz5C/Pj/gCQNL68NKyTflVFlwARsUByBwwJnimf41w7IVZhHth3VZFL3lnYVn94lZEVt1VBd9eNFRSClVtLsVcNg3P1YXG2lbuL5utpLicdcPW3BGWOROu+r0qVNmrNEBn/Quv1uUws4dsTc2GxlbYlqyQ+5FEMiBpK6Xqo/qQcmG8G3zp+y3eqD0trOWNek8HC+KViZ09N8gCoBHQuQniBSQpZDOIEVA7+FYdBx9auWsKboZCQJJ9WSm+3LDc1O41eK2Vqha65OlwVQmRSiHbri8pGKerXOtb1cqffFQT5pT/WJkeslEWvufb8oLVlTCXTcGb9aFijdbdk7ZLfeWt4oeRZE144bLmqj3qJraWWh72gsS+Le9HeK1UjsgOzZi9oNangc+e68Da/gYzMsFgBlECcQZZ2Fk/MzCiFBLUBXMYFvOQMLzwjjT8CRohJDFE6KkgnNy8B4RgckskHiRJ530GNDGjZRFEASQLI2pEcfjAQAi+I5BwclcY75EJdLbQf1aP672P/u7955nvJun0W2pTQ+yZTRDHQNNuZ2ATPC6I8J6Jmjoc/KtavQrMZ9Lq7viA1UYf9e+PT0LgvQ8BuQaCyEGAnxCBkwpuiGCYeoTguln330Dg3B7dEoH3HwFMPCbcEgF2ENAnRHDHVIDdx2Zf7wL0W3+9YLhfeyoazl3qBI5r8dDF81uqrm70qo9kfwA=&lt;/diagram&gt;&lt;/mxfile&gt;">
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="681px" height="71px" viewBox="-0.5 -0.5 681 71" content="&lt;mxfile&gt;&lt;diagram id=&quot;vICqbhHz74612rLAh6xS&quot; name=&quot;Page-1&quot;&gt;7ZhPk5owGMY/zXsPBBCOgrB72ZOHnlOIwjQQJ8YFe+hnbwJBccJOtzOuTrU4MsmT/88vIQHASd29CLIr33hBGbio6ACvwHVDHKq7Fo6DsIjcQdiKqhgk5yysq5/UiMioh6qg+4uMknMmq92lmPOmobm80IgQvL3MtuHsstUd2VJLWOeE2eq3qpClGZaPzvorrbbl2LKDTEpNxsxG2Jek4O1EwingRHAuh1DdJZRp70ZfhnLZB6mnjgnayM8UWAwF3gk7mLFB6kMYQbjSgWUGcQLpApYIQlP5Xh5HHwQ/NAXVVSHAcVtWkq53JNeprQKvtFLWTMUcFdxUjCWccdGXxQWh4SZX+l4K/oNOUoI8pN83ugRvpIHveCaekbpietoUtNl2FWmUbg/adPWdCkm7iWRMeKG8plIcVZZxShoeZkK6nom3E7xGKidkx2zETKjtqeKz5ypgbP+AGZ5hsIAohmUKadBbv9AwogRi1AdWMHbmIWE4wR1peDM0AoiXEKGngnBy8x4Q/NklETsQx733KYSxri2NIPIhzrSoEC2DBwaC3TsCCWZXhfYe6YDaLdTD6nG999Cfvf868+1NOkvWD+x2cM/dOLTM9q5q9cbXv1mr++svrNb6pPxwfREC53MI8DUQRBYC9wkRWM/7GyIYm54guO7W+m8gsM5At0Tg/EcAM+8Ct0TgWgjCJ0Rwx63Atd+NPbUK0C/1d/zxUPZUNKyj6AyOa/FQ0fOnqD5t8j0Pp78B&lt;/diagram&gt;&lt;/mxfile&gt;">
     <defs/>
     <g>
         <rect x="0" y="30" width="80" height="40" fill="#dae8fc" stroke="#6c8ebf" pointer-events="all"/>
@@ -93,13 +93,13 @@
                     <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 50px; margin-left: 601px;">
                         <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div style="display: inline-block; font-size: 14px; font-family: dengxian; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
-                                CRC校验和
+                                FCS
                             </div>
                         </div>
                     </div>
                 </foreignObject>
                 <text x="640" y="54" fill="rgb(0, 0, 0)" font-family="dengxian" font-size="14px" text-anchor="middle">
-                    CRC校验和
+                    FCS
                 </text>
             </switch>
         </g>
