@@ -32,6 +32,12 @@ u32 div_round_up(u32 num, u32 size)
     return (num + size - 1) / size;
 }
 
+// 判断是否是数字
+bool isdigit(int c)
+{
+    return c >= '0' && c <= '9';
+}
+
 int atoi(const char *str)
 {
     if (str == NULL)

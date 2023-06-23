@@ -53,6 +53,9 @@ enum
     ETIME = 62,        // 超时
     ERROR = 99,        // 一般错误
     EEOF,              // 读写文件结束
+
+    // 网络错误
+    EADDR, // 地址错误
 };
 
 #endif

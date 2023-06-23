@@ -14,6 +14,7 @@ extern void fpu_init();
 extern void pci_init();
 
 extern void pbuf_init();
+extern void netif_init();
 
 void kernel_init()
 {
@@ -31,7 +32,8 @@ void kernel_init()
     syscall_init(); // 初始化系统调用
     task_init();    // 初始化任务
 
-    pbuf_init(); // 初始化 pbuf
+    pbuf_init();  // 初始化 pbuf
+    netif_init(); // 初始化 netif
 
     set_interrupt_state(true);
 }

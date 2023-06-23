@@ -120,6 +120,8 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/e1000.o \
 	$(BUILD)/net/pbuf.o \
 	$(BUILD)/net/chksum.o \
+	$(BUILD)/net/netif.o \
+	$(BUILD)/net/addr.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \
