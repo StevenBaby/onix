@@ -238,6 +238,9 @@ typedef struct e1000_t
     u16 tx_cur;         // 传输描述符指针
     task_t *tx_waiter;  // 传输等待进程
 
+    pbuf_t **rx_pbuf; // 接收高速缓冲数组
+    pbuf_t **tx_pbuf; // 传输高速缓冲数组
+
     netif_t *netif; // 虚拟网卡
 } e1000_t;
 
@@ -262,14 +265,18 @@ static void recv_packet(e1000_t *e1000)
 
         assert(rx->length < 1600);
 
-        pbuf_t *pbuf = element_entry(pbuf_t, payload, rx->addr);
+        pbuf_t *pbuf = e1000->rx_pbuf[e1000->rx_cur];
+        assert(pbuf == element_entry(pbuf_t, payload, rx->addr));
+
         pbuf->length = rx->length;
 
         // 将数据包加入缓冲队列
         netif_input(e1000->netif, pbuf);
 
         pbuf = pbuf_get();
-        rx->addr = (u32)pbuf->payload;
+
+        e1000->rx_pbuf[e1000->rx_cur] = pbuf;
+        rx->addr = get_paddr((u32)pbuf->payload);
         rx->status = 0;
 
         moutl(e1000->membase + E1000_RDT, e1000->rx_cur);
@@ -290,14 +297,14 @@ static void send_packet(netif_t *netif, pbuf_t *pbuf)
 
     assert(pbuf->count == 1);
 
-    pbuf_put(element_entry(pbuf_t, payload, tx->addr));
-
     // Ethernet checksum
     // u32 sum = eth_fcs((char *)pbuf->payload, pbuf->length);
     // *(u32 *)((u32)pbuf->payload + pbuf->length) = sum;
     // pbuf->length += ETH_FCS_LEN;
 
-    tx->addr = (u32)pbuf->payload;
+    e1000->tx_pbuf[e1000->tx_cur] = pbuf;
+
+    tx->addr = get_paddr((u32)pbuf->payload);
     tx->length = pbuf->length;
     tx->cmd = TCMD_EOP | TCMD_RS | TCMD_RPS | TCMD_IFCS;
     tx->status = 0;
@@ -327,6 +334,17 @@ static void e1000_handler(int vector)
     if ((status & IM_TXDW))
     {
         LOGK("e1000 TXDW...\n");
+
+        u32 cur = (minl(e1000->membase + E1000_TDH) - 1) % TX_DESC_NR;
+
+        pbuf_t *pbuf = e1000->tx_pbuf[cur];
+        assert(pbuf == element_entry(pbuf_t, payload, e1000->tx_desc[cur].addr));
+
+        e1000->tx_pbuf[cur] = NULL;
+        e1000->tx_desc[cur].addr = 0;
+
+        pbuf_put(pbuf);
+
         if (e1000->tx_waiter)
         {
             task_unblock(e1000->tx_waiter, EOK);
@@ -458,6 +476,9 @@ static void e1000_reset(e1000_t *e1000)
     // 接收初始化
     e1000->rx_desc = (rx_desc_t *)alloc_kpage(1); // TODO: free
     e1000->rx_cur = 0;
+
+    e1000->rx_pbuf = (pbuf_t **)&e1000->rx_desc[RX_DESC_NR];
+
     moutl(e1000->membase + E1000_RDBAL, (u32)e1000->rx_desc);
     moutl(e1000->membase + E1000_RDBAH, 0);
     moutl(e1000->membase + E1000_RDLEN, sizeof(rx_desc_t) * RX_DESC_NR);
@@ -469,7 +490,9 @@ static void e1000_reset(e1000_t *e1000)
     // 接收描述符地址
     for (size_t i = 0; i < RX_DESC_NR; i++)
     {
-        e1000->rx_desc[i].addr = (u32)pbuf_get()->payload;
+        pbuf_t *pbuf = pbuf_get();
+        e1000->rx_pbuf[i] = pbuf;
+        e1000->rx_desc[i].addr = get_paddr((u32)pbuf->payload);
         e1000->rx_desc[i].status = 0;
     }
 
@@ -483,6 +506,9 @@ static void e1000_reset(e1000_t *e1000)
     // 传输初始化
     e1000->tx_desc = (tx_desc_t *)alloc_kpage(1); // TODO:free
     e1000->tx_cur = 0;
+
+    e1000->tx_pbuf = (pbuf_t **)&e1000->tx_desc[TX_DESC_NR];
+
     moutl(e1000->membase + E1000_TDBAL, (u32)e1000->tx_desc);
     moutl(e1000->membase + E1000_TDBAH, 0);
     moutl(e1000->membase + E1000_TDLEN, sizeof(tx_desc_t) * TX_DESC_NR);
@@ -494,7 +520,7 @@ static void e1000_reset(e1000_t *e1000)
     // 传输描述符基地址
     for (size_t i = 0; i < TX_DESC_NR; i++)
     {
-        e1000->tx_desc[i].addr = (u32)pbuf_get()->payload;
+        e1000->tx_desc[i].addr = 0;
         e1000->tx_desc[i].status = TS_DD;
     }
 

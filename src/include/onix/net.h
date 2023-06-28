@@ -7,5 +7,6 @@
 #include <onix/net/chksum.h>
 #include <onix/net/netif.h>
 #include <onix/net/addr.h>
+#include <onix/net/eth.h>
 
 #endif

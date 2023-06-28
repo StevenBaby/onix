@@ -15,6 +15,7 @@ extern void pci_init();
 
 extern void pbuf_init();
 extern void netif_init();
+extern void eth_init();
 
 void kernel_init()
 {
@@ -34,6 +35,7 @@ void kernel_init()
 
     pbuf_init();  // 初始化 pbuf
     netif_init(); // 初始化 netif
+    eth_init();   // 初始化 Ethernet 协议
 
     set_interrupt_state(true);
 }
