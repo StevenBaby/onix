@@ -54,7 +54,7 @@ void pbuf_put(pbuf_t *pbuf)
 
     list_push(&free_pbuf_list, &pbuf->node);
     free_count++;
-    LOGK("pbuf count (%d/%d)\n", free_count, pbuf_count);
+    // LOGK("pbuf count (%d/%d)\n", free_count, pbuf_count);
 }
 
 // 初始化数据包缓冲

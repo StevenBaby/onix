@@ -8,5 +8,6 @@
 #include <onix/net/netif.h>
 #include <onix/net/addr.h>
 #include <onix/net/eth.h>
+#include <onix/net/arp.h>
 
 #endif

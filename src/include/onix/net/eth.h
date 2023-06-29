@@ -2,6 +2,7 @@
 #define ONIX_NET_ETH_H
 
 #include <onix/net/types.h>
+#include <onix/net/arp.h>
 
 #define ETH_FCS_LEN 4
 
@@ -18,7 +19,12 @@ typedef struct eth_t
     eth_addr_t dst; // 目标地址
     eth_addr_t src; // 源地址
     u16 type;       // 类型
-    u8 payload[0];  // 载荷
+    union
+    {
+        u8 payload[0]; // 载荷
+        arp_t arp[0];  // arp 包
+    };
+
 } _packed eth_t;
 
 err_t eth_input(netif_t *netif, pbuf_t *pbuf);

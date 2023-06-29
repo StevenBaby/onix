@@ -48,3 +48,11 @@ err_t inet_aton(const char *str, ip_addr_t addr)
     ip_addr_copy(addr, parts);
     return EOK;
 }
+
+// 比较两 ip 地址是否相等
+bool ip_addr_cmp(ip_addr_t addr1, ip_addr_t addr2)
+{
+    u32 a1 = *(u32 *)addr1;
+    u32 a2 = *(u32 *)addr2;
+    return a1 == a2;
+}

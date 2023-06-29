@@ -15,14 +15,13 @@ err_t eth_input(netif_t *netif, pbuf_t *pbuf)
     switch (type)
     {
     case ETH_TYPE_IP:
-        LOGK("ETH %m -> %m IP4, %d\n", eth->src, eth->dst, pbuf->length);
+        // LOGK("ETH %m -> %m IP4, %d\n", eth->src, eth->dst, pbuf->length);
         break;
     case ETH_TYPE_IPV6:
-        LOGK("ETH %m -> %m IP6, %d\n", eth->src, eth->dst, pbuf->length);
+        // LOGK("ETH %m -> %m IP6, %d\n", eth->src, eth->dst, pbuf->length);
         break;
     case ETH_TYPE_ARP:
-        LOGK("ETH %m -> %m ARP, %d\n", eth->src, eth->dst, pbuf->length);
-        break;
+        return arp_input(netif, pbuf); // ARP 输入
     default:
         LOGK("ETH %m -> %m UNKNOWN [%04X], %d\n", type, eth->src, eth->dst, pbuf->length);
         return -EPROTO;
