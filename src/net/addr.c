@@ -56,3 +56,12 @@ bool ip_addr_cmp(ip_addr_t addr1, ip_addr_t addr2)
     u32 a2 = *(u32 *)addr2;
     return a1 == a2;
 }
+
+// 比较两地址是否在同一子网
+bool ip_addr_maskcmp(ip_addr_t addr1, ip_addr_t addr2, ip_addr_t mask)
+{
+    u32 a1 = *(u32 *)addr1;
+    u32 a2 = *(u32 *)addr2;
+    u32 m = *(u32 *)mask;
+    return (a1 & m) == (a2 & m);
+}
