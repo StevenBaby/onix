@@ -15,8 +15,7 @@ err_t eth_input(netif_t *netif, pbuf_t *pbuf)
     switch (type)
     {
     case ETH_TYPE_IP:
-        // LOGK("ETH %m -> %m IP4, %d\n", eth->src, eth->dst, pbuf->length);
-        break;
+        return ip_input(netif, pbuf); // IP 输入
     case ETH_TYPE_IPV6:
         // LOGK("ETH %m -> %m IP6, %d\n", eth->src, eth->dst, pbuf->length);
         break;

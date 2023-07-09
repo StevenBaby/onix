@@ -49,6 +49,20 @@ netif_t *netif_get()
     return netif;
 }
 
+netif_t *netif_route(ip_addr_t addr)
+{
+    list_t *list = &netif_list;
+    for (list_node_t *ptr = list->head.next; ptr != &list->tail; ptr = ptr->next)
+    {
+        netif_t *netif = element_entry(netif_t, node, ptr);
+        if (ip_addr_maskcmp(addr, netif->ipaddr, netif->netmask))
+        {
+            return netif;
+        }
+    }
+    return netif_get(); // TODO route
+}
+
 // 移除虚拟网卡
 void netif_remove(netif_t *netif)
 {

@@ -55,8 +55,10 @@ enum
     EEOF,              // 读写文件结束
 
     // 网络错误
-    EADDR,  // 地址错误
-    EPROTO, // 协议错误
+    EADDR,   // 地址错误
+    EPROTO,  // 协议错误
+    EOPTION, // 选项错误
+    EFRAG,   // 分片错误
 };
 
 #endif

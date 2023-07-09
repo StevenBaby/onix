@@ -124,6 +124,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/addr.o \
 	$(BUILD)/net/eth.o \
 	$(BUILD)/net/arp.o \
+	$(BUILD)/net/ip.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \

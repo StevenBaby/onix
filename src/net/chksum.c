@@ -20,16 +20,15 @@ u32 eth_fcs(void *data, int len)
     return ~crc;
 }
 
-u16 chksum(void *data, int len)
+static u16 chksum(void *data, int len, u32 sum)
 {
-    u32 sum = 0;
     u16 *ptr = (u16 *)data;
-    for (sum = 0; len > 1; len -= 2)
+    for (; len > 1; len -= 2)
     {
-        sum += *ptr++;
         // 防止溢出
         if (sum & 0x80000000)
             sum = (sum & 0xFFFF) + (sum >> 16);
+        sum += *ptr++;
     }
 
     if (len == 1)
@@ -38,5 +37,11 @@ u16 chksum(void *data, int len)
     while (sum >> 16)
         sum = (sum & 0xFFFF) + (sum >> 16);
 
-    return (u16)(~sum);
+    return (u16)sum;
+}
+
+u16 ip_chksum(void *data, int len)
+{
+    u16 sum = chksum(data, len, 0);
+    return ~sum;
 }

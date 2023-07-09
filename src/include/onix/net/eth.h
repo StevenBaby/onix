@@ -3,6 +3,7 @@
 
 #include <onix/net/types.h>
 #include <onix/net/arp.h>
+#include <onix/net/ip.h>
 
 #define ETH_FCS_LEN 4
 
@@ -26,6 +27,7 @@ typedef struct eth_t
     {
         u8 payload[0]; // 载荷
         arp_t arp[0];  // arp 包
+        ip_t ip[0];    // ip 包
     };
 
 } _packed eth_t;
