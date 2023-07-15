@@ -18,4 +18,13 @@ bool ip_addr_cmp(ip_addr_t addr1, ip_addr_t addr2);
 // 比较两地址是否在同一子网
 bool ip_addr_maskcmp(ip_addr_t addr1, ip_addr_t addr2, ip_addr_t mask);
 
+// 判断地址是否是广播地址
+bool ip_addr_isbroadcast(ip_addr_t addr, ip_addr_t mask);
+
+// 判断地址是否全为 0
+bool ip_addr_isany(ip_addr_t addr);
+
+// 判断地址是否为多播地址
+bool ip_addr_ismulticast(ip_addr_t addr);
+
 #endif

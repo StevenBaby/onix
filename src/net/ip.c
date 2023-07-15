@@ -32,11 +32,12 @@ err_t ip_input(netif_t *netif, pbuf_t *pbuf)
         return -EOPTION;
     }
 
-    // if (!(ip->flags & IP_FLAG_NOFRAG))
-    // {
-    //     LOGK("IP fragment error\n");
-    //     return -EFRAG;
-    // }
+    // 不支持分片
+    if (ip->flags & IP_FLAG_NOLAST)
+    {
+        LOGK("IP fragment error\n");
+        return -EFRAG;
+    }
 
     // 不是本机 ip
     if (!ip_addr_cmp(ip->dst, netif->ipaddr))
@@ -54,8 +55,7 @@ err_t ip_input(netif_t *netif, pbuf_t *pbuf)
         LOGK("IP:UDP received\n");
         break;
     case IP_PROTOCOL_ICMP:
-        LOGK("IP:ICMP received\n");
-        break;
+        return icmp_input(netif, pbuf); // ICMP 输入
     default:
         LOGK("IP {%X}: %r -> %r \n", ip->proto, ip->src, ip->dst);
         return -EPROTO;

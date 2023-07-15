@@ -65,3 +65,27 @@ bool ip_addr_maskcmp(ip_addr_t addr1, ip_addr_t addr2, ip_addr_t mask)
     u32 m = *(u32 *)mask;
     return (a1 & m) == (a2 & m);
 }
+
+// 判断地址是否是广播地址
+bool ip_addr_isbroadcast(ip_addr_t addr, ip_addr_t mask)
+{
+    u32 a = *(u32 *)addr;
+    u32 m = *(u32 *)mask;
+    return (a & ~m) == (-1 & (~m)) || a == -1 || a == 0;
+}
+
+// 判断地址是否全为 0
+bool ip_addr_isany(ip_addr_t addr)
+{
+    if (addr == NULL)
+        return true;
+    u32 a = *(u32 *)addr;
+    return a == 0;
+}
+
+// 判断地址是否为多播地址
+bool ip_addr_ismulticast(ip_addr_t addr)
+{
+    u32 a = *(u32 *)addr;
+    return (a & ntohl(0xF0000000)) == ntohl(0xE0000000);
+}
