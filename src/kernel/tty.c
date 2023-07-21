@@ -83,6 +83,8 @@ int tty_rx_notify(char *ch, char makecode, bool ctrl, bool shift, bool alt)
         LOGK("set vga to linear 256\n");
         reg.ax = 0x0013;
         vm86(0x10, &reg);
+        extern void vga_reset();
+        vga_reset();
         return 0;
     default:
         break;

@@ -48,6 +48,7 @@ extern void dev_init();
 extern void net_init();
 extern void resolv_init();
 extern void vm86_init();
+extern void vga_init();
 
 void init_thread()
 {
@@ -77,6 +78,7 @@ void init_thread()
     net_init();    // 配置网卡
     resolv_init(); // 初始化域名解析
     vm86_init();   // 初始化 VM8086
+    vga_init();    // 初始化 VGA
 
     task_to_user_mode(); // 进入用户态
 }
