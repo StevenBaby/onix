@@ -98,7 +98,7 @@ void reckon_size(int *size, char *qualifer)
 int main(int argc, char const *argv[], char const *envp[])
 {
     fd_t fd = open(".", O_RDONLY, 0);
-    if (fd == EOF)
+    if (fd < EOK)
         return EOF;
 
     bool list = false;
@@ -110,7 +110,7 @@ int main(int argc, char const *argv[], char const *envp[])
     while (true)
     {
         int len = readdir(fd, &entry, 1);
-        if (len == EOF)
+        if (len < EOK)
             break;
         if (!entry.nr)
             continue;

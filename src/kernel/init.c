@@ -53,6 +53,8 @@ extern void e1000_init();
 extern void buffer_init();
 extern void file_init();
 extern void inode_init();
+extern void pipe_init();
+extern void minix_init();
 extern void super_init();
 extern void dev_init();
 
@@ -74,6 +76,8 @@ void init_thread()
     buffer_init(); // 初始化高速缓冲
     file_init();   // 初始化文件
     inode_init();  // 初始化 inode
+    minix_init();  // 初始化 minix 文件系统
+    pipe_init();   // 初始化管道
     super_init();  // 初始化超级块
 
     dev_init(); // 初始化设备文件

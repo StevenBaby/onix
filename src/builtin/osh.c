@@ -367,7 +367,7 @@ void builtin_exec(int argc, char *argv[])
 
         stat_t statbuf;
         sprintf(name, "/bin/%s.out", argv[i]);
-        if (stat(name, &statbuf) == EOF)
+        if (stat(name, &statbuf) < EOK)
         {
             printf("osh: command not found: %s\n", argv[i]);
             return;

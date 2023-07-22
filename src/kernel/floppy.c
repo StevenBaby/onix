@@ -382,7 +382,7 @@ static err_t fd_transfer(floppy_t *fd, bool mode, void *buf, u8 count, idx_t lba
         // Successful transfer
         if (mode == FD_READ)
             memcpy(buf, fd->buf, count * SECTOR_SIZE);
-        return count;
+        return EOK;
     }
     else
     {
@@ -400,15 +400,7 @@ static err_t fd_read(floppy_t *fd, void *buf, u8 count, idx_t lba)
     lock_acquire(&fd->lock);
     fd_motor_on(fd);
 
-    u8 left = count;
-    int ret;
-    while (left)
-    {
-        if ((ret = fd_transfer(fd, FD_READ, buf, count, lba)) < EOK)
-            break;
-        left -= ret;
-        lba += ret;
-    }
+    int ret = fd_transfer(fd, FD_READ, buf, count, lba);
 
     fd_motor_off(fd);
     lock_release(&fd->lock);
@@ -422,15 +414,7 @@ static err_t fd_write(floppy_t *fd, void *buf, u8 count, idx_t lba)
     lock_acquire(&fd->lock);
     fd_motor_on(fd);
 
-    u8 left = count;
-    int ret;
-    while (left)
-    {
-        if ((ret = fd_transfer(fd, FD_WRITE, buf, count, lba)) < EOK)
-            break;
-        left -= ret;
-        lba += ret;
-    }
+    int ret = fd_transfer(fd, FD_WRITE, buf, count, lba);
 
     fd_motor_off(fd);
     lock_release(&fd->lock);

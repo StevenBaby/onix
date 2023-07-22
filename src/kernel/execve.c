@@ -240,7 +240,7 @@ static void load_segment(inode_t *inode, Elf32_Phdr *phdr)
         link_page(addr);
     }
 
-    inode_read(inode, (char *)vaddr, phdr->p_filesz, phdr->p_offset);
+    inode->op->read(inode, (char *)vaddr, phdr->p_filesz, phdr->p_offset);
     if (phdr->p_filesz < phdr->p_memsz)
     {
         memset((char *)vaddr + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
@@ -278,7 +278,7 @@ static u32 load_elf(inode_t *inode)
 
     int n = 0;
     // 读取 ELF 文件头
-    n = inode_read(inode, (char *)USER_EXEC_ADDR, sizeof(Elf32_Ehdr), 0);
+    n = inode->op->read(inode, (char *)USER_EXEC_ADDR, sizeof(Elf32_Ehdr), 0);
     assert(n == sizeof(Elf32_Ehdr));
 
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *)USER_EXEC_ADDR;
@@ -287,7 +287,7 @@ static u32 load_elf(inode_t *inode)
 
     // 读取程序段头表
     Elf32_Phdr *phdr = (Elf32_Phdr *)(USER_EXEC_ADDR + sizeof(Elf32_Ehdr));
-    n = inode_read(inode, (char *)phdr, ehdr->e_phnum * ehdr->e_phentsize, ehdr->e_phoff);
+    n = inode->op->read(inode, (char *)phdr, ehdr->e_phnum * ehdr->e_phentsize, ehdr->e_phoff);
 
     Elf32_Phdr *ptr = phdr;
     for (size_t i = 0; i < ehdr->e_phnum; i++)
@@ -357,7 +357,7 @@ static u32 copy_argv_envp(char *filename, char *argv[], char *envp[])
     {
         // 计算长度
         len = strlen(argv[i - 1]) + 1;
-        
+
         // 得到拷贝地址
         ktop -= len;
         utop -= len;
@@ -407,15 +407,21 @@ int sys_execve(char *filename, char *argv[], char *envp[])
     inode_t *inode = namei(filename);
     int ret = EOF;
     if (!inode)
-        goto rollback;
+        return -ENOENT;
 
     // 不是常规文件
-    if (!ISFILE(inode->desc->mode))
+    if (!ISFILE(inode->mode))
+    {
+        ret = -EPERM;
         goto rollback;
+    }
 
     // 文件不可执行
-    if (!permission(inode, P_EXEC))
+    if (!inode->op->permission(inode, P_EXEC))
+    {
+        ret = -EPERM;
         goto rollback;
+    }
 
     task_t *task = running_task();
     strncpy(task->name, filename, TASK_NAME_LEN);
@@ -430,7 +436,10 @@ int sys_execve(char *filename, char *argv[], char *envp[])
     // 加载程序
     u32 entry = load_elf(inode);
     if (entry == EOF)
+    {
+        ret = -ENOEXEC;
         goto rollback;
+    }
 
     // 设置堆内存地址
     sys_brk((u32)task->end);

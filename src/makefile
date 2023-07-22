@@ -127,14 +127,13 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/ip.o \
 	$(BUILD)/net/icmp.o \
 	$(BUILD)/fs/super.o \
-	$(BUILD)/fs/bmap.o \
 	$(BUILD)/fs/inode.o \
 	$(BUILD)/fs/namei.o \
 	$(BUILD)/fs/file.o \
-	$(BUILD)/fs/stat.o \
+	$(BUILD)/fs/fsyscall.o \
 	$(BUILD)/fs/dev.o \
-	$(BUILD)/fs/pipe.o \
-	$(BUILD)/fs/ioctl.o \
+	$(BUILD)/fs/minix/minix.o \
+	$(BUILD)/fs/pipe/pipe.o \
 	$(BUILD)/lib/bitmap.o \
 	$(BUILD)/lib/list.o \
 	$(BUILD)/lib/fifo.o \

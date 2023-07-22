@@ -131,9 +131,6 @@ void task_to_user_mode();
 pid_t sys_getpid();
 pid_t sys_getppid();
 
-fd_t task_get_fd(task_t *task);
-void task_put_fd(task_t *task, fd_t fd);
-
 bool task_leader(task_t *task);
 
 task_t *task_create(target_t target, const char *name, u32 priority, u32 uid);

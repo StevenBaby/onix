@@ -51,6 +51,7 @@ enum
     ENOSYS = 38,       // 功能还没有实现
     ENOTEMPTY = 39,    // 目录不空
     ETIME = 62,        // 超时
+    EFSUNK,            // 文件系统未知
     ERROR = 99,        // 一般错误
     EEOF,              // 读写文件结束
 
