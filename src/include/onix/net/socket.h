@@ -2,6 +2,7 @@
 #define ONIX_NET_SOCKET_H
 
 #include <onix/net/types.h>
+#include <onix/net/pkt.h>
 
 enum
 {
@@ -49,6 +50,13 @@ typedef struct sockaddr_in_t
     u8 zero[8];
 } sockaddr_in_t;
 
+typedef struct sockaddr_ll_t
+{
+    u16 family;
+    eth_addr_t addr;
+    u8 zero[8];
+} sockaddr_ll_t;
+
 typedef struct iovec_t
 {
     size_t size;
@@ -66,6 +74,10 @@ typedef struct msghdr_t
 typedef struct socket_t
 {
     socktype_t type; // socket 类型
+    union
+    {
+        pkt_pcb_t *pkt;
+    };
 } socket_t;
 
 typedef struct socket_op_t

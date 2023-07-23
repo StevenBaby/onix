@@ -1,4 +1,5 @@
 #include <onix/net.h>
+#include <onix/net/pkt.h>
 #include <onix/string.h>
 #include <onix/debug.h>
 #include <onix/errno.h>
@@ -11,6 +12,12 @@ err_t eth_input(netif_t *netif, pbuf_t *pbuf)
 {
     eth_t *eth = (eth_t *)pbuf->eth;
     u16 type = ntohs(eth->type);
+
+    err_t ret = pkt_input(netif, pbuf);
+    if (ret < 0)
+        return ret;
+    if (ret > 0)
+        return EOK;
 
     switch (type)
     {

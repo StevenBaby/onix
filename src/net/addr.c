@@ -9,6 +9,29 @@ void eth_addr_copy(eth_addr_t dst, eth_addr_t src)
     memcpy(dst, src, ETH_ADDR_LEN);
 }
 
+bool eth_addr_isany(eth_addr_t addr)
+{
+    if (addr == NULL)
+        return true;
+
+    for (size_t i = 0; i < ETH_ADDR_LEN; i++)
+    {
+        if (addr[i] != 0)
+            return false;
+    }
+    return true;
+}
+
+bool eth_addr_cmp(eth_addr_t addr1, eth_addr_t addr2)
+{
+    for (size_t i = 0; i < ETH_ADDR_LEN; i++)
+    {
+        if (addr1[i] != addr2[i])
+            return false;
+    }
+    return true;
+}
+
 // IP 地址拷贝
 void ip_addr_copy(ip_addr_t dst, ip_addr_t src)
 {

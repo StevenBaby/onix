@@ -94,6 +94,17 @@ int sys_socket(int domain, int type, int protocol)
     LOGK("sys_socket...\n");
 
     socktype_t socktype = SOCK_TYPE_NONE;
+    switch (domain)
+    {
+    case AF_INET:
+        break;
+    case AF_PACKET:
+        socktype = SOCK_TYPE_PKT;
+        break;
+    default:
+        return -EINVAL;
+        break;
+    }
 
     file_t *file;
     fd_t fd = fd_get(&file);

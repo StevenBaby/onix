@@ -13,6 +13,9 @@
 
 #define NET_TIMEOUT 5000
 
+#define ETH_MTU 1518
+#define IP_MTU 1500
+
 #define ETH_ADDR_LEN 6
 #define IP_ADDR_LEN 4
 

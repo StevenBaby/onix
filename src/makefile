@@ -47,6 +47,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/time.o \
 	$(BUILD)/lib/restorer.o \
 	$(BUILD)/lib/math.o \
+	$(BUILD)/net/addr.o \
 
 	ld -m elf_i386 -r $^ -o $@
 
@@ -64,6 +65,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/alarm.out \
 	$(BUILD)/builtin/float.out \
 	$(BUILD)/builtin/player.out \
+	$(BUILD)/builtin/pkt.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
@@ -129,6 +131,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/icmp.o \
 	$(BUILD)/net/socket.o \
 	$(BUILD)/net/iovec.o \
+	$(BUILD)/net/pkt.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/inode.o \
 	$(BUILD)/fs/namei.o \
