@@ -3,6 +3,9 @@
 
 #include <onix/types.h>
 #include <onix/stat.h>
+#include <onix/net/socket.h>
+
+#define SYSCALL_SIZE 512
 
 #if 0
 #include <asm/unistd_32.h>
@@ -59,7 +62,22 @@ typedef enum syscall_t
     SYS_NR_SLEEP = 162,
     SYS_NR_GETCWD = 183,
 
-    SYS_NR_MKFS = 200,
+    SYS_NR_SOCKET = 359,
+    SYS_NR_BIND = 361,
+    SYS_NR_CONNECT,
+    SYS_NR_LISTEN,
+    SYS_NR_ACCEPT,
+    SYS_NR_GETSOCKOPT,
+    SYS_NR_SETSOCKOPT,
+    SYS_NR_GETSOCKNAME,
+    SYS_NR_GETPEERNAME,
+    SYS_NR_SENDTO,
+    SYS_NR_SENDMSG,
+    SYS_NR_RECVFROM,
+    SYS_NR_RECVMSG,
+    SYS_NR_SHUTDOWN,
+
+    SYS_NR_MKFS = SYSCALL_SIZE - 1,
 } syscall_t;
 
 #if 0
@@ -180,5 +198,26 @@ int kill(pid_t pid, int signal);
 
 // 设置闹钟
 int alarm(int sec);
+
+// 套接字
+int socket(int domain, int type, int protocol);
+int listen(int fd, int backlog);
+int accept(int fd, sockaddr_t *addr, int *addrlen);
+int bind(int fd, const sockaddr_t *name, int namelen);
+int connect(int fd, const sockaddr_t *name, int namelen);
+int shutdown(int fd, int how);
+
+int getpeername(int fd, sockaddr_t *name, int *namelen);
+int getsockname(int fd, sockaddr_t *name, int *namelen);
+int getsockopt(int fd, int level, int optname, void *optval, int *optlen);
+int setsockopt(int fd, int level, int optname, const void *optval, int optlen);
+
+int recv(int fd, void *data, int size, u32 flags);
+int recvfrom(int fd, void *data, int size, u32 flags, sockaddr_t *from, int *fromlen);
+int recvmsg(int fd, msghdr_t *msg, u32 flags);
+
+int send(int fd, const void *data, int size, u32 flags);
+int sendto(int fd, const void *data, int size, u32 flags, const sockaddr_t *to, int tolen);
+int sendmsg(int fd, msghdr_t *msg, u32 flags);
 
 #endif

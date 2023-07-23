@@ -100,4 +100,7 @@ void free_pde();
 // 获取虚拟地址 vaddr 对应的物理地址
 u32 get_paddr(u32 vaddr);
 
+// 检测内存是否可以访问
+bool memory_access(void *vaddr, int size, bool write, bool user);
+
 #endif

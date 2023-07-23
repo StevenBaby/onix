@@ -802,3 +802,34 @@ void page_fault(
     LOGK("task 0x%p name %s brk 0x%p page fault\n", task, task->name, task->brk);
     panic("page fault!!!");
 }
+
+// 检测内存是否可以访问
+bool memory_access(void *vaddr, int size, bool write, bool user)
+{
+    u32 page = PAGE(IDX(vaddr));
+    u32 last = (u32)(vaddr) + size;
+
+    page_entry_t *entry;
+    for (size_t i = 0; page < last; i++, page += PAGE_SIZE)
+    {
+        page_entry_t *pde = get_pde();
+        idx_t idx = DIDX(page);
+        // 判断页表
+        entry = &pde[idx];
+        if (!entry->present)
+            return false;
+
+        page_entry_t *table = (page_entry_t *)(PDE_MASK | (idx << 12));
+        // 页框
+        entry = &table[TIDX(page)];
+        if (!entry->present)
+            return false;
+
+        if (write && entry->readonly)
+            return false;
+
+        if (user && !entry->user)
+            return false;
+    }
+    return true;
+}

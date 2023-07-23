@@ -325,3 +325,83 @@ int sigaction(int sig, sigaction_t *action, sigaction_t *oldaction)
 {
     return _syscall3(SYS_NR_SIGACTION, (u32)sig, (u32)action, (u32)oldaction);
 }
+
+int socket(int domain, int type, int protocol)
+{
+    return _syscall3(SYS_NR_SOCKET, domain, type, protocol);
+}
+
+int listen(int fd, int backlog)
+{
+    return _syscall2(SYS_NR_LISTEN, fd, backlog);
+}
+
+int accept(int fd, sockaddr_t *addr, int *addrlen)
+{
+    return _syscall3(SYS_NR_ACCEPT, fd, (u32)addr, (u32)addrlen);
+}
+
+int bind(int fd, const sockaddr_t *name, int namelen)
+{
+    return _syscall3(SYS_NR_BIND, fd, (u32)name, namelen);
+}
+
+int connect(int fd, const sockaddr_t *name, int namelen)
+{
+    return _syscall3(SYS_NR_CONNECT, fd, (u32)name, namelen);
+}
+
+int shutdown(int fd, int how)
+{
+    return _syscall2(SYS_NR_SHUTDOWN, fd, how);
+}
+
+int getpeername(int fd, sockaddr_t *name, int *namelen)
+{
+    return _syscall3(SYS_NR_GETPEERNAME, fd, (u32)name, (u32)namelen);
+}
+
+int getsockname(int fd, sockaddr_t *name, int *namelen)
+{
+    return _syscall3(SYS_NR_GETSOCKNAME, fd, (u32)name, (u32)namelen);
+}
+
+int getsockopt(int fd, int level, int optname, void *optval, int *optlen)
+{
+    return _syscall5(SYS_NR_GETSOCKOPT, fd, level, optname, (u32)optval, (u32)optlen);
+}
+
+int setsockopt(int fd, int level, int optname, const void *optval, int optlen)
+{
+    return _syscall5(SYS_NR_SETSOCKOPT, fd, level, optname, (u32)optval, (u32)optlen);
+}
+
+int recv(int fd, void *data, int size, u32 flags)
+{
+    return recvfrom(fd, data, size, 0, NULL, 0);
+}
+
+int recvfrom(int fd, void *data, int size, u32 flags, sockaddr_t *from, int *fromlen)
+{
+    return _syscall6(SYS_NR_RECVFROM, fd, (u32)data, size, flags, (u32)from, (u32)fromlen);
+}
+
+int recvmsg(int fd, msghdr_t *msg, u32 flags)
+{
+    return _syscall3(SYS_NR_RECVMSG, fd, (u32)msg, flags);
+}
+
+int send(int fd, const void *data, int size, u32 flags)
+{
+    return sendto(fd, data, size, 0, NULL, 0);
+}
+
+int sendto(int fd, const void *data, int size, u32 flags, const sockaddr_t *to, int tolen)
+{
+    return _syscall6(SYS_NR_SENDTO, fd, (u32)data, size, flags, (u32)to, tolen);
+}
+
+int sendmsg(int fd, msghdr_t *msg, u32 flags)
+{
+    return _syscall3(SYS_NR_SENDMSG, fd, (u32)msg, flags);
+}

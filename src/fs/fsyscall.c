@@ -3,6 +3,7 @@
 #include <onix/task.h>
 #include <onix/device.h>
 #include <onix/syscall.h>
+#include <onix/memory.h>
 #include <onix/debug.h>
 #include <onix/string.h>
 #include <onix/stat.h>
@@ -70,6 +71,13 @@ int sys_read(fd_t fd, char *buf, int count)
     if (count < 0)
         return -EINVAL;
 
+    bool user = true;
+    if (running_task()->uid == KERNEL_USER)
+        user = false;
+
+    if (!memory_access(buf, count, false, user))
+        return -EINVAL;
+
     file_t *file;
     err_t ret = EOK;
     if ((ret = fd_check(fd, &file)) < EOK)
@@ -90,6 +98,13 @@ int sys_read(fd_t fd, char *buf, int count)
 
 int sys_readdir(fd_t fd, dirent_t *dir, u32 count)
 {
+    bool user = true;
+    if (running_task()->uid == KERNEL_USER)
+        user = false;
+
+    if (!memory_access(dir, sizeof(dirent_t), false, user))
+        return -EINVAL;
+
     file_t *file;
     err_t ret = EOK;
     if ((ret = fd_check(fd, &file)) < EOK)
@@ -111,6 +126,13 @@ int sys_readdir(fd_t fd, dirent_t *dir, u32 count)
 int sys_write(unsigned int fd, char *buf, int count)
 {
     if (count < 0)
+        return -EINVAL;
+
+    bool user = true;
+    if (running_task()->uid == KERNEL_USER)
+        user = false;
+
+    if (!memory_access(buf, count, true, user))
         return -EINVAL;
 
     file_t *file;

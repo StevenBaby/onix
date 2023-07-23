@@ -6,8 +6,6 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-#define SYSCALL_SIZE 256
-
 handler_t syscall_table[SYSCALL_SIZE];
 
 void syscall_check(u32 nr)
@@ -83,6 +81,26 @@ extern int sys_sigaction();
 extern int sys_alarm();
 
 extern int sys_mkfs();
+
+extern int sys_socket();
+extern int sys_listen();
+extern int sys_accept();
+extern int sys_bind();
+extern int sys_connect();
+extern int sys_shutdown();
+
+extern int sys_getpeername();
+extern int sys_getsockname();
+extern int sys_getsockopt();
+extern int sys_setsockopt();
+
+extern int sys_recv();
+extern int sys_recvfrom();
+extern int sys_recvmsg();
+
+extern int sys_send();
+extern int sys_sendto();
+extern int sys_sendmsg();
 
 void syscall_init()
 {
@@ -160,4 +178,19 @@ void syscall_init()
     syscall_table[SYS_NR_SSETMASK] = sys_ssetmask;
     syscall_table[SYS_NR_SIGACTION] = sys_sigaction;
     syscall_table[SYS_NR_ALARM] = sys_alarm;
+
+    syscall_table[SYS_NR_SOCKET] = sys_socket;
+    syscall_table[SYS_NR_BIND] = sys_bind;
+    syscall_table[SYS_NR_CONNECT] = sys_connect;
+    syscall_table[SYS_NR_LISTEN] = sys_listen;
+    syscall_table[SYS_NR_ACCEPT] = sys_accept;
+    syscall_table[SYS_NR_GETSOCKOPT] = sys_getsockopt;
+    syscall_table[SYS_NR_SETSOCKOPT] = sys_setsockopt;
+    syscall_table[SYS_NR_GETSOCKNAME] = sys_getsockname;
+    syscall_table[SYS_NR_GETPEERNAME] = sys_getpeername;
+    syscall_table[SYS_NR_SENDTO] = sys_sendto;
+    syscall_table[SYS_NR_SENDMSG] = sys_sendmsg;
+    syscall_table[SYS_NR_RECVFROM] = sys_recvfrom;
+    syscall_table[SYS_NR_RECVMSG] = sys_recvmsg;
+    syscall_table[SYS_NR_SHUTDOWN] = sys_shutdown;
 }
