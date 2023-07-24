@@ -22,6 +22,7 @@ extern void icmp_init();
 
 extern void socket_init();
 extern void pkt_init();
+extern void raw_init();
 
 void kernel_init()
 {
@@ -48,6 +49,7 @@ void kernel_init()
 
     socket_init(); // 初始化 socket
     pkt_init();    // 初始化 pkt
+    raw_init();    // 初始化原始套接字
 
     set_interrupt_state(true);
 }

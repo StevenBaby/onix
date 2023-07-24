@@ -46,6 +46,12 @@ err_t ip_input(netif_t *netif, pbuf_t *pbuf)
     ip->length = ntohs(ip->length);
     ip->id = ntohs(ip->id);
 
+    err_t ret = raw_input(netif, pbuf);
+    if (ret < 0)
+        return ret;
+    if (ret > 0)
+        return 0;
+
     switch (ip->proto)
     {
     case IP_PROTOCOL_TCP:

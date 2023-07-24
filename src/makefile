@@ -66,6 +66,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/float.out \
 	$(BUILD)/builtin/player.out \
 	$(BUILD)/builtin/pkt.out \
+	$(BUILD)/builtin/server.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \
@@ -132,6 +133,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/socket.o \
 	$(BUILD)/net/iovec.o \
 	$(BUILD)/net/pkt.o \
+	$(BUILD)/net/raw.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/inode.o \
 	$(BUILD)/fs/namei.o \

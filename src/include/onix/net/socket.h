@@ -3,6 +3,7 @@
 
 #include <onix/net/types.h>
 #include <onix/net/pkt.h>
+#include <onix/net/raw.h>
 
 enum
 {
@@ -91,6 +92,7 @@ typedef struct socket_t
     union
     {
         pkt_pcb_t *pkt;
+        raw_pcb_t *raw;
     };
 } socket_t;
 
