@@ -94,11 +94,9 @@ extern int sys_getsockname();
 extern int sys_getsockopt();
 extern int sys_setsockopt();
 
-extern int sys_recv();
 extern int sys_recvfrom();
 extern int sys_recvmsg();
 
-extern int sys_send();
 extern int sys_sendto();
 extern int sys_sendmsg();
 

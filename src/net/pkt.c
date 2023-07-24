@@ -63,7 +63,7 @@ static int pkt_getpeername(socket_t *s, sockaddr_t *name, int *namelen)
     sockaddr_ll_t *sin = (sockaddr_ll_t *)name;
 
     sin->family = AF_PACKET;
-    ip_addr_copy(sin->addr, s->pkt->raddr);
+    eth_addr_copy(sin->addr, s->pkt->raddr);
     *namelen = sizeof(sockaddr_ll_t);
     return EOK;
 }
@@ -73,7 +73,7 @@ static int pkt_getsockname(socket_t *s, sockaddr_t *name, int *namelen)
     sockaddr_ll_t *sin = (sockaddr_ll_t *)name;
 
     sin->family = AF_PACKET;
-    ip_addr_copy(sin->addr, s->pkt->laddr);
+    eth_addr_copy(sin->addr, s->pkt->laddr);
     *namelen = sizeof(sockaddr_ll_t);
     return EOK;
 }
@@ -84,7 +84,7 @@ static int pkt_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
     if (list_empty(&s->pkt->rx_pbuf_list))
     {
         s->pkt->rx_waiter = running_task();
-        ret = task_block(s->pkt->rx_waiter, NULL, TASK_WAITING, TIMELESS);
+        ret = task_block(s->pkt->rx_waiter, NULL, TASK_WAITING, s->rcvtimeo);
     }
 
     if (ret != EOK)

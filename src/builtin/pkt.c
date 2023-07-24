@@ -18,6 +18,14 @@ int main(int argc, char const *argv[])
         goto rollback;
     }
 
+    int opt = 10000;
+    int ret = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &opt, 4);
+    if (ret < 0)
+    {
+        printf("set timeout error.\n");
+        goto rollback;
+    }
+
     msghdr_t msg;
     iovec_t iov;
 
@@ -25,7 +33,7 @@ int main(int argc, char const *argv[])
     eth_addr_copy(saddr.addr, "\x5a\x5a\x5a\x5a\x5a\x33");
     saddr.family = AF_PACKET;
 
-    int ret = bind(fd, (sockaddr_t *)&saddr, sizeof(sockaddr_ll_t));
+    ret = bind(fd, (sockaddr_t *)&saddr, sizeof(sockaddr_ll_t));
     if (ret < EOK)
     {
         printf("bind error\n");
@@ -43,8 +51,14 @@ int main(int argc, char const *argv[])
 
     printf("receiving...\n");
     ret = recvmsg(fd, &msg, 0);
-    printf("recvmsg %d\n", ret);
 
+    if (ret < 0)
+    {
+        printf("recvmsg error %d\n", ret);
+        goto rollback;
+    }
+
+    printf("recvmsg %d\n", ret);
     eth_t *eth = (eth_t *)iov.base;
 
     printf("recv eth %m -> %m : %#x\n", eth->src, eth->dst, ntohs(eth->type));

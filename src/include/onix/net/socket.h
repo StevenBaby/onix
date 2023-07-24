@@ -36,6 +36,18 @@ typedef enum socktype_t
     SOCK_TYPE_NUM,
 } socktype_t;
 
+enum
+{
+    SOL_SOCKET = 0xffff,
+
+    SO_REUSEADDR = 0x0004,
+    SO_KEEPALIVE = 0x0008,
+    SO_BROADCAST = 0x0020,
+    SO_SNDTIMEO = 0x1005,
+    SO_RCVTIMEO = 0x1006,
+    SO_LINGER = 0x0080,
+};
+
 typedef struct sockaddr_t
 {
     u16 family;
@@ -74,6 +86,8 @@ typedef struct msghdr_t
 typedef struct socket_t
 {
     socktype_t type; // socket 类型
+    int sndtimeo;    // 发送超时
+    int rcvtimeo;    // 接收超时
     union
     {
         pkt_pcb_t *pkt;
