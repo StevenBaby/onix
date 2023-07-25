@@ -16,11 +16,9 @@ static list_t pkt_pcb_list;
 static int pkt_socket(socket_t *s, int domain, int type, int protocol)
 {
     LOGK("pkt socket...\n");
-    if (!s->pkt)
-    {
-        s->pkt = (pkt_pcb_t *)kmalloc(sizeof(pkt_pcb_t));
-        memset(s->pkt, 0, sizeof(pkt_pcb_t));
-    }
+    assert(!s->pkt);
+    s->pkt = (pkt_pcb_t *)kmalloc(sizeof(pkt_pcb_t));
+    memset(s->pkt, 0, sizeof(pkt_pcb_t));
 
     pkt_pcb_t *pcb = s->pkt;
     list_init(&pcb->rx_pbuf_list);

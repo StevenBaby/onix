@@ -48,6 +48,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/restorer.o \
 	$(BUILD)/lib/math.o \
 	$(BUILD)/net/addr.o \
+	$(BUILD)/net/chksum.o \
 
 	ld -m elf_i386 -r $^ -o $@
 
@@ -67,6 +68,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/player.out \
 	$(BUILD)/builtin/pkt.out \
 	$(BUILD)/builtin/server.out \
+	$(BUILD)/builtin/ping.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \

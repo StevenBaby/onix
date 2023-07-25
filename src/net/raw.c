@@ -16,15 +16,11 @@ static list_t raw_pcb_list;
 static int raw_socket(socket_t *s, int domain, int type, int protocol)
 {
     LOGK("raw socket...\n");
-    if (!s->raw)
-    {
-        s->raw = (raw_pcb_t *)kmalloc(sizeof(raw_pcb_t));
-        memset(s->raw, 0, sizeof(raw_pcb_t));
-    }
+    assert(!s->raw);
+    s->raw = (raw_pcb_t *)kmalloc(sizeof(raw_pcb_t));
+    memset(s->raw, 0, sizeof(raw_pcb_t));
 
     raw_pcb_t *pcb = s->raw;
-
-    memset(pcb, 0, sizeof(raw_pcb_t));
     pcb->protocol = protocol;
     list_init(&pcb->rx_pbuf_list);
     list_push(&raw_pcb_list, &pcb->node);
