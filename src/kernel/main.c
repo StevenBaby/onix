@@ -15,6 +15,7 @@ extern void pci_init();
 
 extern void pbuf_init();
 extern void netif_init();
+extern void loopif_init();
 extern void eth_init();
 extern void arp_init();
 extern void ip_init();
@@ -40,12 +41,13 @@ void kernel_init()
     syscall_init(); // 初始化系统调用
     task_init();    // 初始化任务
 
-    pbuf_init();  // 初始化 pbuf
-    netif_init(); // 初始化 netif
-    eth_init();   // 初始化 Ethernet 协议
-    arp_init();   // 初始化 ARP 协议
-    ip_init();    // 初始化 IP 协议
-    icmp_init();  // 初始化 ICMP 协议
+    pbuf_init();   // 初始化 pbuf
+    netif_init();  // 初始化 netif
+    loopif_init(); // 初始化 loopif
+    eth_init();    // 初始化 Ethernet 协议
+    arp_init();    // 初始化 ARP 协议
+    ip_init();     // 初始化 IP 协议
+    icmp_init();   // 初始化 ICMP 协议
 
     socket_init(); // 初始化 socket
     pkt_init();    // 初始化 pkt

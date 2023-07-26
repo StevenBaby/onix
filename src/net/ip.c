@@ -94,7 +94,10 @@ err_t ip_output(netif_t *netif, pbuf_t *pbuf, ip_addr_t dst, u8 proto, u16 len)
     ip_addr_copy(ip->src, netif->ipaddr);
 
     ip->chksum = 0;
-    ip->chksum = ip_chksum(ip, sizeof(ip_t));
+    if (!(netif->flags & NETIF_IP_TX_CHECKSUM_OFFLOAD))
+    {
+        ip->chksum = ip_chksum(ip, sizeof(ip_t));
+    }
 
     return arp_eth_output(netif, pbuf, ip->dst, ETH_TYPE_IP, length);
 }

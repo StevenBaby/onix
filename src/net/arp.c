@@ -74,6 +74,9 @@ static arp_entry_t *arp_lookup(netif_t *netif, ip_addr_t addr)
     else
         ip_addr_copy(query, addr);
 
+    if (ip_addr_isany(query))
+        return NULL;
+
     list_t *list = &arp_entry_list;
     arp_entry_t *entry = NULL;
 
@@ -135,6 +138,8 @@ static err_t arp_refresh(netif_t *netif, pbuf_t *pbuf)
         return -EADDR;
 
     arp_entry_t *entry = arp_lookup(netif, arp->ipsrc);
+    if (!entry)
+        return -EADDR;
 
     eth_addr_copy(entry->hwaddr, arp->hwsrc);
     entry->expires = time() + ARP_ENTRY_TIMEOUT;
@@ -213,7 +218,17 @@ err_t arp_eth_output(netif_t *netif, pbuf_t *pbuf, ip_addr_t addr, u16 type, u32
     eth_addr_copy(pbuf->eth->src, netif->hwaddr);
     pbuf->length = sizeof(eth_t) + len;
 
+    if (netif->flags & NETIF_LOOPBACK)
+    {
+        eth_addr_copy(pbuf->eth->dst, "\x00\x00\x00\x00\x00\x00");
+        netif_output(netif, pbuf);
+        return EOK;
+    }
+
     arp_entry_t *entry = arp_lookup(netif, addr);
+    if (!entry)
+        return -EADDR;
+
     if (entry->expires > time())
     {
         entry->used += 1;

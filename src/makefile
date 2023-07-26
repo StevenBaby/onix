@@ -127,6 +127,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/pbuf.o \
 	$(BUILD)/net/chksum.o \
 	$(BUILD)/net/netif.o \
+	$(BUILD)/net/loopif.o \
 	$(BUILD)/net/addr.o \
 	$(BUILD)/net/eth.o \
 	$(BUILD)/net/arp.o \
