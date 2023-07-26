@@ -11,5 +11,6 @@
 #include <onix/net/arp.h>
 #include <onix/net/ip.h>
 #include <onix/net/icmp.h>
+#include <onix/net/udp.h>
 
 #endif

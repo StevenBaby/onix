@@ -115,7 +115,7 @@ static int raw_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
     int ret = EOK;
     size_t size = iovec_size(msg->iov, msg->iovlen);
     if (size > IP_MTU)
-        return -EINVAL;
+        return -EMSGSIZE;
 
     if (msg->name)
         ret = raw_connect(s, msg->name, msg->namelen);

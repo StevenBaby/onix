@@ -78,6 +78,19 @@ void netif_remove(netif_t *netif)
     kfree(netif);
 }
 
+// 判断 IP 地址是不是自己
+bool ip_addr_isown(ip_addr_t addr)
+{
+    list_t *list = &netif_list;
+    for (list_node_t *node = list->head.next; node != &list->tail; node = node->next)
+    {
+        netif_t *netif = element_entry(netif_t, node, node);
+        if (ip_addr_cmp(netif->ipaddr, addr))
+            return true;
+    }
+    return false;
+}
+
 // 网卡接收任务输入
 void netif_input(netif_t *netif, pbuf_t *pbuf)
 {

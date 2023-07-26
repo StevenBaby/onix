@@ -68,6 +68,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/player.out \
 	$(BUILD)/builtin/pkt.out \
 	$(BUILD)/builtin/server.out \
+	$(BUILD)/builtin/client.out \
 	$(BUILD)/builtin/ping.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
@@ -133,6 +134,8 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/arp.o \
 	$(BUILD)/net/ip.o \
 	$(BUILD)/net/icmp.o \
+	$(BUILD)/net/port.o \
+	$(BUILD)/net/udp.o \
 	$(BUILD)/net/socket.o \
 	$(BUILD)/net/iovec.o \
 	$(BUILD)/net/pkt.o \

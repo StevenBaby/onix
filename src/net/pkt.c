@@ -99,7 +99,7 @@ static int pkt_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
     int ret = EOK;
     size_t size = iovec_size(msg->iov, msg->iovlen);
     if (size > ETH_MTU)
-        return -EINVAL;
+        return -EMSGSIZE;
 
     if (msg->name)
         ret = pkt_connect(s, msg->name, msg->namelen);

@@ -58,8 +58,7 @@ err_t ip_input(netif_t *netif, pbuf_t *pbuf)
         LOGK("IP:TCP received\n");
         break;
     case IP_PROTOCOL_UDP:
-        LOGK("IP:UDP received\n");
-        break;
+        return udp_input(netif, pbuf); // UDP 输入
     case IP_PROTOCOL_ICMP:
         return icmp_input(netif, pbuf); // ICMP 输入
     default:
