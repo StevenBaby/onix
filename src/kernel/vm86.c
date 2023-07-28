@@ -125,7 +125,7 @@ err_t sys_vm86(int vec, vm86_reg_t *reg)
     if (state->vmtask)
         return -EVM86;
 
-    LOGK("sys vm86 int %d called...\n", vec);
+    // LOGK("sys vm86 int %d called...\n", vec);
 
     while (state->monitor->state != TASK_BLOCKED)
     {
@@ -156,7 +156,7 @@ static void vm86_thread()
 {
     if (state->vmtask != NULL)
     {
-        LOGK("unblock vmtask 0x%p\n", state->vmtask);
+        // LOGK("unblock vmtask 0x%p\n", state->vmtask);
         unmap_zero();
         task_unblock(state->vmtask, EOK);
     }
@@ -164,7 +164,7 @@ static void vm86_thread()
     assert(running_task() == state->monitor);
     task_block(state->monitor, NULL, TASK_BLOCKED, TIMELESS);
 
-    LOGK("vm86 task...\n");
+    // LOGK("vm86 task...\n");
 
     map_zero();
     vm86_enter();

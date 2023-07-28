@@ -48,6 +48,7 @@ extern void net_init();
 extern void resolv_init();
 extern void vm86_init();
 extern void vga_init();
+extern void vesa_init();
 
 void init_thread()
 {
@@ -77,6 +78,7 @@ void init_thread()
     resolv_init(); // 初始化域名解析
     vm86_init();   // 初始化 VM8086
     vga_init();    // 初始化 VGA
+    vesa_init();   // 初始化 VESA
 
     task_to_user_mode(); // 进入用户态
 }
