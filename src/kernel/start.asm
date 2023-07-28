@@ -20,6 +20,7 @@ header_end:
 extern onix_init
 extern device_init
 extern console_init
+extern serial_init
 extern gdt_init
 extern memory_init
 extern kernel_init
@@ -35,6 +36,7 @@ _start:
     push eax; magic
     call onix_init      ; 检测内核完整性
     call device_init    ; 虚拟设备初始化
+    call serial_init    ; 串口初始化
     call console_init   ; 控制台初始化
 
     ; xchg bx, bx

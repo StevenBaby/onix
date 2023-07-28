@@ -131,6 +131,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/floppy.o \
 	$(BUILD)/kernel/mouse.o \
 	$(BUILD)/kernel/vga.o \
+	$(BUILD)/kernel/vesa.o \
 	$(BUILD)/kernel/buffer.o \
 	$(BUILD)/kernel/system.o \
 	$(BUILD)/kernel/execve.o \

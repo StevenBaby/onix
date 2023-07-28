@@ -24,7 +24,6 @@ int init_user_thread()
     return 0;
 }
 
-extern void serial_init();
 extern void keyboard_init();
 extern void time_init();
 extern void tty_init();
@@ -52,7 +51,6 @@ extern void vga_init();
 
 void init_thread()
 {
-    serial_init();   // 初始化串口
     keyboard_init(); // 初始化键盘
     time_init();     // 初始化时间
     tty_init();      // 初始化 TTY 设备，必须在键盘之后
@@ -64,7 +62,7 @@ void init_thread()
     sb16_init();   // 初始化声霸卡
     floppy_init(); // 初始化软盘
     e1000_init();  // 初始化 e1000 网卡
-    mouse_init();  // 初始化鼠标
+    // mouse_init();  // 初始化鼠标
 
     buffer_init(); // 初始化高速缓冲
     file_init();   // 初始化文件
