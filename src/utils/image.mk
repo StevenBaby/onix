@@ -76,6 +76,9 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	test -n "$$(find $(BUILD)/boot/vm86.bin -size -4k)"
 	cp $(BUILD)/boot/vm86.bin /mnt/bin
 
+# 拷贝图像文件
+	cp ./utils/images/bingbing.bmp /mnt/data
+
 # 卸载文件系统
 	sudo umount /mnt
 
