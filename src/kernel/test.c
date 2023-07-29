@@ -13,10 +13,11 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
+extern void vesa_show();
 extern void vga_show();
 
 err_t sys_test()
 {
-    vga_show();
+    vesa_show();
     return EOK;
 }

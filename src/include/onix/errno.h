@@ -57,6 +57,7 @@ enum
     EEOF,              // 读写文件结束
 
     EVM86, // VM86 错误
+    EVESA, // VESA 错误
 
     // 网络错误
     EADDR,     // 地址错误

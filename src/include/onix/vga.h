@@ -32,12 +32,24 @@ typedef struct bmp_info_t
 
 typedef struct rgb_t
 {
-    u8 B;        // 蓝色的亮度(值范围为0-255)
-    u8 G;        // 绿色的亮度(值范围为0-255)
-    u8 R;        // 红色的亮度(值范围为0-255)
-    u8 RESERVED; // 保留，必须为0
+    u8 B; // 蓝色的亮度(值范围为0-255)
+    u8 G; // 绿色的亮度(值范围为0-255)
+    u8 R; // 红色的亮度(值范围为0-255)
 } rgb_t;
 
-typedef rgb_t bmp_table_t[256];
+typedef struct pixel_t
+{
+    union
+    {
+        struct
+        {
+            u8 B; // 蓝色的亮度(值范围为0-255)
+            u8 G; // 绿色的亮度(值范围为0-255)
+            u8 R; // 红色的亮度(值范围为0-255)
+        };
+        rgb_t color;
+    };
+    u8 alpha;
+} pixel_t;
 
 #endif

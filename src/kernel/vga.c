@@ -17,10 +17,10 @@
 
 void vga_reset()
 {
-    for (size_t i = MEM_BASE; i < (MEM_BASE + WIDTH * HEIGHT); i++)
-    {
-        *(char *)i = i & 0x0F;
-    }
+    // for (size_t i = MEM_BASE; i < (MEM_BASE + WIDTH * HEIGHT); i++)
+    // {
+    //     *(char *)i = i & 0x0F;
+    // }
 }
 
 void vga_show()
@@ -38,8 +38,6 @@ void vga_show()
     assert(hdr->start == 1078);
 
     bmp_info_t *info = (bmp_info_t *)(buf + sizeof(bmp_hdr_t));
-
-    bmp_table_t *table = (bmp_table_t *)(buf + sizeof(bmp_hdr_t) + sizeof(bmp_info_t));
 
     for (size_t i = 0; i < (320 * 200);)
     {
