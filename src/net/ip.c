@@ -55,8 +55,7 @@ err_t ip_input(netif_t *netif, pbuf_t *pbuf)
     switch (ip->proto)
     {
     case IP_PROTOCOL_TCP:
-        LOGK("IP:TCP received\n");
-        break;
+        return tcp_input(netif, pbuf); // TCP 输入
     case IP_PROTOCOL_UDP:
         return udp_input(netif, pbuf); // UDP 输入
     case IP_PROTOCOL_ICMP:

@@ -136,6 +136,8 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/icmp.o \
 	$(BUILD)/net/port.o \
 	$(BUILD)/net/udp.o \
+	$(BUILD)/net/tcp.o \
+	$(BUILD)/net/tcp_input.o \
 	$(BUILD)/net/socket.o \
 	$(BUILD)/net/iovec.o \
 	$(BUILD)/net/pkt.o \

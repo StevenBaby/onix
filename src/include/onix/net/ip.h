@@ -5,6 +5,7 @@
 #include <onix/net/eth.h>
 #include <onix/net/icmp.h>
 #include <onix/net/udp.h>
+#include <onix/net/tcp.h>
 
 #define IP_VERSION_4 4
 #define IP_TTL 64
@@ -46,6 +47,7 @@ typedef struct ip_t
         icmp_t icmp[0];      // ICMP 协议
         icmp_echo_t echo[0]; // ICMP ECHO 协议
         udp_t udp[0];        // UDP 协议
+        tcp_t tcp[0];        // TCP 协议
     };
 
 } _packed ip_t;

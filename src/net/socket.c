@@ -113,6 +113,9 @@ int sys_socket(int domain, int type, int protocol)
         case SOCK_DGRAM:
             socktype = SOCK_TYPE_UDP;
             break;
+        case SOCK_STREAM:
+            socktype = SOCK_TYPE_TCP;
+            break;
         default:
             return -EINVAL;
             break;

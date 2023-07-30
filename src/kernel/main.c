@@ -21,6 +21,7 @@ extern void arp_init();
 extern void ip_init();
 extern void icmp_init();
 extern void udp_init();
+extern void tcp_init();
 
 extern void socket_init();
 extern void pkt_init();
@@ -50,6 +51,7 @@ void kernel_init()
     ip_init();     // 初始化 IP 协议
     icmp_init();   // 初始化 ICMP 协议
     udp_init();    // 初始化 UDP 协议
+    tcp_init();    // 初始化 TCP 协议
 
     socket_init(); // 初始化 socket
     pkt_init();    // 初始化 pkt

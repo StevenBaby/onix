@@ -10,6 +10,12 @@ typedef struct pbuf_t
     list_node_t node; // 列表节点
     size_t length;    // 载荷长度
     u32 count;        // 引用计数
+
+    list_node_t tcpnode; // TCP 缓冲节点
+    u8 *data;            // TCP 数据指针
+    size_t total;        // TCP 总长度 头 + 数据长度
+    size_t size;         // TCP 数据长度
+
     union
     {
         u8 payload[0]; // 载荷

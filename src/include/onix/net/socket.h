@@ -6,6 +6,7 @@
 #include <onix/net/pkt.h>
 #include <onix/net/raw.h>
 #include <onix/net/udp.h>
+#include <onix/net/tcp.h>
 
 enum
 {
@@ -96,6 +97,7 @@ typedef struct socket_t
         pkt_pcb_t *pkt;
         raw_pcb_t *raw;
         udp_pcb_t *udp;
+        tcp_pcb_t *tcp;
     };
 } socket_t;
 
