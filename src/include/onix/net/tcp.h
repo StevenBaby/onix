@@ -4,6 +4,15 @@
 #include <onix/net/types.h>
 #include <onix/list.h>
 
+#define TCP_MSS (1500 - 40) // 默认 MSS 大小
+#define TCP_WINDOW 8192     // 默认窗口大小
+
+enum
+{
+    TF_ACK_DELAY = 0x01, // 可以等等再发 ACK
+    TF_ACK_NOW = 0x02,   // 尽快马上发送 ACK
+};
+
 typedef enum tcp_state_t
 {
     CLOSED = 0,
@@ -74,6 +83,15 @@ typedef struct tcp_pcb_t
 
     u32 flags; // 控制块状态
 
+    u32 snd_una; // 已发送未收到 ack 的最小字节
+    u32 snd_nxt; // 需要发送的下一个字节
+    u16 snd_wnd; // 发送窗口
+    u16 snd_mss; // Maximum segment size
+
+    u32 rcv_nxt; // 期望收到的下一个字节
+    u16 rcv_wnd; // 接收窗口
+    u16 rcv_mss; // Maximum segment size
+
     list_t unsent;  // 未发送的报文段列表
     list_t unacked; // 以发送未应答的报文段列表
     list_t outseq;  // 已收到的无序报文
@@ -84,6 +102,25 @@ typedef struct tcp_pcb_t
     struct task_t *rx_waiter; // 读等待进程
 } tcp_pcb_t;
 
+// 获取初始序列号
+u32 tcp_next_isn();
+
+// 获取协议控制块
+tcp_pcb_t *tcp_pcb_get();
+
+// 释放协议控制块
+void tcp_pcb_put(tcp_pcb_t *pcb);
+
+// 查找协议控制块
+tcp_pcb_t *tcp_find_pcb(ip_addr_t laddr, u16 lport, ip_addr_t raddr, u16 rport);
+
+// TCP 输入
 err_t tcp_input(netif_t *netif, pbuf_t *pbuf);
+
+// 发送 ACK 数据包
+err_t tcp_send_ack(tcp_pcb_t *pcb, u8 flags);
+
+// TCP 连接重置
+err_t tcp_reset(u32 seqno, u32 ackno, ip_addr_t laddr, u16 lport, ip_addr_t raddr, u16 rport);
 
 #endif

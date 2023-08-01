@@ -1,9 +1,61 @@
 #include <onix/net/tcp.h>
 #include <onix/net.h>
+#include <onix/task.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
+
+static const char *tcp_state_names[] = {
+    "CLOSED",
+    "LISTEN",
+    "SYN_SENT",
+    "SYN_RCVD",
+    "ESTABLISHED",
+    "FIN_WAIT1",
+    "FIN_WAIT2",
+    "CLOSE_WAIT",
+    "CLOSING",
+    "LAST_ACK",
+    "TIME_WAIT",
+};
+
+static err_t tcp_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
+{
+    if (!tcp->syn || !tcp->ack)
+        return -EPROTO;
+
+    pcb->state = ESTABLISHED;
+
+    pcb->rcv_nxt = tcp->seqno + 1;
+
+    pcb->snd_nxt = tcp->ackno;
+    pcb->snd_wnd = tcp->window;
+    pcb->snd_una = tcp->ackno;
+
+    tcp_send_ack(pcb, TCP_ACK);
+
+    if (pcb->ac_waiter)
+    {
+        task_unblock(pcb->ac_waiter, EOK);
+        pcb->ac_waiter = NULL;
+    }
+
+    LOGK("TCP ESTABLISHED client\n");
+    return EOK;
+}
+
+static err_t tcp_process(tcp_pcb_t *pcb, netif_t *netif, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp)
+{
+    switch (pcb->state)
+    {
+    case SYN_SENT:
+        return tcp_syn_sent(pcb, tcp);
+    default:
+        break;
+    }
+    return EOK;
+}
 
 err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
 {
@@ -40,5 +92,21 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
     pbuf->data = ip->payload + tcphlen;
     pbuf->data[pbuf->size] = 0;
 
-    LOGK("TCP: %s\n", pbuf->data);
+    tcp_pcb_t *pcb = tcp_find_pcb(ip->dst, tcp->dport, ip->src, tcp->sport);
+    if (!pcb)
+        return -EADDR;
+
+    if (tcp->rst)
+    {
+        // TODO: reset pcb;
+        return -ERESET;
+    }
+
+    assert(pcb->state >= CLOSED && pcb->state <= TIME_WAIT);
+
+    LOGK("TCP [%s]: %r:%d -> %r:%d %d bytes\n",
+         tcp_state_names[pcb->state],
+         ip->src, tcp->sport, ip->dst, tcp->dport, pbuf->size);
+
+    return tcp_process(pcb, netif, pbuf, ip, tcp);
 }

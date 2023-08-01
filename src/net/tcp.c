@@ -4,6 +4,8 @@
 #include <onix/net.h>
 #include <onix/list.h>
 #include <onix/arena.h>
+#include <onix/task.h>
+#include <onix/syscall.h>
 #include <onix/string.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
@@ -16,6 +18,11 @@ list_t tcp_pcb_listen_list;   // 监听 pcb 列表
 list_t tcp_pcb_timewait_list; // 等待 pcb 列表
 
 static port_map_t map; // 端口位图
+
+u32 tcp_next_isn()
+{
+    return time() ^ ONIX_MAGIC;
+}
 
 tcp_pcb_t *tcp_pcb_get()
 {
@@ -106,13 +113,62 @@ static int tcp_accept(socket_t *s, sockaddr_t *addr, int *addrlen, socket_t **ns
 static int tcp_bind(socket_t *s, const sockaddr_t *name, int namelen)
 {
     LOGK("tcp bind...\n");
+    sockaddr_in_t *sin = (sockaddr_in_t *)name;
+    if (!ip_addr_isany(sin->addr) && !ip_addr_isown(sin->addr))
+        return -EADDR;
+
+    int ret = port_get(&map, ntohs(sin->port));
+    if (ret < 0)
+        return ret;
+
+    u16 lport = (u16)ret;
+
+    tcp_pcb_t *pcb = tcp_find_pcb(sin->addr, lport, NULL, 0);
+    if (pcb != NULL)
+        return -EOCCUPIED;
+
+    pcb = s->tcp;
+    ip_addr_copy(pcb->laddr, sin->addr);
+    pcb->lport = lport;
     return EOK;
 }
 
 static int tcp_connect(socket_t *s, const sockaddr_t *name, int namelen)
 {
     LOGK("tcp connect...\n");
-    return EOK;
+    sockaddr_in_t *sin = (sockaddr_in_t *)name;
+    tcp_pcb_t *pcb = s->tcp;
+
+    if (pcb->state != CLOSED)
+    {
+        return -EINVAL;
+    }
+
+    if (ip_addr_isany(sin->addr) || ntohs(sin->port) == 0)
+        return -EADDR;
+
+    ip_addr_copy(pcb->raddr, sin->addr);
+    pcb->rport = ntohs(sin->port);
+
+    if (!pcb->lport)
+        pcb->lport = port_get(&map, 0);
+
+    pcb->rcv_nxt = 0;
+    pcb->rcv_mss = TCP_MSS;
+    pcb->rcv_wnd = TCP_WINDOW;
+
+    pcb->snd_nxt = tcp_next_isn();
+
+    pcb->state = SYN_SENT;
+
+    list_remove(&pcb->node);
+    list_push(&tcp_pcb_active_list, &pcb->node);
+
+    tcp_send_ack(pcb, TCP_SYN);
+
+    pcb->ac_waiter = running_task();
+    int ret = task_block(pcb->ac_waiter, NULL, TASK_WAITING, s->sndtimeo);
+    return ret;
 }
 
 static int tcp_shutdown(socket_t *s, int how)

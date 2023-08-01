@@ -138,6 +138,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/udp.o \
 	$(BUILD)/net/tcp.o \
 	$(BUILD)/net/tcp_input.o \
+	$(BUILD)/net/tcp_output.o \
 	$(BUILD)/net/socket.o \
 	$(BUILD)/net/iovec.o \
 	$(BUILD)/net/pkt.o \

@@ -64,6 +64,7 @@ enum
     ESOCKET,   // 套接字错误
     EOCCUPIED, // 被占用
     ENOTCONN,  // 没有连接
+    ERESET,    // 连接重置
 };
 
 #endif
