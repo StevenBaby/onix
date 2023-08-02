@@ -40,7 +40,11 @@ void start_beep()
 
 void clock_handler(int vector)
 {
+#ifdef USE_APIC
+    assert(vector == 0x22);
+#else
     assert(vector == 0x20);
+#endif
     send_eoi(vector); // 发送中断处理结束
 
     jiffies++;

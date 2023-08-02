@@ -5,6 +5,7 @@
 #include <onix/stdlib.h>
 #include <onix/io.h>
 #include <onix/assert.h>
+#include <onix/apic.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 // #define LOGK(fmt, args...)
@@ -53,6 +54,9 @@ static char *messages[] = {
 // 通知中断控制器，中断处理结束
 void send_eoi(int vector)
 {
+#ifdef USE_APIC
+    IOAPIC_edge_ack(vector - IRQ_MASTER_NR);
+#else
     if (vector >= 0x20 && vector < 0x28)
     {
         outb(PIC_M_CTRL, PIC_EOI);
@@ -62,6 +66,7 @@ void send_eoi(int vector)
         outb(PIC_M_CTRL, PIC_EOI);
         outb(PIC_S_CTRL, PIC_EOI);
     }
+#endif
 }
 
 // 注册异常处理函数
@@ -80,6 +85,12 @@ void set_interrupt_handler(u32 irq, handler_t handler)
 
 void set_interrupt_mask(u32 irq, bool enable)
 {
+#ifdef USE_APIC
+    if (enable)
+        IOAPIC_enable(irq);
+    else
+        IOAPIC_disable(irq);
+#else
     assert(irq >= 0 && irq < 16);
     u16 port;
     if (irq < 8)
@@ -99,6 +110,7 @@ void set_interrupt_mask(u32 irq, bool enable)
     {
         outb(port, inb(port) | (1 << irq));
     }
+#endif
 }
 
 // 清除 IF 位，返回设置之前的值
@@ -241,6 +253,10 @@ void idt_init()
 
 void interrupt_init()
 {
+#ifdef USE_APIC
+    APIC_IOAPIC_init();
+#else
     pic_init();
+#endif
     idt_init();
 }

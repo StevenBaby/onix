@@ -598,6 +598,8 @@ void e1000_init()
     // 设置中断处理函数
     set_interrupt_handler(intr, e1000_handler);
     set_interrupt_mask(intr, true);
+#ifndef USE_APIC
     if (intr >= 8)
         set_interrupt_mask(IRQ_CASCADE, true);
+#endif
 }

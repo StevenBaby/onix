@@ -15,6 +15,7 @@ CFLAGS+= -fno-stack-protector	# 不需要栈保护
 CFLAGS+= -Werror
 CFLAGS+= -DONIX					# 定义 ONIX
 CFLAGS+= -DONIX_DEBUG			# 定义 ONIX_DEBUG
+CFLAGS+= -DUSE_APIC				# 定义 USE_APIC
 CFLAGS:=$(strip ${CFLAGS})
 
 DEBUG:= -g
@@ -125,6 +126,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/fpu.o \
 	$(BUILD)/kernel/test.o \
 	$(BUILD)/kernel/e1000.o \
+	$(BUILD)/kernel/apic.o \
 	$(BUILD)/net/pbuf.o \
 	$(BUILD)/net/chksum.o \
 	$(BUILD)/net/netif.o \
@@ -165,6 +167,7 @@ $(BUILD)/kernel.bin: \
 
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@
+	objdump -x -d -s $@ > $(BUILD)/kernel_dis.txt
 
 $(BUILD)/system.bin: $(BUILD)/kernel.bin
 	objcopy -O binary $< $@

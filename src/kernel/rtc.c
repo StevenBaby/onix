@@ -104,5 +104,7 @@ void rtc_init()
 
     set_interrupt_handler(IRQ_RTC, rtc_handler);
     set_interrupt_mask(IRQ_RTC, true);
+#ifndef USE_APIC
     set_interrupt_mask(IRQ_CASCADE, true);
+#endif
 }

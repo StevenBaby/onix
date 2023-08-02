@@ -820,7 +820,9 @@ void ide_init()
     set_interrupt_handler(IRQ_HARDDISK2, ide_handler);
     set_interrupt_mask(IRQ_HARDDISK, true);
     set_interrupt_mask(IRQ_HARDDISK2, true);
+#ifndef USE_APIC
     set_interrupt_mask(IRQ_CASCADE, true);
+#endif
 
     ide_ctrl_init();
 
