@@ -6,6 +6,7 @@
 
 #define TCP_MSS (1500 - 40) // 默认 MSS 大小
 #define TCP_WINDOW 8192     // 默认窗口大小
+#define TCP_DEFAULT_MSS 536 // 默认发送 MSS 大小
 
 enum
 {

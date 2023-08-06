@@ -22,7 +22,9 @@ static const char *tcp_state_names[] = {
 
 static err_t tcp_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
 {
-    if (!tcp->syn || !tcp->ack)
+    if (tcp->flags != (TCP_SYN | TCP_ACK))
+        return -EPROTO;
+    if (tcp->ackno != pcb->snd_nxt + 1)
         return -EPROTO;
 
     pcb->state = ESTABLISHED;

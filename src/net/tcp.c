@@ -12,74 +12,15 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-list_t tcp_pcb_create_list;   // 创建 pcb 列表
-list_t tcp_pcb_active_list;   // 活动 pcb 列表
-list_t tcp_pcb_listen_list;   // 监听 pcb 列表
-list_t tcp_pcb_timewait_list; // 等待 pcb 列表
+extern list_t tcp_pcb_active_list;   // 活动 pcb 列表
+extern list_t tcp_pcb_listen_list;   // 监听 pcb 列表
+extern list_t tcp_pcb_timewait_list; // 等待 pcb 列表
 
-static port_map_t map; // 端口位图
+static port_map_t tcp_port_map; // 端口位图
 
 u32 tcp_next_isn()
 {
     return time() ^ ONIX_MAGIC;
-}
-
-tcp_pcb_t *tcp_pcb_get()
-{
-    LOGK("tcp pcb get...\n");
-    tcp_pcb_t *pcb = (tcp_pcb_t *)kmalloc(sizeof(tcp_pcb_t));
-    memset(pcb, 0, sizeof(tcp_pcb_t));
-
-    list_init(&pcb->unsent);
-    list_init(&pcb->unacked);
-    list_init(&pcb->outseq);
-    list_init(&pcb->recved);
-
-    list_push(&tcp_pcb_create_list, &pcb->node);
-    return pcb;
-}
-
-void tcp_pcb_put(tcp_pcb_t *pcb)
-{
-    if (!pcb)
-        return;
-    list_remove(&pcb->node);
-    kfree(pcb);
-    LOGK("tcp pcb put...\n");
-}
-
-tcp_pcb_t *tcp_find_pcb(ip_addr_t laddr, u16 lport, ip_addr_t raddr, u16 rport)
-{
-    list_t *lists[3] = {
-        &tcp_pcb_active_list,
-        &tcp_pcb_timewait_list,
-        &tcp_pcb_listen_list};
-    u16 rports[3] = {rport, rport, 0};
-
-    for (size_t i = 0; i < 3; i++)
-    {
-        list_t *list = lists[i];
-        rport = rports[i];
-
-        for (list_node_t *node = list->head.next; node != &list->tail; node = node->next)
-        {
-            tcp_pcb_t *pcb = element_entry(tcp_pcb_t, node, node);
-            if (pcb->lport != lport)
-                continue;
-            if (!ip_addr_isany(pcb->laddr) && !ip_addr_cmp(pcb->laddr, laddr))
-                continue;
-
-            if (rport == 0)
-                return pcb;
-
-            if (pcb->rport != rport)
-                continue;
-            if (!ip_addr_isany(pcb->raddr) && !ip_addr_cmp(pcb->raddr, raddr))
-                continue;
-            return pcb;
-        }
-    }
-    return NULL;
 }
 
 static int tcp_socket(socket_t *s, int domain, int type, int protocol)
@@ -117,7 +58,7 @@ static int tcp_bind(socket_t *s, const sockaddr_t *name, int namelen)
     if (!ip_addr_isany(sin->addr) && !ip_addr_isown(sin->addr))
         return -EADDR;
 
-    int ret = port_get(&map, ntohs(sin->port));
+    int ret = port_get(&tcp_port_map, ntohs(sin->port));
     if (ret < 0)
         return ret;
 
@@ -151,13 +92,7 @@ static int tcp_connect(socket_t *s, const sockaddr_t *name, int namelen)
     pcb->rport = ntohs(sin->port);
 
     if (!pcb->lport)
-        pcb->lport = port_get(&map, 0);
-
-    pcb->rcv_nxt = 0;
-    pcb->rcv_mss = TCP_MSS;
-    pcb->rcv_wnd = TCP_WINDOW;
-
-    pcb->snd_nxt = tcp_next_isn();
+        pcb->lport = port_get(&tcp_port_map, 0);
 
     pcb->state = SYN_SENT;
 
@@ -168,6 +103,8 @@ static int tcp_connect(socket_t *s, const sockaddr_t *name, int namelen)
 
     pcb->ac_waiter = running_task();
     int ret = task_block(pcb->ac_waiter, NULL, TASK_WAITING, s->sndtimeo);
+    pcb->ac_waiter = NULL;
+
     return ret;
 }
 
@@ -246,15 +183,15 @@ static socket_op_t tcp_op = {
     tcp_sendmsg,
 };
 
+extern void tcp_pcb_init();
+
 void tcp_init()
 {
     LOGK("TCP init...\n");
-    list_init(&tcp_pcb_create_list);
-    list_init(&tcp_pcb_active_list);
-    list_init(&tcp_pcb_timewait_list);
-    list_init(&tcp_pcb_listen_list);
 
-    port_init(&map);
+    tcp_pcb_init();
+
+    port_init(&tcp_port_map);
 
     socket_register_op(SOCK_TYPE_TCP, &tcp_op);
 }

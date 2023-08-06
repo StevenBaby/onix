@@ -137,6 +137,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/port.o \
 	$(BUILD)/net/udp.o \
 	$(BUILD)/net/tcp.o \
+	$(BUILD)/net/tcp_pcb.o \
 	$(BUILD)/net/tcp_input.o \
 	$(BUILD)/net/tcp_output.o \
 	$(BUILD)/net/socket.o \

@@ -320,6 +320,34 @@ static void send_packet(netif_t *netif, pbuf_t *pbuf)
          pbuf->length);
 }
 
+static void free_packet(e1000_t *e1000)
+{
+    u32 cur = e1000->tx_cur;
+    while (true)
+    {
+        cur = (cur - 1) % TX_DESC_NR;
+        tx_desc_t *tx = &e1000->tx_desc[cur];
+        if (!tx->addr) // 没有高速缓冲
+            break;
+        if (tx->status == 0) // 发送未结束
+            break;
+
+        // 释放高速缓冲
+        pbuf_t *pbuf = e1000->tx_pbuf[cur];
+        assert(pbuf == element_entry(pbuf_t, payload, e1000->tx_desc[cur].addr));
+
+        e1000->tx_pbuf[cur] = NULL;
+        e1000->tx_desc[cur].addr = 0;
+        pbuf_put(pbuf);
+    }
+
+    if (e1000->tx_waiter)
+    {
+        task_unblock(e1000->tx_waiter, EOK);
+        e1000->tx_waiter = NULL;
+    }
+}
+
 // 中断处理函数
 static void e1000_handler(int vector)
 {
@@ -334,22 +362,7 @@ static void e1000_handler(int vector)
     if ((status & IM_TXDW))
     {
         LOGK("e1000 TXDW...\n");
-
-        u32 cur = (minl(e1000->membase + E1000_TDH) - 1) % TX_DESC_NR;
-
-        pbuf_t *pbuf = e1000->tx_pbuf[cur];
-        assert(pbuf == element_entry(pbuf_t, payload, e1000->tx_desc[cur].addr));
-
-        e1000->tx_pbuf[cur] = NULL;
-        e1000->tx_desc[cur].addr = 0;
-
-        pbuf_put(pbuf);
-
-        if (e1000->tx_waiter)
-        {
-            task_unblock(e1000->tx_waiter, EOK);
-            e1000->tx_waiter = NULL;
-        }
+        free_packet(e1000);
     }
 
     // 传输队列为空，并且传输进程阻塞

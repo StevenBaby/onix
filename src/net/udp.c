@@ -130,6 +130,7 @@ static int udp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
     {
         s->udp->rx_waiter = running_task();
         ret = task_block(s->udp->rx_waiter, NULL, TASK_WAITING, s->rcvtimeo);
+        s->udp->rx_waiter = NULL;
     }
 
     if (ret != EOK)

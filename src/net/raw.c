@@ -89,6 +89,7 @@ static int raw_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
     {
         s->raw->rx_waiter = running_task();
         ret = task_block(s->raw->rx_waiter, NULL, TASK_WAITING, s->rcvtimeo);
+        s->raw->rx_waiter = NULL;
     }
 
     if (ret != EOK)
