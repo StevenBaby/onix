@@ -25,16 +25,21 @@ err_t tcp_send_ack(tcp_pcb_t *pcb, u8 flags)
 
     tcp->window = htons(pcb->rcv_wnd);
     tcp->urgent = 0;
-    tcp->len = sizeof(tcp_t) / 4;
 
     if (ip_addr_isany(pcb->laddr))
         ip_addr_copy(pcb->laddr, netif->ipaddr);
 
-    int len = sizeof(tcp_t);
-    tcp->chksum = 0;
-    tcp->chksum = inet_chksum(tcp, len, pcb->raddr, pcb->laddr, IP_PROTOCOL_TCP);
+    int hlen = tcp_write_option(pcb, tcp);
 
-    return ip_output(netif, pbuf, pcb->raddr, IP_PROTOCOL_TCP, len);
+    pbuf->data = ip->payload + hlen;
+    pbuf->size = 0;
+    pbuf->total = hlen;
+
+    tcp->chksum = 0;
+    if (!(netif->flags & NETIF_TCP_TX_CHECKSUM_OFFLOAD))
+        tcp->chksum = inet_chksum(tcp, pbuf->total, pcb->raddr, pcb->laddr, IP_PROTOCOL_TCP);
+
+    return ip_output(netif, pbuf, pcb->raddr, IP_PROTOCOL_TCP, pbuf->total);
 }
 
 // 发送 TCP 重置消息
@@ -60,7 +65,9 @@ err_t tcp_reset(u32 seqno, u32 ackno, ip_addr_t laddr, u16 lport, ip_addr_t radd
 
     int len = sizeof(tcp_t);
     tcp->chksum = 0;
-    tcp->chksum = inet_chksum(tcp, len, raddr, laddr, IP_PROTOCOL_TCP);
+
+    if (!(netif->flags & NETIF_TCP_TX_CHECKSUM_OFFLOAD))
+        tcp->chksum = inet_chksum(tcp, len, raddr, laddr, IP_PROTOCOL_TCP);
 
     return ip_output(netif, pbuf, raddr, IP_PROTOCOL_TCP, len);
 }

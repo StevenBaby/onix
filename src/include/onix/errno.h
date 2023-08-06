@@ -65,6 +65,7 @@ enum
     EOCCUPIED, // 被占用
     ENOTCONN,  // 没有连接
     ERESET,    // 连接重置
+    ECHKSUM,   // 校验和错误
 };
 
 #endif

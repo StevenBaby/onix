@@ -124,4 +124,10 @@ err_t tcp_send_ack(tcp_pcb_t *pcb, u8 flags);
 // TCP 连接重置
 err_t tcp_reset(u32 seqno, u32 ackno, ip_addr_t laddr, u16 lport, ip_addr_t raddr, u16 rport);
 
+// 解析 TCP 选项
+err_t tcp_parse_option(tcp_pcb_t *pcb, tcp_t *tcp);
+
+// 写入 TCP 选项
+err_t tcp_write_option(tcp_pcb_t *pcb, tcp_t *tcp);
+
 #endif

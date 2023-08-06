@@ -20,7 +20,7 @@ static const char *tcp_state_names[] = {
     "TIME_WAIT",
 };
 
-static err_t tcp_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
+static err_t tcp_handle_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
 {
     if (tcp->flags != (TCP_SYN | TCP_ACK))
         return -EPROTO;
@@ -47,12 +47,22 @@ static err_t tcp_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
     return EOK;
 }
 
+static err_t tcp_handle_reset(tcp_pcb_t *pcb, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp)
+{
+    if (pcb->state <= SYN_SENT)
+        return -ERESET;
+
+    // TODO: close pcb
+
+    return -ERESET;
+}
+
 static err_t tcp_process(tcp_pcb_t *pcb, netif_t *netif, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp)
 {
     switch (pcb->state)
     {
     case SYN_SENT:
-        return tcp_syn_sent(pcb, tcp);
+        return tcp_handle_syn_sent(pcb, tcp);
     default:
         break;
     }
@@ -75,6 +85,22 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
     if (ip_addr_ismulticast(ip->dst))
         return EOK;
 
+    // TCP 总长度
+    pbuf->total = ip->length - sizeof(ip_t);
+
+    if (!(netif->flags & NETIF_TCP_RX_CHECKSUM_OFFLOAD) &&
+        inet_chksum(tcp, pbuf->total, ip->dst, ip->src, IP_PROTOCOL_TCP) != 0)
+        return -ECHKSUM;
+
+    // TCP 头长度
+    int tcphlen = tcp->len * 4;
+    // TCP 数据长度
+    pbuf->size = pbuf->total - tcphlen;
+
+    // TCP 数据指针
+    pbuf->data = ip->payload + tcphlen;
+    pbuf->data[pbuf->size] = 0;
+
     // 转换格式
     tcp->sport = ntohs(tcp->sport);
     tcp->dport = ntohs(tcp->dport);
@@ -83,26 +109,16 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
     tcp->window = ntohs(tcp->window);
     tcp->urgent = ntohs(tcp->urgent);
 
-    // TCP 头长度
-    int tcphlen = tcp->len * 4;
-
-    // TCP 数据长度
-    pbuf->total = ip->length - sizeof(ip_t);
-    pbuf->size = pbuf->total - tcphlen;
-
-    // TCP 数据指针
-    pbuf->data = ip->payload + tcphlen;
-    pbuf->data[pbuf->size] = 0;
-
     tcp_pcb_t *pcb = tcp_find_pcb(ip->dst, tcp->dport, ip->src, tcp->sport);
     if (!pcb)
         return -EADDR;
 
     if (tcp->rst)
-    {
-        // TODO: reset pcb;
-        return -ERESET;
-    }
+        return tcp_handle_reset(pcb, pbuf, ip, tcp);
+
+    err_t ret = tcp_parse_option(pcb, tcp);
+    if (ret < EOK)
+        return ret;
 
     assert(pcb->state >= CLOSED && pcb->state <= TIME_WAIT);
 
