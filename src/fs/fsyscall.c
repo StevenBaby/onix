@@ -33,9 +33,10 @@ fd_t sys_open(char *filename, int flags, int mode)
     if (ret < 0)
         goto rollback;
 
-makeup:
     file_t *file;
-    fd_t fd = fd_get(&file);
+    fd_t fd;
+makeup:
+    fd = fd_get(&file);
     if (fd < EOK)
         return fd;
 
