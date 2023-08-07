@@ -111,9 +111,15 @@ inode_t *namei(char *pathname)
     char *name = next;
     inode_t *inode = NULL;
 
-    if (match_name(name, "..", &next) && dir->super->imount)
+        // 目标目录 ".." 为上一级目录
+    if (match_name(name, "..", &next) \
+        // 当前目录为挂载设备的根目录
+        && dir == dir->super->iroot \
+        && dir->super->iroot != dir->super->imount)
     {
+        // 获取挂载设备的超级块
         super_t *super = dir->super;
+        // 将目录置换为挂载点目录
         inode = super->imount;
         inode->count++;
         iput(dir);
