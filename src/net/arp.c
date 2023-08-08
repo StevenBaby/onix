@@ -58,7 +58,7 @@ static void arp_entry_put(arp_entry_t *entry)
     while (!list_empty(list))
     {
         pbuf_t *pbuf = element_entry(pbuf_t, node, list_popback(list));
-        assert(pbuf->count == 1);
+        assert(pbuf->count <= 2);
         pbuf_put(pbuf);
     }
 

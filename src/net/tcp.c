@@ -99,7 +99,8 @@ static int tcp_connect(socket_t *s, const sockaddr_t *name, int namelen)
     list_remove(&pcb->node);
     list_push(&tcp_pcb_active_list, &pcb->node);
 
-    tcp_send_ack(pcb, TCP_SYN);
+    tcp_enqueue(pcb, NULL, 0, TCP_SYN);
+    tcp_output(pcb);
 
     pcb->ac_waiter = running_task();
     int ret = task_block(pcb->ac_waiter, NULL, TASK_WAITING, s->sndtimeo);
@@ -162,7 +163,39 @@ static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
 static int tcp_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
 {
     LOGK("tcp sendmsg...\n");
-    return -EINVAL;
+    err_t ret = EOK;
+    tcp_pcb_t *pcb = s->tcp;
+    if (pcb->state != ESTABLISHED)
+        return -EINVAL;
+
+    size_t size = iovec_size(msg->iov, msg->iovlen);
+    if (size > pcb->snd_wnd)
+        return -EMSGSIZE;
+
+    size_t left = size;
+
+    iovec_t *iov = msg->iov;
+    size_t iovlen = msg->iovlen;
+
+    for (; left > 0 && iovlen > 0; iov++, iovlen--)
+    {
+        if (iov->size <= 0)
+            continue;
+
+        int len = left < iov->size ? left : iov->size;
+        tcp_enqueue(pcb, iov->base, left, flags);
+        left -= len;
+    }
+    tcp_output(pcb);
+
+    // pcb->tx_waiter = running_task();
+    // ret = task_block(pcb->tx_waiter, NULL, TASK_WAITING, s->sndtimeo);
+    // pcb->tx_waiter = NULL;
+
+    // if (ret < 0)
+    //     return ret;
+
+    return size - left;
 }
 
 static socket_op_t tcp_op = {

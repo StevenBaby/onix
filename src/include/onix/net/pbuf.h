@@ -15,6 +15,7 @@ typedef struct pbuf_t
     u8 *data;            // TCP 数据指针
     size_t total;        // TCP 总长度 头 + 数据长度
     size_t size;         // TCP 数据长度
+    u32 seqno;           // TCP 序列号
 
     union
     {

@@ -8,6 +8,12 @@
 #define TCP_WINDOW 8192     // 默认窗口大小
 #define TCP_DEFAULT_MSS 536 // 默认发送 MSS 大小
 
+// 序列号比较
+#define TCP_SEQ_LT(a, b) ((int)((a) - (b)) < 0)
+#define TCP_SEQ_LEQ(a, b) ((int)((a) - (b)) <= 0)
+#define TCP_SEQ_GT(a, b) ((int)((a) - (b)) > 0)
+#define TCP_SEQ_GEQ(a, b) ((int)((a) - (b)) >= 0)
+
 enum
 {
     TF_ACK_DELAY = 0x01, // 可以等等再发 ACK
@@ -88,6 +94,8 @@ typedef struct tcp_pcb_t
     u32 snd_nxt; // 需要发送的下一个字节
     u16 snd_wnd; // 发送窗口
     u16 snd_mss; // Maximum segment size
+    u32 snd_nbb; // Next Buffer Byte
+    u32 snd_max; // 已发送的最大字节序号
 
     u32 rcv_nxt; // 期望收到的下一个字节
     u16 rcv_wnd; // 接收窗口
@@ -123,6 +131,12 @@ err_t tcp_send_ack(tcp_pcb_t *pcb, u8 flags);
 
 // TCP 连接重置
 err_t tcp_reset(u32 seqno, u32 ackno, ip_addr_t laddr, u16 lport, ip_addr_t raddr, u16 rport);
+
+// TCP 输出
+err_t tcp_output(tcp_pcb_t *pcb);
+
+// TCP 入队列
+err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags);
 
 // 解析 TCP 选项
 err_t tcp_parse_option(tcp_pcb_t *pcb, tcp_t *tcp);

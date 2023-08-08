@@ -1,14 +1,5 @@
-import sys
 import socket
-import logging
 import time
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.DEBUG,
-    format='[%(module)s:%(lineno)d] %(levelname)s %(message)s',)
-
-logger = logging.getLogger("net")
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -21,11 +12,13 @@ s.listen(5)
 
 print("accept...")
 conn, addr = s.accept()
-logger.debug(conn)
-
+print(conn)
 print(addr)
 
-time.sleep(3)
+while True:
+    data = conn.recv(1024)
+    print("recv:", data.decode())
+    time.sleep(1)
 
 print("close...")
 conn.close()

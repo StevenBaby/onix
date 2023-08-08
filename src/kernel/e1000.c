@@ -295,7 +295,7 @@ static void send_packet(netif_t *netif, pbuf_t *pbuf)
         assert(task_block(e1000->tx_waiter, NULL, TASK_BLOCKED, TIMELESS) == EOK);
     }
 
-    assert(pbuf->count == 1);
+    assert(pbuf->count <= 2);
 
     // Ethernet checksum
     // u32 sum = eth_fcs((char *)pbuf->payload, pbuf->length);

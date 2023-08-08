@@ -44,11 +44,10 @@ void pbuf_put(pbuf_t *pbuf)
     // 应该对齐到 2K
     assert(((u32)pbuf & 0x7ff) == 0);
 
-    assert(pbuf->count > 0);
+    assert(pbuf->count > 0 && pbuf->count <= 2);
     pbuf->count--;
     if (pbuf->count > 0)
     {
-        assert(pbuf->node.next && pbuf->node.prev);
         return;
     }
 

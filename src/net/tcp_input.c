@@ -34,6 +34,7 @@ static err_t tcp_handle_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
     pcb->snd_nxt = tcp->ackno;
     pcb->snd_wnd = tcp->window;
     pcb->snd_una = tcp->ackno;
+    pcb->snd_nbb = tcp->ackno;
 
     tcp_send_ack(pcb, TCP_ACK);
 
