@@ -18,6 +18,7 @@ print(addr)
 while True:
     data = conn.recv(1024)
     print("recv:", data.decode())
+    conn.send(f"hello client {int(time.time())}".encode())
     time.sleep(1)
 
 print("close...")

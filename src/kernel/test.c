@@ -40,6 +40,13 @@ void test_sendrecv()
     {
         int len = sprintf(tx_buf, "hello tcp server %d", time());
         send(fd, tx_buf, len, 0);
+
+        ret = recv(fd, rx_buf, BUFLEN, 0);
+        if (ret > 0)
+        {
+            rx_buf[ret] = 0;
+            LOGK("received %d bytes: %s.\n", ret, rx_buf);
+        }
         sleep(1000);
     }
 }
