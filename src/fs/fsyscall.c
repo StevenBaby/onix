@@ -670,7 +670,9 @@ int sys_umount(char *target)
         LOGK("warning super block mount = 0\n");
     }
 
-    if (list_size(&super->inode_list) > 1)
+    if (list_size(&super->inode_list) > 1
+        || super->iroot->count != 1
+    )
     {
         ret = -EBUSY;
         goto rollback;
