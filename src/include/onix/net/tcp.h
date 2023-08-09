@@ -47,6 +47,32 @@ typedef enum tcp_flag_t
     TCP_CWR = 0x80,
 } tcp_flag_t;
 
+enum
+{
+    TCP_TIMER_SYN,       // 建立连接定时器
+    TCP_TIMER_REXMIT,    // 重传定时器
+    TCP_TIMER_PERSIST,   // 持续定时器
+    TCP_TIMER_KEEPALIVE, // 保活定时器
+    TCP_TIMER_FIN_WAIT2, // FIN_WAIT2 定时器
+    TCP_TIMER_TIMEWAIT,  // TIMEWAIT 定时器
+    TCP_TIMER_NUM,
+};
+
+enum
+{
+    TCP_FAST_INTERVAL = 200, // 单位毫秒
+    TCP_SLOW_INTERVAL = 500, // 单位毫秒
+    TCP_FASTHZ = 5,          // 每秒次数
+    TCP_SLOWHZ = 2,          // 每秒次数
+};
+
+enum
+{
+    TCP_TO_SYN = 5 * TCP_SLOWHZ,    // 建立连接超时
+    TCP_TO_REXMIT = 2 * TCP_SLOWHZ, // 重传超时
+    TCP_MAXRXTCNT = 12,             // 最大重传次数
+};
+
 typedef struct tcp_t
 {
     u16 sport; // 源端口号
@@ -101,6 +127,12 @@ typedef struct tcp_pcb_t
     u16 rcv_wnd; // 接收窗口
     u16 rcv_mss; // Maximum segment size
 
+    u32 timers[TCP_TIMER_NUM]; // 计时器
+
+    u32 idle;    // 空闲时间
+    u32 rto;     // 当前重传时限 RTO(Retransmission TimeOut)
+    u32 rtx_cnt; // 重传次数
+
     list_t unsent;  // 未发送的报文段列表
     list_t unacked; // 以发送未应答的报文段列表
     list_t outseq;  // 已收到的无序报文
@@ -137,6 +169,9 @@ err_t tcp_output(tcp_pcb_t *pcb);
 
 // TCP 入队列
 err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags);
+
+// TCP 重传
+err_t tcp_rexmit(tcp_pcb_t *pcb);
 
 // 解析 TCP 选项
 err_t tcp_parse_option(tcp_pcb_t *pcb, tcp_t *tcp);

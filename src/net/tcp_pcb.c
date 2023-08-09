@@ -33,6 +33,8 @@ tcp_pcb_t *tcp_pcb_get()
     pcb->snd_wnd = TCP_DEFAULT_MSS;
     pcb->snd_nbb = pcb->snd_nxt;
 
+    pcb->rto = TCP_TO_REXMIT;
+
     list_init(&pcb->unsent);
     list_init(&pcb->unacked);
     list_init(&pcb->outseq);

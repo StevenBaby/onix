@@ -102,6 +102,8 @@ static int tcp_connect(socket_t *s, const sockaddr_t *name, int namelen)
     tcp_enqueue(pcb, NULL, 0, TCP_SYN);
     tcp_output(pcb);
 
+    pcb->timers[TCP_TIMER_SYN] = TCP_TO_SYN;
+
     pcb->ac_waiter = running_task();
     int ret = task_block(pcb->ac_waiter, NULL, TASK_WAITING, s->sndtimeo);
     pcb->ac_waiter = NULL;
@@ -273,12 +275,14 @@ static socket_op_t tcp_op = {
 };
 
 extern void tcp_pcb_init();
+extern void tcp_timer_init();
 
 void tcp_init()
 {
     LOGK("TCP init...\n");
 
     tcp_pcb_init();
+    tcp_timer_init();
 
     port_init(&tcp_port_map);
 

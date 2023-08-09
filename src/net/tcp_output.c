@@ -117,11 +117,35 @@ err_t tcp_output(tcp_pcb_t *pcb)
             &pcb->unacked, &pbuf->tcpnode,
             element_node_offset(pbuf_t, tcpnode, seqno));
         tcp_output_seg(pcb, pbuf);
+
+        pcb->timers[TCP_TIMER_REXMIT] = pcb->rto;
     }
 
     if (pcb->flags & TF_ACK_NOW)
         tcp_send_ack(pcb, TCP_ACK);
 
+    return EOK;
+}
+
+err_t tcp_rexmit(tcp_pcb_t *pcb)
+{
+    list_t *list = &pcb->unacked;
+    for (list_node_t *node = list->head.next; node != &list->tail;)
+    {
+        pbuf_t *pbuf = element_entry(pbuf_t, tcpnode, node);
+        node = node->next;
+        if (pbuf->count > 1)
+            continue;
+
+        list_remove(&pbuf->tcpnode);
+        list_insert_sort(
+            &pcb->unsent,
+            &pbuf->tcpnode,
+            element_node_offset(pbuf_t, tcpnode, seqno));
+    }
+
+    tcp_output(pcb);
+    pcb->timers[TCP_TIMER_REXMIT] = pcb->rto;
     return EOK;
 }
 

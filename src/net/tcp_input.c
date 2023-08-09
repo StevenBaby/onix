@@ -24,7 +24,10 @@ static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
 {
     // 重复 ACK
     if (TCP_SEQ_GEQ(pcb->snd_una, tcp->ackno))
+    {
+        pcb->flags |= TF_ACK_DELAY;
         return;
+    }
 
     pcb->snd_una = tcp->ackno;
 
@@ -90,7 +93,7 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
     // 修改接收窗口
     pcb->rcv_wnd -= pbuf->size;
 
-    tcp_send_ack(pcb, TCP_ACK);
+    pcb->flags |= TF_ACK_DELAY;
 
     list_insert_sort(
         &pcb->recved,
@@ -129,7 +132,7 @@ static err_t tcp_handle_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
     pcb->snd_una = tcp->ackno;
     pcb->snd_nbb = tcp->ackno;
 
-    tcp_send_ack(pcb, TCP_ACK);
+    pcb->flags |= TF_ACK_DELAY;
 
     if (pcb->ac_waiter)
     {
@@ -239,6 +242,9 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
     err_t ret = tcp_parse_option(pcb, tcp);
     if (ret < EOK)
         return ret;
+
+    // 空闲结束
+    pcb->idle = 0;
 
     assert(pcb->state >= CLOSED && pcb->state <= TIME_WAIT);
 
