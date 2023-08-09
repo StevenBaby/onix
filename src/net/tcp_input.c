@@ -20,6 +20,99 @@ static const char *tcp_state_names[] = {
     "TIME_WAIT",
 };
 
+static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
+{
+    // 重复 ACK
+    if (TCP_SEQ_GEQ(pcb->snd_una, tcp->ackno))
+        return;
+
+    pcb->snd_una = tcp->ackno;
+
+    list_t *lists[2] = {&pcb->unacked, &pcb->unsent};
+
+    // 释放已经确认的段
+    for (size_t i = 0; i < 2; i++)
+    {
+        list_t *list = lists[i];
+        for (list_node_t *node = list->head.next; node != &list->tail;)
+        {
+            pbuf_t *pbuf = element_entry(pbuf_t, tcpnode, node);
+            node = node->next;
+
+            u32 ackno = pbuf->seqno + pbuf->size;
+            if (TCP_SEQ_GT(ackno, tcp->ackno))
+                continue;
+
+            list_remove(&pbuf->tcpnode);
+            assert(pbuf->count <= 2);
+            pbuf_put(pbuf);
+        }
+    }
+
+    if (list_empty(&pcb->unacked) && list_empty(&pcb->unsent) && pcb->tx_waiter)
+    {
+        task_unblock(pcb->tx_waiter, EOK);
+        pcb->tx_waiter = NULL;
+    }
+}
+
+static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
+{
+    u32 rcv_nxt = tcp->seqno + pbuf->size;
+
+    // 已经收到改包
+    if (TCP_SEQ_LEQ(rcv_nxt, pcb->rcv_nxt))
+    {
+        LOGK("drop acked packet...\n");
+        return;
+    }
+
+    // 乱序数据包
+    if (TCP_SEQ_GT(tcp->seqno, pcb->rcv_nxt))
+    {
+        LOGK("drop outseq packet...\n");
+        return;
+    }
+
+    // 不规则数据包
+    if (TCP_SEQ_LT(tcp->seqno, pcb->rcv_nxt))
+    {
+        int offset = pcb->rcv_nxt - tcp->seqno;
+        pbuf->data += offset;
+        pbuf->size -= offset;
+    }
+
+    // 进入接收缓冲队列
+    pcb->rcv_nxt = rcv_nxt;
+    assert(pbuf->count == 1);
+    pbuf->count++;
+
+    // 修改接收窗口
+    pcb->rcv_wnd -= pbuf->size;
+
+    tcp_send_ack(pcb, TCP_ACK);
+
+    list_insert_sort(
+        &pcb->recved,
+        &pbuf->tcpnode,
+        element_node_offset(pbuf_t, tcpnode, seqno));
+
+    if (pcb->rx_waiter)
+    {
+        task_unblock(pcb->rx_waiter, EOK);
+        pcb->rx_waiter = NULL;
+    }
+}
+
+static err_t tcp_receive(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
+{
+    if (tcp->ack)
+        tcp_update_ack(pcb, tcp);
+
+    if (pbuf->size > 0)
+        tcp_update_buf(pcb, pbuf, tcp);
+}
+
 static err_t tcp_handle_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
 {
     if (tcp->flags != (TCP_SYN | TCP_ACK))
@@ -34,6 +127,7 @@ static err_t tcp_handle_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
     pcb->snd_nxt = tcp->ackno;
     pcb->snd_wnd = tcp->window;
     pcb->snd_una = tcp->ackno;
+    pcb->snd_nbb = tcp->ackno;
 
     tcp_send_ack(pcb, TCP_ACK);
 
@@ -59,12 +153,33 @@ static err_t tcp_handle_reset(tcp_pcb_t *pcb, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp
 
 static err_t tcp_process(tcp_pcb_t *pcb, netif_t *netif, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp)
 {
+    if (tcp->ack)
+        tcp_receive(pcb, pbuf, tcp);
+
     switch (pcb->state)
     {
     case SYN_SENT:
         return tcp_handle_syn_sent(pcb, tcp);
     default:
         break;
+    }
+    return EOK;
+}
+
+// 检查输入合法性
+static err_t tcp_validate(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
+{
+    if (tcp->syn)
+        return EOK;
+
+    if (TCP_SEQ_GT(pbuf->seqno + pbuf->size, pcb->rcv_nxt + pcb->rcv_wnd))
+    {
+        return -EPROTO;
+    }
+
+    if (TCP_SEQ_LT(pbuf->seqno + pbuf->size, pcb->rcv_nxt))
+    {
+        return -EPROTO;
     }
     return EOK;
 }
@@ -109,9 +224,14 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
     tcp->window = ntohs(tcp->window);
     tcp->urgent = ntohs(tcp->urgent);
 
+    pbuf->seqno = tcp->seqno;
+
     tcp_pcb_t *pcb = tcp_find_pcb(ip->dst, tcp->dport, ip->src, tcp->sport);
     if (!pcb)
         return -EADDR;
+
+    if (tcp_validate(pcb, pbuf, tcp) < EOK)
+        return -EPROTO;
 
     if (tcp->rst)
         return tcp_handle_reset(pcb, pbuf, ip, tcp);

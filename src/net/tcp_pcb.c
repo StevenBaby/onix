@@ -28,9 +28,10 @@ tcp_pcb_t *tcp_pcb_get()
     pcb->rcv_wnd = TCP_WINDOW;
 
     pcb->snd_nxt = tcp_next_isn();
-    pcb->snd_una = pcb->snd_nxt + 1;
+    pcb->snd_una = pcb->snd_nxt;
     pcb->snd_mss = TCP_DEFAULT_MSS;
     pcb->snd_wnd = TCP_DEFAULT_MSS;
+    pcb->snd_nbb = pcb->snd_nxt;
 
     list_init(&pcb->unsent);
     list_init(&pcb->unacked);

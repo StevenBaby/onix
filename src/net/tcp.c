@@ -99,7 +99,8 @@ static int tcp_connect(socket_t *s, const sockaddr_t *name, int namelen)
     list_remove(&pcb->node);
     list_push(&tcp_pcb_active_list, &pcb->node);
 
-    tcp_send_ack(pcb, TCP_SYN);
+    tcp_enqueue(pcb, NULL, 0, TCP_SYN);
+    tcp_output(pcb);
 
     pcb->ac_waiter = running_task();
     int ret = task_block(pcb->ac_waiter, NULL, TASK_WAITING, s->sndtimeo);
@@ -156,13 +157,101 @@ static int tcp_setsockopt(socket_t *s, int level, int optname, const void *optva
 static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
 {
     LOGK("tcp recvmsg...\n");
-    return -EINVAL;
+    err_t ret = EOK;
+
+    tcp_pcb_t *pcb = s->tcp;
+
+    if (list_empty(&pcb->recved))
+    {
+        pcb->rx_waiter = running_task();
+        ret = task_block(pcb->rx_waiter, NULL, TASK_WAITING, s->rcvtimeo);
+        pcb->rx_waiter = NULL;
+    }
+
+    if (ret < EOK)
+        return ret;
+
+    if (msg->name)
+    {
+        sockaddr_in_t *sin = (sockaddr_in_t *)msg->name;
+        sin->family = AF_INET;
+        sin->port = pcb->rport;
+        ip_addr_copy(sin->addr, pcb->raddr);
+    }
+
+    msg->namelen = sizeof(sockaddr_in_t);
+
+    size_t size = iovec_size(msg->iov, msg->iovlen);
+    assert(size > 0);
+    size_t left = size;
+
+    list_t *list = &pcb->recved;
+    for (list_node_t *node = list->head.next; node != &list->tail;)
+    {
+        pbuf_t *pbuf = element_entry(pbuf_t, tcpnode, node);
+        node = node->next;
+
+        int len = (left < pbuf->size) ? left : pbuf->size;
+        ret = iovec_write(msg->iov, msg->iovlen, pbuf->data, len);
+        assert(ret == len);
+
+        pcb->rcv_wnd += len;
+        assert(pcb->rcv_wnd <= TCP_WINDOW);
+
+        left -= ret;
+
+        if (len < pbuf->size)
+        {
+            pbuf->data += left;
+            pbuf->size -= left;
+            break;
+        }
+        else
+        {
+            assert(pbuf->count == 1);
+            list_remove(&pbuf->tcpnode);
+            pbuf_put(pbuf);
+        }
+    }
+    return size - left;
 }
 
 static int tcp_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
 {
     LOGK("tcp sendmsg...\n");
-    return -EINVAL;
+    err_t ret = EOK;
+    tcp_pcb_t *pcb = s->tcp;
+    if (pcb->state != ESTABLISHED)
+        return -EINVAL;
+
+    size_t size = iovec_size(msg->iov, msg->iovlen);
+    if (size > pcb->snd_wnd)
+        return -EMSGSIZE;
+
+    size_t left = size;
+
+    iovec_t *iov = msg->iov;
+    size_t iovlen = msg->iovlen;
+
+    for (; left > 0 && iovlen > 0; iov++, iovlen--)
+    {
+        if (iov->size <= 0)
+            continue;
+
+        int len = left < iov->size ? left : iov->size;
+        tcp_enqueue(pcb, iov->base, left, flags);
+        left -= len;
+    }
+    tcp_output(pcb);
+
+    pcb->tx_waiter = running_task();
+    ret = task_block(pcb->tx_waiter, NULL, TASK_WAITING, s->sndtimeo);
+    pcb->tx_waiter = NULL;
+
+    if (ret < 0)
+        return ret;
+
+    return size - left;
 }
 
 static socket_op_t tcp_op = {
