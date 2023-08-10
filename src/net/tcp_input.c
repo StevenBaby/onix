@@ -149,20 +149,90 @@ static err_t tcp_handle_reset(tcp_pcb_t *pcb, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp
     if (pcb->state <= SYN_SENT)
         return -ERESET;
 
-    // TODO: close pcb
+    tcp_pcb_purge(pcb, -ERESET);
+    pcb->state = CLOSED;
 
     return -ERESET;
 }
 
 static err_t tcp_process(tcp_pcb_t *pcb, netif_t *netif, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp)
 {
-    if (tcp->ack)
+    if (tcp->ack && pcb->state != TIME_WAIT)
         tcp_receive(pcb, pbuf, tcp);
 
     switch (pcb->state)
     {
     case SYN_SENT:
         return tcp_handle_syn_sent(pcb, tcp);
+    case CLOSE_WAIT:
+    case ESTABLISHED:
+        if (tcp->fin)
+        {
+            pcb->flags |= TF_ACK_NOW;
+            pcb->state = CLOSE_WAIT;
+            pcb->rcv_nxt = tcp->seqno + 1;
+            LOGK("TCP CLOSE_WAIT\n");
+        }
+        break;
+    case LAST_ACK:
+        if (tcp->ack)
+        {
+            pcb->state = CLOSED;
+            tcp_pcb_put(pcb);
+            LOGK("TCP CLOSED\n");
+        }
+        break;
+    case FIN_WAIT1:
+        if (tcp->fin && tcp->ack && tcp->ackno == pcb->snd_nxt + 1)
+        {
+            pcb->snd_nxt = pcb->snd_nxt + 1;
+            pcb->snd_nbb = pcb->snd_nxt;
+            tcp_pcb_timewait(pcb);
+            LOGK("TCP TIME_WAIT\n");
+        }
+        else if (tcp->fin)
+        {
+            pcb->state = CLOSING;
+            LOGK("TCP CLOSING\n");
+        }
+        else if (tcp->ack && tcp->ackno == pcb->snd_nxt + 1)
+        {
+            pcb->snd_nxt = pcb->snd_nxt + 1;
+            pcb->snd_nbb = pcb->snd_nxt;
+            pcb->state = FIN_WAIT2;
+            pcb->timers[TCP_TIMER_FIN_WAIT2] = TCP_TO_FIN_WAIT2;
+            LOGK("TCP FIN_WAIT2\n");
+        }
+        if (tcp->fin)
+        {
+            pcb->rcv_nxt = tcp->seqno + 1;
+            pcb->flags |= TF_ACK_NOW;
+        }
+        break;
+    case FIN_WAIT2:
+        if (tcp->fin)
+        {
+            pcb->rcv_nxt = tcp->seqno + 1;
+            pcb->flags |= TF_ACK_NOW;
+            tcp_pcb_timewait(pcb);
+            LOGK("TCP TIME_WAIT\n");
+        }
+        break;
+    case CLOSING:
+        if (tcp->ack && tcp->ackno == pcb->snd_nxt + 1)
+        {
+            pcb->snd_nxt = pcb->snd_nxt + 1;
+            pcb->snd_nbb = pcb->snd_nxt;
+            tcp_pcb_timewait(pcb);
+            LOGK("TCP TIME_WAIT\n");
+        }
+        break;
+    case TIME_WAIT:
+        if (TCP_SEQ_GT(tcp->seqno + pbuf->size, pcb->rcv_nxt))
+            pcb->rcv_nxt = tcp->seqno + pbuf->size;
+        if (pbuf->size > 0)
+            pcb->flags |= TF_ACK_NOW;
+        break;
     default:
         break;
     }
@@ -235,6 +305,9 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
 
     if (tcp_validate(pcb, pbuf, tcp) < EOK)
         return -EPROTO;
+
+    if (pcb->state == CLOSED)
+        return tcp_reset(tcp->ackno + 1, tcp->seqno + pbuf->size, ip->dst, tcp->dport, ip->src, tcp->sport);
 
     if (tcp->rst)
         return tcp_handle_reset(pcb, pbuf, ip, tcp);

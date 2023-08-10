@@ -5,6 +5,7 @@
 #include <onix/arena.h>
 #include <onix/string.h>
 #include <onix/stdio.h>
+#include <onix/string.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 #include <onix/errno.h>
@@ -20,6 +21,8 @@ netif_t *netif_create()
 {
     netif_t *netif = kmalloc(sizeof(netif_t));
     memset(netif, 0, sizeof(netif_t));
+    lock_init(&netif->rx_lock);
+    lock_init(&netif->tx_lock);
 
     sprintf(netif->name, "eth%d", list_size(&netif_list));
 
@@ -94,21 +97,37 @@ bool ip_addr_isown(ip_addr_t addr)
 // 网卡接收任务输入
 void netif_input(netif_t *netif, pbuf_t *pbuf)
 {
+    lock_acquire(&netif->rx_lock);
+
+    while (netif->rx_pbuf_size >= NETIF_RX_PBUF_SIZE)
+    {
+        pbuf_t *nbuf = element_entry(pbuf_t, node, list_popback(&netif->rx_pbuf_list));
+        netif->rx_pbuf_size--;
+        pbuf_put(nbuf);
+    }
+
     list_push(&netif->rx_pbuf_list, &pbuf->node);
+    netif->rx_pbuf_size++;
+    assert(netif->rx_pbuf_size <= NETIF_RX_PBUF_SIZE);
+
     if (neti_task->state == TASK_WAITING)
     {
         task_unblock(neti_task, EOK);
     }
+    lock_release(&netif->rx_lock);
 }
 
 // 网卡发送任务输出
 void netif_output(netif_t *netif, pbuf_t *pbuf)
 {
+    lock_acquire(&netif->tx_lock);
     list_push(&netif->tx_pbuf_list, &pbuf->node);
+    netif->tx_pbuf_size++;
     if (neto_task->state == TASK_WAITING)
     {
         task_unblock(neto_task, EOK);
     }
+    lock_release(&netif->tx_lock);
 }
 
 // 接收任务
@@ -126,8 +145,17 @@ static void neti_thread()
 
             if (!list_empty(&netif->rx_pbuf_list))
             {
+                lock_acquire(&netif->rx_lock);
                 pbuf = element_entry(pbuf_t, node, list_popback(&netif->rx_pbuf_list));
                 assert(!pbuf->node.next && !pbuf->node.prev);
+                netif->rx_pbuf_size--;
+                lock_release(&netif->rx_lock);
+
+                // LOGK("ETH RECV [%04X]: %m -> %m %d\n",
+                //      ntohs(pbuf->eth->type),
+                //      pbuf->eth->src,
+                //      pbuf->eth->dst,
+                //      pbuf->length);
 
                 eth_input(netif, pbuf);
 
@@ -161,16 +189,19 @@ static void neto_thread()
             netif = element_entry(netif_t, node, ptr);
             if (!list_empty(&netif->tx_pbuf_list))
             {
+                lock_acquire(&netif->tx_lock);
                 pbuf = element_entry(pbuf_t, node, list_popback(&netif->tx_pbuf_list));
                 assert(!pbuf->node.next && !pbuf->node.prev);
+                netif->tx_pbuf_size--;
+                lock_release(&netif->tx_lock);
 
                 netif->nic_output(netif, pbuf);
 
-                LOGK("ETH SEND [%04X]: %m -> %m %d\n",
-                     ntohs(pbuf->eth->type),
-                     pbuf->eth->src,
-                     pbuf->eth->dst,
-                     pbuf->length);
+                // LOGK("ETH SEND [%04X]: %m -> %m %d\n",
+                //      ntohs(pbuf->eth->type),
+                //      pbuf->eth->src,
+                //      pbuf->eth->dst,
+                //      pbuf->length);
 
                 count++;
             }

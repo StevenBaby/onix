@@ -68,9 +68,11 @@ enum
 
 enum
 {
-    TCP_TO_SYN = 5 * TCP_SLOWHZ,    // 建立连接超时
-    TCP_TO_REXMIT = 2 * TCP_SLOWHZ, // 重传超时
-    TCP_MAXRXTCNT = 12,             // 最大重传次数
+    TCP_TO_SYN = 5 * TCP_SLOWHZ,             // 建立连接超时
+    TCP_TO_REXMIT = 2 * TCP_SLOWHZ,          // 重传超时
+    TCP_TO_FIN_WAIT2 = 10 * 60 * TCP_SLOWHZ, // FIN_WAIT2 超时
+    TCP_TO_TIMEWAIT = 10 * TCP_SLOWHZ,       // TIMEWAIT 超时
+    TCP_MAXRXTCNT = 12,                      // 最大重传次数
 };
 
 typedef struct tcp_t
@@ -148,6 +150,12 @@ u32 tcp_next_isn();
 
 // 获取协议控制块
 tcp_pcb_t *tcp_pcb_get();
+
+// 清空协议控制块
+void tcp_pcb_purge(tcp_pcb_t *pcb, err_t reason);
+
+// 进入 TIMEWAIT 状态
+void tcp_pcb_timewait(tcp_pcb_t *pcb);
 
 // 释放协议控制块
 void tcp_pcb_put(tcp_pcb_t *pcb);

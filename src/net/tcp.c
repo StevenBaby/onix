@@ -34,8 +34,37 @@ static int tcp_socket(socket_t *s, int domain, int type, int protocol)
 static int tcp_close(socket_t *s)
 {
     LOGK("tcp close...\n");
+    tcp_pcb_t *pcb = s->tcp;
+    if (!pcb)
+        return EOK;
 
-    tcp_pcb_put(s->tcp);
+    switch (pcb->state)
+    {
+    case CLOSED:
+    case SYN_SENT:
+        tcp_pcb_put(s->tcp);
+        s->tcp = NULL;
+        LOGK("TCP CLOSE...\n");
+        pcb = NULL;
+        break;
+    case ESTABLISHED:
+        tcp_enqueue(pcb, NULL, 0, TCP_FIN);
+        pcb->state = FIN_WAIT1;
+        LOGK("TCP FIN_WAIT1...\n");
+        break;
+    case CLOSE_WAIT:
+        tcp_enqueue(pcb, NULL, 0, TCP_FIN);
+        pcb->state = LAST_ACK;
+        LOGK("TCP LAST_ACK...\n");
+        break;
+    default:
+        pcb = NULL;
+        break;
+    }
+
+    if (pcb)
+        tcp_output(pcb);
+
     return EOK;
 }
 
@@ -162,6 +191,8 @@ static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
     err_t ret = EOK;
 
     tcp_pcb_t *pcb = s->tcp;
+    if (pcb->state != ESTABLISHED)
+        return -EINVAL;
 
     if (list_empty(&pcb->recved))
     {

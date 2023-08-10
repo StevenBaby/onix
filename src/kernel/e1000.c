@@ -312,12 +312,12 @@ static void send_packet(netif_t *netif, pbuf_t *pbuf)
     e1000->tx_cur = (e1000->tx_cur + 1) % TX_DESC_NR;
     moutl(e1000->membase + E1000_TDT, e1000->tx_cur);
 
-    LOGK("ETH S 0x%p [0x%04X]: %m -> %m, %d\n",
-         pbuf,
-         ntohs(pbuf->eth->type),
-         pbuf->eth->src,
-         pbuf->eth->dst,
-         pbuf->length);
+    // LOGK("ETH S 0x%p [0x%04X]: %m -> %m, %d\n",
+    //      pbuf,
+    //      ntohs(pbuf->eth->type),
+    //      pbuf->eth->src,
+    //      pbuf->eth->dst,
+    //      pbuf->length);
 }
 
 static void free_packet(e1000_t *e1000)
@@ -368,7 +368,7 @@ static void e1000_handler(int vector)
     // 传输队列为空，并且传输进程阻塞
     if ((status & IM_TXQE))
     {
-        LOGK("e1000 TXQE...\n");
+        // LOGK("e1000 TXQE...\n");
     }
 
     // 连接状态改变
@@ -511,8 +511,9 @@ static void e1000_reset(e1000_t *e1000)
 
     // 接收控制寄存器
     u32 value = 0;
-    value |= RCTL_EN | RCTL_SBP | RCTL_UPE;
-    value |= RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF;
+    value |= RCTL_EN;
+    // value |= RCTL_SBP | RCTL_UPE | RCTL_MPE; // 混杂模式
+    value |= RCTL_LBM_NONE | RTCL_RDMTS_HALF;
     value |= RCTL_BAM | RCTL_SECRC | RCTL_BSIZE_2048;
     moutl(e1000->membase + E1000_RCTL, value);
 

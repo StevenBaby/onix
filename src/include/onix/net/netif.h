@@ -2,6 +2,7 @@
 #define ONIX_NET_NETIF_H
 
 #include <onix/list.h>
+#include <onix/mutex.h>
 #include "types.h"
 
 enum
@@ -16,13 +17,24 @@ enum
     NETIF_TCP_TX_CHECKSUM_OFFLOAD = 0x00200000,
 };
 
+enum
+{
+    NETIF_RX_PBUF_SIZE = 8,
+    NETIF_TX_PBUF_SIZE = 8,
+};
+
 typedef struct netif_t
 {
     list_node_t node; // 链表节点
     char name[16];    // 名字
 
     list_t rx_pbuf_list; // 接收缓冲队列
+    lock_t rx_lock;      // 接收锁
+    int rx_pbuf_size;    // 接收队列大小
+
     list_t tx_pbuf_list; // 发送缓冲队列
+    lock_t tx_lock;      // 发送锁
+    int tx_pbuf_size;    // 发送队列大小
 
     eth_addr_t hwaddr; // MAC 地址
 

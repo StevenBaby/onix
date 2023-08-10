@@ -44,10 +44,61 @@ tcp_pcb_t *tcp_pcb_get()
     return pcb;
 }
 
+// 释放 TCP 缓存
+static void tcp_list_put(list_t *list)
+{
+    for (list_node_t *node = list->head.next; node != &list->tail;)
+    {
+        pbuf_t *pbuf = element_entry(pbuf_t, tcpnode, node);
+        node = node->next;
+        list_remove(&pbuf->tcpnode);
+        assert(pbuf->count == 1);
+        pbuf_put(pbuf);
+    }
+}
+
+void tcp_pcb_purge(tcp_pcb_t *pcb, err_t reason)
+{
+    tcp_list_put(&pcb->recved);
+    tcp_list_put(&pcb->outseq);
+    tcp_list_put(&pcb->unsent);
+    tcp_list_put(&pcb->unacked);
+
+    if (pcb->ac_waiter)
+    {
+        task_unblock(pcb->ac_waiter, reason);
+        pcb->ac_waiter = NULL;
+    }
+
+    if (pcb->rx_waiter)
+    {
+        task_unblock(pcb->rx_waiter, reason);
+        pcb->rx_waiter = NULL;
+    }
+
+    if (pcb->tx_waiter)
+    {
+        task_unblock(pcb->tx_waiter, reason);
+        pcb->tx_waiter = NULL;
+    }
+    LOGK("TCP PURGE %#p\n", pcb);
+}
+
+void tcp_pcb_timewait(tcp_pcb_t *pcb)
+{
+    pcb->state = TIME_WAIT;
+    tcp_pcb_purge(pcb, -ETIME);
+    list_remove(&pcb->node);
+    pcb->timers[TCP_TIMER_TIMEWAIT] = TCP_TO_TIMEWAIT;
+    list_insert_sort(&tcp_pcb_timewait_list, &pcb->node, element_node_offset(tcp_pcb_t, node, timers[TCP_TIMER_TIMEWAIT]));
+}
+
 void tcp_pcb_put(tcp_pcb_t *pcb)
 {
     if (!pcb)
         return;
+
+    tcp_pcb_purge(pcb, -ETIME);
     list_remove(&pcb->node);
     kfree(pcb);
     LOGK("tcp pcb put...\n");

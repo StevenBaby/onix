@@ -41,18 +41,16 @@ static void tcp_timeout(tcp_pcb_t *pcb, int type)
         LOGK("tcp timeout syn\n");
         if (pcb->state != SYN_SENT && pcb->state != SYN_RCVD)
             return;
-        if (pcb->ac_waiter)
-        {
-            task_unblock(pcb->ac_waiter, -ETIME);
-            pcb->ac_waiter = NULL;
-        }
+        tcp_pcb_purge(pcb, -ETIME);
+        pcb->state = CLOSED;
         break;
     case TCP_TIMER_REXMIT:
         LOGK("tcp timeout rexmit\n");
         pcb->rtx_cnt++;
         if (pcb->rtx_cnt > TCP_MAXRXTCNT)
         {
-            // TODO: close
+            tcp_pcb_purge(pcb, -ETIME);
+            pcb->state = CLOSED;
             return;
         }
         tcp_rexmit(pcb);
@@ -62,8 +60,8 @@ static void tcp_timeout(tcp_pcb_t *pcb, int type)
     case TCP_TIMER_KEEPALIVE:
         break;
     case TCP_TIMER_FIN_WAIT2:
-        break;
     case TCP_TIMER_TIMEWAIT:
+        tcp_pcb_put(pcb);
         break;
     default:
         break;

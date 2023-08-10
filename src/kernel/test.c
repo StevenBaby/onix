@@ -71,6 +71,10 @@ void test_connect()
 
     ret = connect(fd, (sockaddr_t *)&addr, sizeof(sockaddr_in_t));
     LOGK("socket connect %d\n", ret);
+
+    // sleep(1000);
+
+    close(fd);
 }
 
 err_t sys_test()
