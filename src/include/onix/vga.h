@@ -35,7 +35,7 @@ typedef struct rgb_t
     u8 B; // 蓝色的亮度(值范围为0-255)
     u8 G; // 绿色的亮度(值范围为0-255)
     u8 R; // 红色的亮度(值范围为0-255)
-} rgb_t;
+} _packed rgb_t;
 
 typedef struct pixel_t
 {
@@ -50,6 +50,6 @@ typedef struct pixel_t
         rgb_t color;
     };
     u8 alpha;
-} pixel_t;
+} _packed pixel_t;
 
 #endif

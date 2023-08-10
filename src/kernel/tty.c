@@ -86,10 +86,14 @@ int tty_rx_notify(char *ch, char makecode, bool ctrl, bool shift, bool alt)
         extern void vga_reset();
         vga_reset();
         return 0;
+    case 0x3D:
+        LOGK("F3\n");
+        extern void vesa_reset();
+        vesa_reset();
+        return 0;
     default:
         break;
     }
-
     return 1;
 }
 

@@ -6,6 +6,9 @@
 #include <onix/assert.h>
 #include <onix/debug.h>
 #include <onix/fs.h>
+#include <onix/stdlib.h>
+#include <onix/task.h>
+#include <onix/mouse.h>
 #include <onix/vga.h>
 #include <onix/errno.h>
 
@@ -86,6 +89,9 @@ typedef struct vbe_mode_t
 } _packed vbe_mode_t;
 
 static vbe_mode_t mode_handler;
+static u32 *screen;
+static u32 mode_number;
+static task_t *vesa_task;
 
 static err_t vesa_set_mode(u32 width, u32 height, u32 bpp)
 {
@@ -134,61 +140,173 @@ success:
     ret = vm86(0x10, &reg);
     assert(reg.ax == VESA_SUCCESS);
 
+    screen = (u32 *)mode->framebuffer;
+
+    mode_number = *mode_list | VESA_LBF;
     mode_handler = *mode;
     return EOK;
 }
 
-void vesa_reset()
+void vesa_update_background()
 {
     u32 *screen = (u32 *)mode_handler.framebuffer;
-    LOGK("screen 0x%p\n", screen);
     for (size_t x = 0; x < VESA_WIDTH; x++)
     {
         for (size_t y = 0; y < VESA_HEIGHT; y++)
         {
-            screen[y * VESA_WIDTH + x] = 0x0000FF00;
+            screen[y * VESA_WIDTH + x] = ((x ^ y) * 104729);
+            // screen[y * VESA_WIDTH + x] = 0x333333;
         }
     }
 }
 
-void vesa_show()
+void vesa_reset()
 {
-    fd_t fd = open("/data/taklimakan.bmp", O_RDWR | O_CREAT, 0755);
+    err_t ret;
+    vm86_reg_t reg;
+
+    reg.ax = VESA_SET_MODE;
+    reg.bx = mode_number;
+
+    ret = vm86(0x10, &reg);
+    assert(reg.ax == VESA_SUCCESS);
+    vesa_update_background();
+}
+
+u32 *mouse_image = NULL;
+static int X = 0;
+static int Y = 0;
+
+#define MOUSE_WIDTH 20
+#define MOUSE_HEIGHT 20
+
+static void vesa_show_mouse()
+{
+    for (size_t i = 0; i < MOUSE_WIDTH; i++)
+    {
+        for (size_t j = 0; j < MOUSE_HEIGHT; j++)
+        {
+            pixel_t *pix = (pixel_t *)&mouse_image[j * MOUSE_WIDTH + i];
+            if (*(int *)pix == 0)
+                continue;
+            screen[(Y + j) * VESA_WIDTH + (X + i)] = mouse_image[j * MOUSE_WIDTH + i];
+        }
+    }
+}
+
+u32 vesa_update_position(int x, int y)
+{
+    // if (ABS(x) > 50 || ABS(y) > 50)
+    //     return 0;
+    X += x;
+    Y -= y;
+
+    if (X < 0)
+        X = 0;
+    if (X >= VESA_WIDTH - MOUSE_WIDTH)
+        X = VESA_WIDTH - MOUSE_WIDTH - 1;
+    if (Y < 0)
+        Y = 0;
+    if (Y >= VESA_HEIGHT - MOUSE_HEIGHT)
+        Y = VESA_HEIGHT - MOUSE_HEIGHT - 1;
+    // LOGK("update mouse position (%d, %d)\n", X, Y);
+    vesa_show_mouse();
+}
+
+static err_t vesa_init_mouse()
+{
+    fd_t fd = open("/data/mouse.bmp", O_RDWR, 0755);
     if (fd < EOK)
-        return;
+        return -ERROR;
 
     char *buf = (char *)alloc_kpage(1);
     assert(lseek(fd, 0, SEEK_SET) == 0);
-    int len = read(fd, buf, 1078);
-    assert(len = 1078);
+    int len = read(fd, buf, 128);
+    assert(len = 128);
 
     bmp_hdr_t *hdr = (bmp_hdr_t *)buf;
+    int start = hdr->start;
+    assert(lseek(fd, start, SEEK_SET) == start);
+    assert(hdr->size < PAGE_SIZE);
 
-    pixel_t *screen = (pixel_t *)mode_handler.framebuffer;
+    int size = hdr->size;
+    assert(read(fd, buf, size) > 0);
 
-    int next = hdr->start;
-    LOGK("screen 0x%p\n", screen);
-    for (size_t i = 0; i < VESA_WIDTH * VESA_HEIGHT;)
+    close(fd);
+    mouse_image = (u32 *)buf;
+
+    for (size_t i = 0; i < MOUSE_WIDTH; i++)
     {
-        assert(lseek(fd, next, SEEK_SET) == next);
-        int len = read(fd, buf, PAGE_SIZE);
-        next += (len / 3 * 3);
-        rgb_t *table = (rgb_t *)buf;
-        for (size_t j = 0; j < len / 3; j++, i++)
+        for (size_t j = 0; j < MOUSE_HEIGHT; j++)
         {
-            screen[i].color = table[j];
+            pixel_t *pix = (pixel_t *)&mouse_image[j * MOUSE_WIDTH + i];
+            pix->alpha = 0;
         }
     }
 
-    free_kpage((u32)buf, 1);
-    close(fd);
+    vesa_show_mouse();
+    LOGK("init mouse image finished!!!\n");
+}
 
-    LOGK("show image finished!!!\n");
+// void vesa_show()
+// {
+//     fd_t fd = open("/data/taklimakan.bmp", O_RDWR | O_CREAT, 0755);
+//     if (fd < EOK)
+//         return;
+
+//     char *buf = (char *)alloc_kpage(1);
+//     assert(lseek(fd, 0, SEEK_SET) == 0);
+//     int len = read(fd, buf, 1078);
+//     assert(len = 1078);
+
+//     bmp_hdr_t *hdr = (bmp_hdr_t *)buf;
+
+//     pixel_t *screen = (pixel_t *)mode_handler.framebuffer;
+
+//     int next = hdr->start;
+//     LOGK("screen 0x%p\n", screen);
+//     for (size_t i = 0; i < VESA_WIDTH * VESA_HEIGHT;)
+//     {
+//         assert(lseek(fd, next, SEEK_SET) == next);
+//         int len = read(fd, buf, PAGE_SIZE);
+//         next += (len / 3 * 3);
+//         rgb_t *table = (rgb_t *)buf;
+//         for (size_t j = 0; j < len / 3; j++, i++)
+//         {
+//             screen[i].color = table[j];
+//         }
+//     }
+
+//     free_kpage((u32)buf, 1);
+//     close(fd);
+
+//     LOGK("show image finished!!!\n");
+// }
+
+void vesa_thread()
+{
+    fd_t fd = open("/dev/mouse", O_RDONLY, 0);
+    assert(fd > 0);
+    mpacket_t pkt;
+    while (true)
+    {
+        int len = read(fd, (void *)&pkt, sizeof(mpacket_t));
+        if (len < 0)
+        {
+            sleep(10);
+            continue;
+        }
+        // LOGK("mouse move (%d, %d) buttons %d %d\n", pkt.x, pkt.y, pkt.buttons, len);
+        // vesa_update_background();
+        vesa_update_position(pkt.x, pkt.y);
+    }
 }
 
 void vesa_init()
 {
     LOGK("vesa init...\n");
     assert(vesa_set_mode(VESA_WIDTH, VESA_HEIGHT, VESA_BBP) == EOK);
-    vesa_reset();
+    vesa_update_background();
+    vesa_init_mouse();
+    vesa_task = task_create(vesa_thread, "vesa", 5, KERNEL_USER);
 }

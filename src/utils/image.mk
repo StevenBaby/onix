@@ -79,6 +79,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 # 拷贝图像文件
 	cp ./utils/images/bingbing.bmp /mnt/data
 	cp ./utils/images/taklimakan.bmp /mnt/data
+	cp ./utils/images/mouse.bmp /mnt/data
 
 # 卸载文件系统
 	sudo umount /mnt

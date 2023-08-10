@@ -18,6 +18,5 @@ extern void vga_show();
 
 err_t sys_test()
 {
-    vesa_show();
     return EOK;
 }

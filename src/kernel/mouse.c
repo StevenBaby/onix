@@ -189,7 +189,7 @@ static void finish_packet()
         mouse.waiter = NULL;
     }
 
-    LOGK("mouse move (%d, %d) buttons %d\n", x, y, pkt->buttons);
+    // LOGK("mouse move (%d, %d) buttons %d\n", x, y, pkt->buttons);
 }
 
 int mouse_read(void *dev, char *buf, u32 count)
@@ -201,20 +201,22 @@ int mouse_read(void *dev, char *buf, u32 count)
 
     if (mouse.head == mouse.tail)
     {
-        mouse.waiter = running_task();
-        ret = task_block(mouse.waiter, NULL, TASK_WAITING, TIMELESS);
-        if (ret < EOK)
-            goto rollback;
+        goto rollback;
+        // mouse.waiter = running_task();
+        // ret = task_block(mouse.waiter, NULL, TASK_WAITING, TIMELESS);
+        // if (ret < EOK)
+        //     goto rollback;
     }
+
     assert(mouse.head != mouse.tail);
     mpacket_t *pkt = &mouse.packets[mouse.tail];
-    mouse.tail = (mouse.tail + 1) & MOUSE_PACKETS;
+    mouse.tail = (mouse.tail + 1) % MOUSE_PACKETS;
     memcpy(buf, pkt, sizeof(mpacket_t));
     ret = sizeof(mpacket_t);
 
 rollback:
     lock_release(&mouse.lock);
-    return count;
+    return ret;
 }
 
 static void mouse_handler(int vector)
