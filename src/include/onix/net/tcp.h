@@ -71,7 +71,7 @@ enum
     TCP_TO_SYN = 5 * TCP_SLOWHZ,             // 建立连接超时
     TCP_TO_REXMIT = 2 * TCP_SLOWHZ,          // 重传超时
     TCP_TO_FIN_WAIT2 = 10 * 60 * TCP_SLOWHZ, // FIN_WAIT2 超时
-    TCP_TO_TIMEWAIT = 10 * TCP_SLOWHZ,       // TIMEWAIT 超时
+    TCP_TO_TIMEWAIT = 5 * TCP_SLOWHZ,        // TIMEWAIT 超时
     TCP_MAXRXTCNT = 12,                      // 最大重传次数
 };
 
@@ -134,6 +134,13 @@ typedef struct tcp_pcb_t
     u32 idle;    // 空闲时间
     u32 rto;     // 当前重传时限 RTO(Retransmission TimeOut)
     u32 rtx_cnt; // 重传次数
+
+    list_t acclist; // 客户端 PCB 链表
+    int backlog;    // 客户端数量
+    int backcnt;    // 当前数量
+
+    list_node_t accnode;      // 客户端节点
+    struct tcp_pcb_t *listen; // 监听 PCB
 
     list_t unsent;  // 未发送的报文段列表
     list_t unacked; // 以发送未应答的报文段列表

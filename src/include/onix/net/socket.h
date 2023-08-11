@@ -121,6 +121,7 @@ typedef struct socket_op_t
 } socket_op_t;
 
 void socket_register_op(socktype_t type, socket_op_t *op);
+socket_t *socket_create();
 
 err_t iovec_check(iovec_t *iov, int iovlen, int write);
 size_t iovec_size(iovec_t *iov, int iovlen);

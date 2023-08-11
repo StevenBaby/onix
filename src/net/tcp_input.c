@@ -1,10 +1,15 @@
 #include <onix/net/tcp.h>
 #include <onix/net.h>
+#include <onix/net/socket.h>
 #include <onix/task.h>
+#include <onix/string.h>
+#include <onix/arena.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
+
+extern list_t tcp_pcb_active_list;
 
 static const char *tcp_state_names[] = {
     "CLOSED",
@@ -155,6 +160,48 @@ static err_t tcp_handle_reset(tcp_pcb_t *pcb, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp
     return -ERESET;
 }
 
+static err_t tcp_handle_listen(
+    tcp_pcb_t *pcb,
+    netif_t *netif, pbuf_t *pbuf,
+    ip_t *ip, tcp_t *tcp)
+{
+    if (tcp->flags != TCP_SYN)
+        return -EPROTO;
+    if (pcb->backcnt == pcb->backlog)
+        return -EPROTO;
+
+    tcp_pcb_t *npcb = tcp_pcb_get();
+
+    ip_addr_copy(npcb->laddr, netif->ipaddr);
+    ip_addr_copy(npcb->raddr, ip->src);
+    npcb->lport = pcb->lport;
+    npcb->rport = tcp->sport;
+    npcb->state = SYN_RCVD;
+
+    npcb->snd_wnd = tcp->window;
+    npcb->snd_mss = pcb->snd_mss;
+    if (npcb->snd_mss < TCP_DEFAULT_MSS)
+        npcb->snd_mss = TCP_DEFAULT_MSS;
+
+    npcb->rcv_nxt = tcp->seqno + 1;
+
+    npcb->listen = pcb;
+
+    list_push(&pcb->acclist, &npcb->accnode);
+    pcb->backcnt++;
+
+    list_remove(&npcb->node);
+    list_push(&tcp_pcb_active_list, &npcb->node);
+
+    tcp_enqueue(npcb, NULL, 0, TCP_SYN | TCP_ACK);
+    tcp_output(npcb);
+
+    pcb->timers[TCP_TIMER_SYN] = TCP_TO_SYN;
+
+    LOGK("TCP SYN_RCVD\n");
+    return EOK;
+}
+
 static err_t tcp_process(tcp_pcb_t *pcb, netif_t *netif, pbuf_t *pbuf, ip_t *ip, tcp_t *tcp)
 {
     if (tcp->ack && pcb->state != TIME_WAIT)
@@ -162,8 +209,26 @@ static err_t tcp_process(tcp_pcb_t *pcb, netif_t *netif, pbuf_t *pbuf, ip_t *ip,
 
     switch (pcb->state)
     {
+    case LISTEN:
+        return tcp_handle_listen(pcb, netif, pbuf, ip, tcp);
     case SYN_SENT:
         return tcp_handle_syn_sent(pcb, tcp);
+    case SYN_RCVD:
+        if (!tcp->ack || tcp->ackno != pcb->snd_nxt + 1)
+            break;
+        LOGK("TCP ESTABLISHED server\n");
+
+        pcb->state = ESTABLISHED;
+        pcb->snd_nxt = tcp->ackno;
+        pcb->snd_nbb = tcp->ackno;
+
+        assert(pcb->listen);
+        if (pcb->listen->ac_waiter)
+        {
+            task_unblock(pcb->listen->ac_waiter, EOK);
+            pcb->listen->ac_waiter;
+        }
+        break;
     case CLOSE_WAIT:
     case ESTABLISHED:
         if (tcp->fin)

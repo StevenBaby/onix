@@ -39,6 +39,7 @@ tcp_pcb_t *tcp_pcb_get()
     list_init(&pcb->unacked);
     list_init(&pcb->outseq);
     list_init(&pcb->recved);
+    list_init(&pcb->acclist);
 
     list_push(&tcp_pcb_create_list, &pcb->node);
     return pcb;
@@ -63,6 +64,15 @@ void tcp_pcb_purge(tcp_pcb_t *pcb, err_t reason)
     tcp_list_put(&pcb->outseq);
     tcp_list_put(&pcb->unsent);
     tcp_list_put(&pcb->unacked);
+
+    list_t *list = &pcb->acclist;
+    for (list_node_t *node = list->head.next; node != &list->tail;)
+    {
+        tcp_pcb_t *npcb = element_entry(tcp_pcb_t, accnode, node);
+        node = node->next;
+        list_remove(&npcb->accnode);
+        tcp_pcb_put(npcb);
+    }
 
     if (pcb->ac_waiter)
     {
@@ -97,7 +107,8 @@ void tcp_pcb_put(tcp_pcb_t *pcb)
 {
     if (!pcb)
         return;
-
+    if (pcb->lport != 0 && !pcb->listen)
+        port_put(&tcp_port_map, pcb->lport);
     tcp_pcb_purge(pcb, -ETIME);
     list_remove(&pcb->node);
     kfree(pcb);

@@ -16,7 +16,7 @@ extern list_t tcp_pcb_active_list;   // 活动 pcb 列表
 extern list_t tcp_pcb_listen_list;   // 监听 pcb 列表
 extern list_t tcp_pcb_timewait_list; // 等待 pcb 列表
 
-static port_map_t tcp_port_map; // 端口位图
+port_map_t tcp_port_map; // 端口位图
 
 u32 tcp_next_isn()
 {
@@ -38,15 +38,18 @@ static int tcp_close(socket_t *s)
     if (!pcb)
         return EOK;
 
+    s->tcp = NULL;
+
     switch (pcb->state)
     {
     case CLOSED:
     case SYN_SENT:
-        tcp_pcb_put(s->tcp);
-        s->tcp = NULL;
+    case LISTEN:
+        tcp_pcb_put(pcb);
         LOGK("TCP CLOSE...\n");
         pcb = NULL;
         break;
+    case SYN_RCVD:
     case ESTABLISHED:
         tcp_enqueue(pcb, NULL, 0, TCP_FIN);
         pcb->state = FIN_WAIT1;
@@ -71,13 +74,84 @@ static int tcp_close(socket_t *s)
 static int tcp_listen(socket_t *s, int backlog)
 {
     LOGK("tcp listen...\n");
+    tcp_pcb_t *pcb = s->tcp;
+    if (pcb->state == LISTEN)
+        return EOK;
+    if (pcb->state != CLOSED)
+        return -EPROTO;
+
+    pcb->state = LISTEN;
+    pcb->backcnt = 0;
+    pcb->backlog = backlog;
+
+    list_remove(&pcb->node);
+    list_push(&tcp_pcb_listen_list, &pcb->node);
+
     return EOK;
+}
+
+static tcp_pcb_t *tcp_find_npcb(tcp_pcb_t *pcb)
+{
+    list_t *list = &pcb->acclist;
+    tcp_pcb_t *npcb = NULL;
+    for (list_node_t *node = list->head.next; node != &list->tail;)
+    {
+        tcp_pcb_t *ptr = element_entry(tcp_pcb_t, accnode, node);
+        node = node->next;
+        if (ptr->state == ESTABLISHED)
+        {
+            npcb = ptr;
+            list_remove(&npcb->accnode);
+            break;
+        }
+    }
+    return npcb;
 }
 
 static int tcp_accept(socket_t *s, sockaddr_t *addr, int *addrlen, socket_t **ns)
 {
     LOGK("tcp accept...\n");
-    return -EINVAL;
+
+    tcp_pcb_t *pcb = s->tcp;
+    if (pcb->backlog <= 0)
+        return -EINVAL;
+    if (pcb->state != LISTEN)
+        return -EINVAL;
+
+    err_t ret = EOK;
+
+    tcp_pcb_t *npcb = tcp_find_npcb(pcb);
+    if (!npcb)
+    {
+        pcb->ac_waiter = running_task();
+        ret = task_block(pcb->ac_waiter, NULL, TASK_WAITING, s->rcvtimeo);
+        pcb->ac_waiter = NULL;
+
+        if (ret < 0)
+            return ret;
+        npcb = tcp_find_npcb(pcb);
+        assert(npcb);
+    }
+
+    socket_t *sock = socket_create();
+    sock->type = SOCK_TYPE_TCP;
+
+    *ns = sock;
+    sock->tcp = npcb;
+    assert(sock->tcp);
+
+    if (addr)
+    {
+        sockaddr_in_t *sin = (sockaddr_in_t *)addr;
+        sin->family = AF_INET;
+        sin->port = pcb->rport;
+        ip_addr_copy(sin->addr, pcb->raddr);
+    }
+    if (addrlen)
+    {
+        *addrlen = sizeof(sockaddr_in_t);
+    }
+    return EOK;
 }
 
 static int tcp_bind(socket_t *s, const sockaddr_t *name, int namelen)
