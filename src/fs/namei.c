@@ -66,7 +66,10 @@ inode_t *named(char *pathname, char **next)
     inode_t *inode = NULL;
     while (true)
     {
-        if (match_name(name, "..", next) && dir->super->imount)
+        if (match_name(name, "..", &next)
+            && dir == dir->super->iroot
+            && dir->super->iroot != dir->super->imount
+        )
         {
             super_t *super = dir->super;
             inode = super->imount;
@@ -111,11 +114,10 @@ inode_t *namei(char *pathname)
     char *name = next;
     inode_t *inode = NULL;
 
-        // 目标目录 ".." 为上一级目录
-    if (match_name(name, "..", &next) \
-        // 当前目录为挂载设备的根目录
-        && dir == dir->super->iroot \
-        && dir->super->iroot != dir->super->imount)
+    if (match_name(name, "..", &next)
+        && dir == dir->super->iroot
+        && dir->super->iroot != dir->super->imount
+    )
     {
         // 获取挂载设备的超级块
         super_t *super = dir->super;
