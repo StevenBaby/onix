@@ -674,8 +674,8 @@ int sys_umount(char *target)
         || super->iroot->count != 1
     )
     {
-        ret = -EBUSY;
-        goto rollback;
+        iput(inode);
+        return -EBUSY;
     }
 
     iput(super->iroot);
