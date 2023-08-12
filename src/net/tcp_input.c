@@ -25,6 +25,24 @@ static const char *tcp_state_names[] = {
     "TIME_WAIT",
 };
 
+static void tcp_update_wnd(tcp_pcb_t *pcb, tcp_t *tcp)
+{
+    if (TCP_SEQ_LT(pcb->snd_wl1, tcp->seqno) ||
+        (tcp->seqno == pcb->snd_wl1 && TCP_SEQ_LEQ(pcb->snd_wl2, tcp->ackno)))
+    {
+        pcb->snd_wnd = tcp->window;
+        pcb->snd_wl1 = tcp->seqno;
+        pcb->snd_wl2 = tcp->ackno;
+        if (tcp->window > pcb->snd_mwnd)
+            pcb->snd_mwnd = tcp->window;
+
+        if (pcb->snd_wnd == 0)
+            pcb->timers[TCP_TIMER_PERSIST] = TCP_TO_PERSMIN;
+        else
+            pcb->timers[TCP_TIMER_PERSIST] = 0;
+    }
+}
+
 static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
 {
     // 重复 ACK
@@ -90,6 +108,13 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
         pbuf->size -= offset;
     }
 
+    // 用于保活机制探测
+    if (pbuf->size == 0)
+    {
+        pcb->flags |= TF_ACK_DELAY;
+        return;
+    }
+
     // 进入接收缓冲队列
     pcb->rcv_nxt = rcv_nxt;
     assert(pbuf->count == 1);
@@ -99,6 +124,9 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
     pcb->rcv_wnd -= pbuf->size;
 
     pcb->flags |= TF_ACK_DELAY;
+
+    if (pcb->state > ESTABLISHED)
+        return;
 
     list_insert_sort(
         &pcb->recved,
@@ -115,7 +143,10 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
 static err_t tcp_receive(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
 {
     if (tcp->ack)
+    {
+        tcp_update_wnd(pcb, tcp);
         tcp_update_ack(pcb, tcp);
+    }
 
     if (pbuf->size > 0)
         tcp_update_buf(pcb, pbuf, tcp);
@@ -383,6 +414,10 @@ err_t tcp_input(netif_t *netif, pbuf_t *pbuf)
 
     // 空闲结束
     pcb->idle = 0;
+
+    // 重置保活定时器
+    if (pcb->flags & TF_KEEPALIVE)
+        pcb->timers[TCP_TIMER_KEEPALIVE] = TCP_TO_KEEP_IDLE;
 
     assert(pcb->state >= CLOSED && pcb->state <= TIME_WAIT);
 

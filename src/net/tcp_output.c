@@ -23,7 +23,7 @@ err_t tcp_output_seg(tcp_pcb_t *pcb, pbuf_t *pbuf)
         pcb->flags &= ~(TF_ACK_DELAY | TF_ACK_NOW);
     }
 
-    // Silly Window Syndrome Avoidance
+    // Silly Window Syndrome Avoidance 糊涂窗口综合征的避免
     if (pcb->rcv_wnd < pcb->rcv_mss)
         tcp->window = 0;
     else
@@ -201,4 +201,37 @@ err_t tcp_reset(u32 seqno, u32 ackno, ip_addr_t laddr, u16 lport, ip_addr_t radd
         tcp->chksum = inet_chksum(tcp, len, raddr, laddr, IP_PROTOCOL_TCP);
 
     return ip_output(netif, pbuf, raddr, IP_PROTOCOL_TCP, len);
+}
+
+err_t tcp_response(tcp_pcb_t *pcb, u32 seqno, u32 ackno, u8 flags)
+{
+    netif_t *netif = netif_route(pcb->raddr);
+    assert(netif);
+
+    pbuf_t *pbuf = pbuf_get();
+    ip_t *ip = pbuf->eth->ip;
+    tcp_t *tcp = ip->tcp;
+
+    tcp->sport = htons(pcb->lport);
+    tcp->dport = htons(pcb->rport);
+    tcp->seqno = htonl(seqno);
+    tcp->ackno = htonl(ackno);
+
+    tcp->flags = flags;
+
+    if (pcb->rcv_wnd < pcb->rcv_mss)
+        tcp->window = 0;
+    else
+        tcp->window = htons(pcb->rcv_wnd);
+
+    tcp->urgent = 0;
+    tcp->len = sizeof(tcp_t) / 4;
+
+    int len = sizeof(tcp_t);
+    tcp->chksum = 0;
+
+    if (!(netif->flags & NETIF_TCP_RX_CHECKSUM_OFFLOAD))
+        tcp->chksum = inet_chksum(tcp, len, pcb->raddr, pcb->laddr, IP_PROTOCOL_TCP);
+
+    return ip_output(netif, pbuf, pcb->raddr, IP_PROTOCOL_TCP, len);
 }

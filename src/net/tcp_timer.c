@@ -33,6 +33,20 @@ static void tcp_fastimo()
     }
 }
 
+static void tcp_persist(tcp_pcb_t *pcb)
+{
+    pcb->timers[TCP_TIMER_PERSIST] = TCP_TO_PERMAX;
+    LOGK("tcp persist...\n");
+    tcp_response(pcb, pcb->snd_una, pcb->rcv_nxt, TCP_ACK);
+}
+
+static void tcp_keepalive(tcp_pcb_t *pcb)
+{
+    LOGK("keep alive...\n");
+    tcp_response(pcb, pcb->snd_una - 1, pcb->rcv_nxt, TCP_ACK);
+    pcb->timers[TCP_TIMER_KEEPALIVE] = TCP_TO_KEEP_INTERVAL;
+}
+
 static void tcp_timeout(tcp_pcb_t *pcb, int type)
 {
     switch (type)
@@ -56,8 +70,21 @@ static void tcp_timeout(tcp_pcb_t *pcb, int type)
         tcp_rexmit(pcb);
         break;
     case TCP_TIMER_PERSIST:
+        tcp_persist(pcb);
         break;
     case TCP_TIMER_KEEPALIVE:
+        LOGK("keepalive...\n");
+        if (!(pcb->flags & TF_KEEPALIVE))
+            return;
+        if (pcb->state < ESTABLISHED)
+            return;
+        if (pcb->idle > TCP_TO_KEEP_INTERVAL * TCP_TO_KEEPCNT)
+        {
+            tcp_pcb_purge(pcb, -ETIME);
+            pcb->state = CLOSED;
+            return;
+        }
+        tcp_keepalive(pcb);
         break;
     case TCP_TIMER_FIN_WAIT2:
     case TCP_TIMER_TIMEWAIT:

@@ -18,6 +18,7 @@ enum
 {
     TF_ACK_DELAY = 0x01, // 可以等等再发 ACK
     TF_ACK_NOW = 0x02,   // 尽快马上发送 ACK
+    TF_KEEPALIVE = 0x04, // 启用保活机制
 };
 
 typedef enum tcp_state_t
@@ -71,7 +72,12 @@ enum
     TCP_TO_SYN = 5 * TCP_SLOWHZ,             // 建立连接超时
     TCP_TO_REXMIT = 2 * TCP_SLOWHZ,          // 重传超时
     TCP_TO_FIN_WAIT2 = 10 * 60 * TCP_SLOWHZ, // FIN_WAIT2 超时
-    TCP_TO_TIMEWAIT = 5 * TCP_SLOWHZ,        // TIMEWAIT 超时
+    TCP_TO_TIMEWAIT = 4 * 60 * TCP_SLOWHZ,   // TIMEWAIT 超时
+    TCP_TO_PERSMIN = 5 * TCP_SLOWHZ,         // 最小持续超时
+    TCP_TO_PERMAX = 60 * TCP_SLOWHZ,         // 最大持续超时
+    TCP_TO_KEEP_IDLE = 2 * TCP_SLOWHZ,       // 保活启动
+    TCP_TO_KEEP_INTERVAL = 2 * TCP_SLOWHZ,   // 保活测试间隔
+    TCP_TO_KEEPCNT = 8,                      // 保活测试次数
     TCP_MAXRXTCNT = 12,                      // 最大重传次数
 };
 
@@ -118,12 +124,15 @@ typedef struct tcp_pcb_t
 
     u32 flags; // 控制块状态
 
-    u32 snd_una; // 已发送未收到 ack 的最小字节
-    u32 snd_nxt; // 需要发送的下一个字节
-    u16 snd_wnd; // 发送窗口
-    u16 snd_mss; // Maximum segment size
-    u32 snd_nbb; // Next Buffer Byte
-    u32 snd_max; // 已发送的最大字节序号
+    u32 snd_una;  // 已发送未收到 ack 的最小字节
+    u32 snd_nxt;  // 需要发送的下一个字节
+    u16 snd_wnd;  // 发送窗口
+    u16 snd_mss;  // Maximum segment size
+    u32 snd_nbb;  // Next Buffer Byte
+    u32 snd_max;  // 已发送的最大字节序号
+    u32 snd_wl1;  // 上次更新窗口的序列号
+    u32 snd_wl2;  // 上次更新窗口的确认号
+    u32 snd_mwnd; // 最大发送窗口
 
     u32 rcv_nxt; // 期望收到的下一个字节
     u16 rcv_wnd; // 接收窗口
@@ -178,6 +187,9 @@ err_t tcp_send_ack(tcp_pcb_t *pcb, u8 flags);
 
 // TCP 连接重置
 err_t tcp_reset(u32 seqno, u32 ackno, ip_addr_t laddr, u16 lport, ip_addr_t raddr, u16 rport);
+
+// TCP 响应
+err_t tcp_response(tcp_pcb_t *pcb, u32 seqno, u32 ackno, u8 flags);
 
 // TCP 输出
 err_t tcp_output(tcp_pcb_t *pcb);

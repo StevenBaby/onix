@@ -256,7 +256,25 @@ static int tcp_getsockopt(socket_t *s, int level, int optname, void *optval, int
 static int tcp_setsockopt(socket_t *s, int level, int optname, const void *optval, int optlen)
 {
     LOGK("tcp setsockopt...\n");
-    return -ENOSYS;
+    switch (optname)
+    {
+    case SO_KEEPALIVE:
+        int val = *(int *)optval;
+        if (val)
+        {
+            s->tcp->flags |= TF_KEEPALIVE;
+            s->tcp->timers[TCP_TIMER_KEEPALIVE] = TCP_TO_KEEP_IDLE;
+        }
+        else
+        {
+            s->tcp->flags &= (~TF_KEEPALIVE);
+            s->tcp->timers[TCP_TIMER_KEEPALIVE] = 0;
+        }
+        return EOK;
+    default:
+        break;
+    }
+    return -EINVAL;
 }
 
 static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)

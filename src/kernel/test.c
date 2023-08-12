@@ -77,61 +77,10 @@ void test_connect()
     close(fd);
 }
 
-void test_server()
-{
-    sockaddr_in_t addr;
-
-    int fd = socket(AF_INET, SOCK_STREAM, PROTO_TCP);
-    assert(fd > 0);
-
-    fd_t client = -1;
-
-    inet_aton("0.0.0.0", addr.addr);
-    addr.family = AF_INET;
-    addr.port = htons(6666);
-
-    int ret = bind(fd, (sockaddr_t *)&addr, sizeof(sockaddr_in_t));
-    LOGK("socket bind %d\n", ret);
-    if (ret < 0)
-        goto rollback;
-
-    ret = listen(fd, 1);
-    LOGK("socket listen %d\n", ret);
-    if (ret < 0)
-        goto rollback;
-
-    LOGK("waiting for client...\n");
-    client = accept(fd, (sockaddr_t *)&addr, 0);
-    if (client < 0)
-    {
-        LOGK("accept failure...\n");
-        goto rollback;
-    }
-    LOGK("socket acccept %d\n", client);
-
-    int len = sprintf(tx_buf, "hello tcp client %d", time());
-    send(client, tx_buf, len, 0);
-
-    ret = recv(client, rx_buf, BUFLEN, 0);
-    if (ret > 0)
-    {
-        rx_buf[ret] = 0;
-        LOGK("received %d bytes: %s.\n", ret, rx_buf);
-    }
-    sleep(1000);
-
-rollback:
-    if (client > 0)
-        close(client);
-    if (fd > 0)
-        close(fd);
-}
-
 err_t sys_test()
 {
     // test_sendrecv();
     // test_connect();
-    // test_server();
 
     return EOK;
 }
