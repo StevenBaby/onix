@@ -66,7 +66,8 @@ inode_t *named(char *pathname, char **next)
     inode_t *inode = NULL;
     while (true)
     {
-        if (match_name(name, "..", next) && dir->super->imount)
+        // 返回上一级目录且上一级目录是个挂载点
+        if (match_name(name, "..", next) && dir == dir->super->iroot)
         {
             super_t *super = dir->super;
             inode = super->imount;
@@ -111,7 +112,8 @@ inode_t *namei(char *pathname)
     char *name = next;
     inode_t *inode = NULL;
 
-    if (match_name(name, "..", &next) && dir->super->imount)
+    // 返回上一级目录且上一级目录是个挂载点
+    if (match_name(name, "..", &next) && dir == dir->super->iroot)
     {
         super_t *super = dir->super;
         inode = super->imount;

@@ -656,7 +656,7 @@ int sys_umount(char *target)
         dev = inode->rdev;
     }
 
-    super = get_super(dev);
+    super = read_super(dev); // 使用 read 使得 count++
     assert(super);
     if (!super->imount)
     {
