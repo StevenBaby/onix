@@ -66,6 +66,11 @@ enum
     ENOTCONN,  // 没有连接
     ERESET,    // 连接重置
     ECHKSUM,   // 校验和错误
+
+    // 错误数量，应该在枚举的最后
+    ENUM,
 };
+
+const char *strerror(int errno);
 
 #endif

@@ -1,6 +1,7 @@
 #include <onix/syscall.h>
 #include <onix/stdio.h>
 #include <onix/fs.h>
+#include <onix/errno.h>
 
 int main(int argc, char const *argv[])
 {
@@ -8,7 +9,7 @@ int main(int argc, char const *argv[])
     while (true)
     {
         int n = read(STDIN_FILENO, &ch, 1);
-        if (n == EOF)
+        if (n < EOK)
         {
             break;
         }

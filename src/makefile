@@ -47,6 +47,7 @@ $(BUILD)/lib/libc.o: $(BUILD)/lib/crt.o \
 	$(BUILD)/lib/time.o \
 	$(BUILD)/lib/restorer.o \
 	$(BUILD)/lib/math.o \
+	$(BUILD)/lib/strerror.o \
 	$(BUILD)/net/addr.o \
 	$(BUILD)/net/chksum.o \
 
@@ -163,6 +164,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/lib/syscall.o \
 	$(BUILD)/lib/printf.o \
 	$(BUILD)/lib/math.o \
+	$(BUILD)/lib/strerror.o \
 	$(BUILD)/builtin/osh.o \
 	$(BUILD)/lib/restorer.o \
 

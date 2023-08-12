@@ -12,6 +12,7 @@
 #include <onix/stat.h>
 #include <onix/time.h>
 #include <onix/tty.h>
+#include <onix/errno.h>
 #include <onix/signal.h>
 
 #define MAX_CMD_LEN 256
@@ -51,6 +52,13 @@ char *basename(char *name)
     }
     ptr++;
     return ptr;
+}
+
+void print_error(int err)
+{
+    if (err >= 0)
+        return;
+    printf("%s\n", strerror(err));
 }
 
 void print_prompt()
@@ -110,7 +118,7 @@ static void strftime(time_t stamp, char *buf)
 
 void builtin_cd(int argc, char *argv[])
 {
-    chdir(argv[1]);
+    print_error(chdir(argv[1]));
 }
 
 void builtin_mkdir(int argc, char *argv[])
@@ -119,7 +127,7 @@ void builtin_mkdir(int argc, char *argv[])
     {
         return;
     }
-    mkdir(argv[1], 0755);
+    print_error(mkdir(argv[1], 0755));
 }
 
 void builtin_rmdir(int argc, char *argv[])
@@ -128,7 +136,7 @@ void builtin_rmdir(int argc, char *argv[])
     {
         return;
     }
-    rmdir(argv[1]);
+    print_error(rmdir(argv[1]));
 }
 
 void builtin_rm(int argc, char *argv[])
@@ -137,7 +145,7 @@ void builtin_rm(int argc, char *argv[])
     {
         return;
     }
-    unlink(argv[1]);
+    print_error(unlink(argv[1]));
 }
 
 void builtin_date(int argc, char *argv[])
@@ -152,7 +160,7 @@ void builtin_mount(int argc, char *argv[])
     {
         return;
     }
-    mount(argv[1], argv[2], 0);
+    print_error(mount(argv[1], argv[2], 0));
 }
 
 void builtin_umount(int argc, char *argv[])
@@ -161,7 +169,7 @@ void builtin_umount(int argc, char *argv[])
     {
         return;
     }
-    umount(argv[1]);
+    print_error(umount(argv[1]));
 }
 
 void builtin_mkfs(int argc, char *argv[])
@@ -170,7 +178,7 @@ void builtin_mkfs(int argc, char *argv[])
     {
         return;
     }
-    mkfs(argv[1], 0);
+    print_error(mkfs(argv[1], 0));
 }
 
 static int dupfile(int argc, char **argv, fd_t dupfd[3])
