@@ -44,12 +44,15 @@ enum
 {
     SOL_SOCKET = 0xffff,
 
-    SO_REUSEADDR = 0x0004,
-    SO_KEEPALIVE = 0x0008,
-    SO_BROADCAST = 0x0020,
-    SO_SNDTIMEO = 0x1005,
-    SO_RCVTIMEO = 0x1006,
-    SO_LINGER = 0x0080,
+    SO_REUSEADDR = 0x0001,
+    SO_KEEPALIVE = 0x0002,
+    SO_BROADCAST = 0x0004,
+    SO_SNDTIMEO = 0x0010,
+    SO_RCVTIMEO = 0x0020,
+    SO_LINGER = 0x0040,
+
+    SO_TCP_NODELAY = 0x2008,
+    SO_TCP_QUICKACK = 0x2010
 };
 
 typedef struct sockaddr_t

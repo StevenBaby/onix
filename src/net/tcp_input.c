@@ -53,6 +53,7 @@ static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
     }
 
     pcb->snd_una = tcp->ackno;
+    pcb->rtx_cnt = 0;
 
     list_t *lists[2] = {&pcb->unacked, &pcb->unsent};
 
@@ -73,6 +74,14 @@ static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
             assert(pbuf->count <= 2);
             pbuf_put(pbuf);
         }
+    }
+
+    if (pcb->snd_buf && pcb->snd_buf->size > 0 && tcp->ackno == pcb->snd_max)
+    {
+        list_insert_sort(
+            &pcb->unsent, &pcb->snd_buf->tcpnode,
+            element_node_offset(pbuf_t, tcpnode, seqno));
+        pcb->snd_buf = NULL;
     }
 
     if (list_empty(&pcb->unacked) && list_empty(&pcb->unsent) && pcb->tx_waiter)
@@ -124,6 +133,8 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
     pcb->rcv_wnd -= pbuf->size;
 
     pcb->flags |= TF_ACK_DELAY;
+    if (pcb->flags & TF_QUICKACK)
+        tcp_send_ack(pcb, TCP_ACK);
 
     if (pcb->state > ESTABLISHED)
         return;
@@ -169,6 +180,8 @@ static err_t tcp_handle_syn_sent(tcp_pcb_t *pcb, tcp_t *tcp)
     pcb->snd_nbb = tcp->ackno;
 
     pcb->flags |= TF_ACK_DELAY;
+    if (pcb->flags & TF_QUICKACK)
+        tcp_send_ack(pcb, TCP_ACK);
 
     if (pcb->ac_waiter)
     {

@@ -256,25 +256,33 @@ static int tcp_getsockopt(socket_t *s, int level, int optname, void *optval, int
 static int tcp_setsockopt(socket_t *s, int level, int optname, const void *optval, int optlen)
 {
     LOGK("tcp setsockopt...\n");
+    int val = *(int *)optval;
+    int flag = 0;
+
     switch (optname)
     {
     case SO_KEEPALIVE:
-        int val = *(int *)optval;
+        flag = TF_KEEPALIVE;
         if (val)
-        {
-            s->tcp->flags |= TF_KEEPALIVE;
             s->tcp->timers[TCP_TIMER_KEEPALIVE] = TCP_TO_KEEP_IDLE;
-        }
         else
-        {
-            s->tcp->flags &= (~TF_KEEPALIVE);
             s->tcp->timers[TCP_TIMER_KEEPALIVE] = 0;
-        }
-        return EOK;
+        break;
+    case SO_TCP_NODELAY:
+        flag = TF_NODELAY;
+        break;
+    case SO_TCP_QUICKACK:
+        flag = TF_QUICKACK;
+        break;
     default:
+        return -EINVAL;
         break;
     }
-    return -EINVAL;
+    if (val)
+        s->tcp->flags |= flag;
+    else
+        s->tcp->flags &= ~flag;
+    return EOK;
 }
 
 static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
@@ -368,6 +376,9 @@ static int tcp_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
         left -= len;
     }
     tcp_output(pcb);
+
+    if (list_empty(&pcb->unacked) && list_empty(&pcb->unsent))
+        return size - left;
 
     pcb->tx_waiter = running_task();
     ret = task_block(pcb->tx_waiter, NULL, TASK_WAITING, s->sndtimeo);

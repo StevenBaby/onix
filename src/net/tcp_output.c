@@ -42,46 +42,63 @@ err_t tcp_output_seg(tcp_pcb_t *pcb, pbuf_t *pbuf)
 
 err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags)
 {
-    int seglen = pcb->snd_mss;
-    if (seglen < TCP_DEFAULT_MSS)
-        seglen = TCP_DEFAULT_MSS;
-
     int left = size;
+    ip_t *ip;
     tcp_t *tcp;
     pbuf_t *pbuf;
 
+    if (pcb->snd_mss < TCP_DEFAULT_MSS)
+        pcb->snd_mss = TCP_DEFAULT_MSS;
     do
     {
-        pbuf = pbuf_get();
-        ip_t *ip = pbuf->eth->ip;
-        ip_addr_copy(ip->dst, pcb->raddr);
+        if (!pcb->snd_buf)
+        {
+            pcb->snd_buf = pbuf_get();
+            pbuf = pcb->snd_buf;
 
-        tcp = ip->tcp;
+            ip = pbuf->eth->ip;
+            ip_addr_copy(ip->dst, pcb->raddr);
+            pbuf->seqno = pcb->snd_nbb;
 
-        pbuf->seqno = pcb->snd_nbb;
+            tcp = ip->tcp;
+            tcp->sport = htons(pcb->lport);
+            tcp->dport = htons(pcb->rport);
+            tcp->seqno = htonl(pcb->snd_nbb);
+            tcp->urgent = 0;
+            tcp->flags = 0;
 
-        tcp->sport = htons(pcb->lport);
-        tcp->dport = htons(pcb->rport);
-        tcp->seqno = htonl(pcb->snd_nbb);
-        tcp->flags = flags;
-        tcp->urgent = 0;
+            int hlen = tcp_write_option(pcb, tcp);
+            pbuf->data = ip->payload + hlen;
+            pbuf->size = 0;
+            pbuf->total = hlen;
+        }
 
-        int hlen = tcp_write_option(pcb, tcp);
+        pbuf = pcb->snd_buf;
+        assert(pbuf);
+
+        tcp = pbuf->eth->ip->tcp;
+        tcp->flags |= flags;
+
+        int seglen = (pcb->snd_mss - pbuf->size);
         int len = left < seglen ? left : seglen;
 
-        pcb->snd_nbb += len;
-
-        pbuf->data = ip->payload + hlen;
-        pbuf->size = len;
-        pbuf->total = hlen + len;
-
         if (left > 0)
-            memcpy(pbuf->data, data, len);
+            memcpy(pbuf->data + pbuf->size, data, len);
+
+        pcb->snd_nbb += len;
+        pbuf->size += len;
+        pbuf->total += len;
         left -= len;
 
-        list_insert_sort(
-            &pcb->unsent, &pbuf->tcpnode,
-            element_node_offset(pbuf_t, tcpnode, seqno));
+        if (!(pcb->flags & TF_NODELAY) && pbuf->size < pcb->snd_mss && size > 0)
+            continue;
+        else
+        {
+            list_insert_sort(
+                &pcb->unsent, &pbuf->tcpnode,
+                element_node_offset(pbuf_t, tcpnode, seqno));
+            pcb->snd_buf = NULL;
+        }
     } while (left > 0);
 
     if (pbuf->size > 0)

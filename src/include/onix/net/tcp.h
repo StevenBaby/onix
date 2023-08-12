@@ -19,6 +19,8 @@ enum
     TF_ACK_DELAY = 0x01, // 可以等等再发 ACK
     TF_ACK_NOW = 0x02,   // 尽快马上发送 ACK
     TF_KEEPALIVE = 0x04, // 启用保活机制
+    TF_NODELAY = 0x08,   // 禁用 NAGLE 算法
+    TF_QUICKACK = 0x10   // 快速 ACK
 };
 
 typedef enum tcp_state_t
@@ -124,15 +126,16 @@ typedef struct tcp_pcb_t
 
     u32 flags; // 控制块状态
 
-    u32 snd_una;  // 已发送未收到 ack 的最小字节
-    u32 snd_nxt;  // 需要发送的下一个字节
-    u16 snd_wnd;  // 发送窗口
-    u16 snd_mss;  // Maximum segment size
-    u32 snd_nbb;  // Next Buffer Byte
-    u32 snd_max;  // 已发送的最大字节序号
-    u32 snd_wl1;  // 上次更新窗口的序列号
-    u32 snd_wl2;  // 上次更新窗口的确认号
-    u32 snd_mwnd; // 最大发送窗口
+    u32 snd_una;     // 已发送未收到 ack 的最小字节
+    u32 snd_nxt;     // 需要发送的下一个字节
+    u16 snd_wnd;     // 发送窗口
+    u16 snd_mss;     // Maximum segment size
+    u32 snd_nbb;     // Next Buffer Byte
+    u32 snd_max;     // 已发送的最大字节序号
+    u32 snd_wl1;     // 上次更新窗口的序列号
+    u32 snd_wl2;     // 上次更新窗口的确认号
+    u32 snd_mwnd;    // 最大发送窗口
+    pbuf_t *snd_buf; // nagle 发送缓存
 
     u32 rcv_nxt; // 期望收到的下一个字节
     u16 rcv_wnd; // 接收窗口
