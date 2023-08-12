@@ -638,12 +638,14 @@ int sys_umount(char *target)
         goto rollback;
     }
 
+    // 如果传入不是块设备文件，而且不是设备根目录
     if (!ISBLK(inode->mode) && (inode->super->iroot != inode))
     {
         ret = -ENOTBLK;
         goto rollback;
     }
 
+    // 系统根目录不允许释放
     if (inode == get_root_inode())
     {
         ret = -EBUSY;
@@ -669,6 +671,19 @@ int sys_umount(char *target)
         LOGK("warning super block mount = 0\n");
     }
 
+    // 根目录引用还有其他人使用根目录
+    if (super->iroot->count > 2)
+    {
+        ret = -EBUSY;
+        goto rollback;
+    }
+
+    if (super->iroot->count == 2 && inode->super->iroot != inode)
+    {
+        ret = -EBUSY;
+        goto rollback;
+    }
+
     if (list_size(&super->inode_list) > 1)
     {
         ret = -EBUSY;
@@ -681,11 +696,13 @@ int sys_umount(char *target)
     super->imount->mount = 0;
     iput(super->imount);
     super->imount = NULL;
+    super->count--;
+    assert(super->count == 1);
     ret = EOK;
 
 rollback:
-    put_super(super);
     iput(inode);
+    put_super(super);
     return ret;
 }
 

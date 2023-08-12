@@ -66,6 +66,7 @@ void ramdisk_init()
         ramdisk_t *ramdisk = &ramdisks[i];
         ramdisk->start = (u8 *)(KERNEL_RAMDISK_MEM + size * i);
         ramdisk->size = size;
+        memset(ramdisk->start, 0, ramdisk->size);
         sprintf(name, "md%c", i + 'a');
         device_install(DEV_BLOCK, DEV_RAMDISK, ramdisk, name, 0,
                        ramdisk_ioctl, ramdisk_read, ramdisk_write);

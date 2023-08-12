@@ -131,7 +131,7 @@ err_t sys_test()
 {
     // test_sendrecv();
     // test_connect();
-    test_server();
+    // test_server();
 
     return EOK;
 }
