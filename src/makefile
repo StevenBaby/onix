@@ -74,6 +74,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/tcp_server.out \
 	$(BUILD)/builtin/tcp_client.out \
 	$(BUILD)/builtin/tcp_nagle.out \
+	$(BUILD)/builtin/tcp_surge.out \
 
 $(BUILD)/builtin/%.out: $(BUILD)/builtin/%.o \
 	$(BUILD)/lib/libc.o \

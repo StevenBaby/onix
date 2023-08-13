@@ -7,6 +7,7 @@
 #include <onix/stdio.h>
 #include <onix/string.h>
 #include <onix/assert.h>
+#include <onix/syscall.h>
 #include <onix/debug.h>
 #include <onix/errno.h>
 
@@ -196,6 +197,13 @@ static void neto_thread()
                 lock_release(&netif->tx_lock);
 
                 netif->nic_output(netif, pbuf);
+
+                // if (ntohs(pbuf->eth->type) == ETH_TYPE_IP &&
+                //     pbuf->eth->ip->proto == IP_PROTOCOL_TCP)
+                // {
+                //     // 测试 RTT
+                //     task_sleep((time() & 0x7) * 500);
+                // }
 
                 // LOGK("ETH SEND [%04X]: %m -> %m %d\n",
                 //      ntohs(pbuf->eth->type),

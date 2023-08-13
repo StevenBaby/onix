@@ -52,6 +52,10 @@ static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
         return;
     }
 
+    if (pcb->rtt && tcp->ackno == pcb->rtt_seq)
+        tcp_xmit_timer(pcb, pcb->rtt - 1);
+
+    pcb->rtt = 1;
     pcb->snd_una = tcp->ackno;
     pcb->rtx_cnt = 0;
 
@@ -88,6 +92,7 @@ static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
     {
         task_unblock(pcb->tx_waiter, EOK);
         pcb->tx_waiter = NULL;
+        pcb->timers[TCP_TIMER_REXMIT] = 0;
     }
 }
 

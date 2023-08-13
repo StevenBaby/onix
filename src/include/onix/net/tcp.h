@@ -71,17 +71,26 @@ enum
 
 enum
 {
-    TCP_TO_SYN = 5 * TCP_SLOWHZ,             // 建立连接超时
-    TCP_TO_REXMIT = 2 * TCP_SLOWHZ,          // 重传超时
-    TCP_TO_FIN_WAIT2 = 10 * 60 * TCP_SLOWHZ, // FIN_WAIT2 超时
-    TCP_TO_TIMEWAIT = 4 * 60 * TCP_SLOWHZ,   // TIMEWAIT 超时
-    TCP_TO_PERSMIN = 5 * TCP_SLOWHZ,         // 最小持续超时
-    TCP_TO_PERMAX = 60 * TCP_SLOWHZ,         // 最大持续超时
-    TCP_TO_KEEP_IDLE = 2 * TCP_SLOWHZ,       // 保活启动
-    TCP_TO_KEEP_INTERVAL = 2 * TCP_SLOWHZ,   // 保活测试间隔
-    TCP_TO_KEEPCNT = 8,                      // 保活测试次数
-    TCP_MAXRXTCNT = 12,                      // 最大重传次数
+    TCP_TO_SYN = 75 * TCP_SLOWHZ,             // 建立连接超时
+    TCP_TO_REXMIT = 2 * TCP_SLOWHZ,           // 重传超时
+    TCP_TO_FIN_WAIT2 = 10 * 60 * TCP_SLOWHZ,  // FIN_WAIT2 超时
+    TCP_TO_TIMEWAIT = 10 * TCP_SLOWHZ,        // TIMEWAIT 超时
+    TCP_TO_PERSMIN = 5 * TCP_SLOWHZ,          // 最小持续超时
+    TCP_TO_PERMAX = 60 * TCP_SLOWHZ,          // 最大持续超时
+    TCP_TO_KEEP_IDLE = 120 * 60 * TCP_SLOWHZ, // 保活启动
+    TCP_TO_KEEP_INTERVAL = 75 * TCP_SLOWHZ,   // 保活测试间隔
+    TCP_TO_KEEPCNT = 8,                       // 保活测试次数
+    TCP_TO_RTT_DEFAULT = 1 * TCP_SLOWHZ,      // 默认重传时间
+    TCP_TO_MIN = 1 * TCP_SLOWHZ,              // 最小重传时间
+    TCP_TO_REXMIT_MAX = 64 * TCP_SLOWHZ,      // 最大重传时间
+    TCP_MAXRXTCNT = 12,                       // 最大重传次数
 };
+
+#define TCP_RTT_SHIFT 3
+#define TCP_RTT_SCALE (1 << TCP_RTT_SHIFT)
+#define TCP_RTTVAR_SHIFT 2
+#define TCP_RTTVAR_SACLE (1 << TCP_RTTVAR_SHIFT)
+#define TCP_REXMIT_THREASH 3
 
 typedef struct tcp_t
 {
@@ -147,6 +156,12 @@ typedef struct tcp_pcb_t
     u32 rto;     // 当前重传时限 RTO(Retransmission TimeOut)
     u32 rtx_cnt; // 重传次数
 
+    u32 rtt;     // round trip time 往返时间
+    u32 rtt_seq; // 用于计时的序列号
+    int srtt;    // 已平滑的 RTT 估计器
+    int rttvar;  // 已平滑的 RTT 平均偏差估计器
+    u32 rttmin;  // 最小往返时间
+
     list_t acclist; // 客户端 PCB 链表
     int backlog;    // 客户端数量
     int backcnt;    // 当前数量
@@ -208,5 +223,11 @@ err_t tcp_parse_option(tcp_pcb_t *pcb, tcp_t *tcp);
 
 // 写入 TCP 选项
 err_t tcp_write_option(tcp_pcb_t *pcb, tcp_t *tcp);
+
+// 跟新 TCP RTO
+u32 tcp_update_rto(tcp_pcb_t *pcb, int backoff);
+
+// 重新计算往返时间
+void tcp_xmit_timer(tcp_pcb_t *pcb, u32 rtt);
 
 #endif

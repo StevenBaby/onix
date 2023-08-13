@@ -324,12 +324,15 @@ static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
         pbuf_t *pbuf = element_entry(pbuf_t, tcpnode, node);
         node = node->next;
 
+        if (pbuf->total)
+        {
+            pbuf->length = pbuf->size;
+            pbuf->total = 0;
+        }
+
         int len = (left < pbuf->size) ? left : pbuf->size;
         ret = iovec_write(msg->iov, msg->iovlen, pbuf->data, len);
         assert(ret == len);
-
-        pcb->rcv_wnd += len;
-        assert(pcb->rcv_wnd <= TCP_WINDOW);
 
         left -= ret;
 
@@ -344,6 +347,8 @@ static int tcp_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
             assert(pbuf->count == 1);
             list_remove(&pbuf->tcpnode);
             pbuf_put(pbuf);
+            pcb->rcv_wnd += pbuf->length;
+            assert(pcb->rcv_wnd <= TCP_WINDOW);
         }
     }
     return size - left;

@@ -3,6 +3,7 @@
 #include <onix/net.h>
 #include <onix/task.h>
 #include <onix/string.h>
+#include <onix/syscall.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 
@@ -65,7 +66,7 @@ err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags)
             tcp->dport = htons(pcb->rport);
             tcp->seqno = htonl(pcb->snd_nbb);
             tcp->urgent = 0;
-            tcp->flags = 0;
+            tcp->flags = flags;
 
             int hlen = tcp_write_option(pcb, tcp);
             pbuf->data = ip->payload + hlen;
@@ -122,7 +123,13 @@ err_t tcp_output(tcp_pcb_t *pcb)
         if (TCP_SEQ_GT(snd_nxt, pcb->snd_una + wnd))
             break;
 
-        tcp_t *tcp = pbuf->eth->ip->tcp;
+        // 记录 rtt
+        if (pcb->rtt && TCP_SEQ_LEQ(pcb->rtt_seq, pcb->snd_una))
+        {
+            pcb->rtt = 1;
+            pcb->rtt_seq = snd_nxt;
+        }
+
         pcb->snd_nxt = snd_nxt;
         if (TCP_SEQ_GT(snd_nxt, pcb->snd_max))
             pcb->snd_max = snd_nxt;
