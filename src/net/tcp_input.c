@@ -4,6 +4,7 @@
 #include <onix/task.h>
 #include <onix/string.h>
 #include <onix/arena.h>
+#include <onix/stdlib.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 
@@ -43,18 +44,71 @@ static void tcp_update_wnd(tcp_pcb_t *pcb, tcp_t *tcp)
     }
 }
 
-static void tcp_update_ack(tcp_pcb_t *pcb, tcp_t *tcp)
+static void tcp_handle_duppacks(tcp_pcb_t *pcb)
+{
+    if (pcb->dupacks < TCP_REXMIT_THREASH)
+        return;
+
+    if (pcb->dupacks == TCP_REXMIT_THREASH)
+    {
+        int segs = MIN(pcb->snd_wnd, pcb->snd_cwnd) / 2 / pcb->snd_mss;
+        if (segs < 2)
+            segs = 2;
+
+        pcb->snd_ssthresh = segs * pcb->snd_mss;
+        pcb->snd_cwnd = pcb->snd_mss;
+        pcb->rtt = 0; // 取消 RTT 估计
+
+        tcp_rexmit(pcb);
+        // 启用快速重传
+        pcb->snd_cwnd = pcb->snd_ssthresh + pcb->snd_mss * pcb->dupacks;
+        return;
+    }
+
+    if (pcb->dupacks > TCP_REXMIT_THREASH)
+    {
+        pcb->snd_cwnd += pcb->snd_mss;
+        tcp_rexmit(pcb); // 快速重传
+        return;
+    }
+}
+
+static void tcp_update_ack(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
 {
     // 重复 ACK
     if (TCP_SEQ_GEQ(pcb->snd_una, tcp->ackno))
     {
-        pcb->flags |= TF_ACK_DELAY;
+        if (pbuf->size == 0)
+        {
+            pcb->dupacks++;
+            tcp_handle_duppacks(pcb);
+        }
+        else
+            pcb->dupacks = 0;
         return;
     }
+
+    // 丢包大于阈值，拥塞窗口调整为阈值；
+    if (pcb->dupacks > TCP_REXMIT_THREASH && pcb->snd_cwnd > pcb->snd_ssthresh)
+        pcb->snd_cwnd = pcb->snd_ssthresh;
+
+    pcb->dupacks = 0;
+
+    int cwnd = pcb->snd_cwnd;
+    int unit = pcb->snd_mss;
+    // 拥塞窗口大于阈值，线性增加
+    if (cwnd > pcb->snd_ssthresh)
+    {
+        unit = unit * unit / cwnd;
+    }
+
+    // 慢启动
+    pcb->snd_cwnd = MIN(cwnd + unit, TCP_MAX_WINDOW);
 
     if (pcb->rtt && tcp->ackno == pcb->rtt_seq)
         tcp_xmit_timer(pcb, pcb->rtt - 1);
 
+    // 启动 RTT 估计
     pcb->rtt = 1;
     pcb->snd_una = tcp->ackno;
     pcb->rtx_cnt = 0;
@@ -100,10 +154,11 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
 {
     u32 rcv_nxt = tcp->seqno + pbuf->size;
 
-    // 已经收到改包
+    // 已经收到此包
     if (TCP_SEQ_LEQ(rcv_nxt, pcb->rcv_nxt))
     {
         LOGK("drop acked packet...\n");
+        pcb->flags |= TF_ACK_DELAY;
         return;
     }
 
@@ -111,6 +166,7 @@ static void tcp_update_buf(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
     if (TCP_SEQ_GT(tcp->seqno, pcb->rcv_nxt))
     {
         LOGK("drop outseq packet...\n");
+        pcb->flags |= TF_ACK_DELAY;
         return;
     }
 
@@ -161,7 +217,7 @@ static err_t tcp_receive(tcp_pcb_t *pcb, pbuf_t *pbuf, tcp_t *tcp)
     if (tcp->ack)
     {
         tcp_update_wnd(pcb, tcp);
-        tcp_update_ack(pcb, tcp);
+        tcp_update_ack(pcb, pbuf, tcp);
     }
 
     if (pbuf->size > 0)

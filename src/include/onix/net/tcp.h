@@ -4,9 +4,10 @@
 #include <onix/net/types.h>
 #include <onix/list.h>
 
-#define TCP_MSS (1500 - 40) // 默认 MSS 大小
-#define TCP_WINDOW 8192     // 默认窗口大小
-#define TCP_DEFAULT_MSS 536 // 默认发送 MSS 大小
+#define TCP_MSS (1500 - 40)  // 默认 MSS 大小
+#define TCP_WINDOW 8192      // 默认窗口大小
+#define TCP_MAX_WINDOW 65535 // 最大窗口大小
+#define TCP_DEFAULT_MSS 536  // 默认发送 MSS 大小
 
 // 序列号比较
 #define TCP_SEQ_LT(a, b) ((int)((a) - (b)) < 0)
@@ -161,6 +162,10 @@ typedef struct tcp_pcb_t
     int srtt;    // 已平滑的 RTT 估计器
     int rttvar;  // 已平滑的 RTT 平均偏差估计器
     u32 rttmin;  // 最小往返时间
+
+    u32 dupacks;      // 重复 ACK
+    u32 snd_cwnd;     // 拥塞窗口
+    u32 snd_ssthresh; // 线性增加阈值
 
     list_t acclist; // 客户端 PCB 链表
     int backlog;    // 客户端数量

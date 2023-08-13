@@ -112,7 +112,12 @@ err_t tcp_output(tcp_pcb_t *pcb)
 {
     list_t *list = &pcb->unsent;
 
-    u32 wnd = pcb->snd_wnd;
+    // 休眠一段时间后的慢启动
+    bool idle = (pcb->snd_max == pcb->snd_una);
+    if (idle && pcb->idle >= pcb->rto)
+        pcb->snd_cwnd = pcb->snd_mss;
+
+    u32 wnd = MIN(pcb->snd_cwnd, pcb->snd_wnd);
 
     for (list_node_t *node = list->head.next; node != &list->tail;)
     {

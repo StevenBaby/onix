@@ -40,6 +40,9 @@ tcp_pcb_t *tcp_pcb_get()
     pcb->rttmin = TCP_TO_MIN;
     pcb->rto = tcp_update_rto(pcb, 1);
 
+    pcb->snd_cwnd = TCP_DEFAULT_MSS;
+    pcb->snd_ssthresh = TCP_MAX_WINDOW;
+
     list_init(&pcb->unsent);
     list_init(&pcb->unacked);
     list_init(&pcb->outseq);
