@@ -71,6 +71,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/server.out \
 	$(BUILD)/builtin/client.out \
 	$(BUILD)/builtin/ping.out \
+	$(BUILD)/builtin/httpd.out \
 	$(BUILD)/builtin/tcp_server.out \
 	$(BUILD)/builtin/tcp_client.out \
 	$(BUILD)/builtin/tcp_nagle.out \

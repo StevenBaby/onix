@@ -118,6 +118,8 @@ err_t tcp_output(tcp_pcb_t *pcb)
         pcb->snd_cwnd = pcb->snd_mss;
 
     u32 wnd = MIN(pcb->snd_cwnd, pcb->snd_wnd);
+    if (wnd < TCP_DEFAULT_MSS)
+        return -EINVAL;
 
     for (list_node_t *node = list->head.next; node != &list->tail;)
     {

@@ -225,6 +225,13 @@ err_t arp_eth_output(netif_t *netif, pbuf_t *pbuf, ip_addr_t addr, u16 type, u32
         return EOK;
     }
 
+    if (ip_addr_isown(addr))
+    {
+        eth_addr_copy(pbuf->eth->dst, netif->hwaddr);
+        netif_input(netif, pbuf);
+        return EOK;
+    }
+
     arp_entry_t *entry = arp_lookup(netif, addr);
     if (!entry)
         return -EADDR;

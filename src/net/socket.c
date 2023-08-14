@@ -9,7 +9,7 @@
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
-#define BACKLOG 5
+#define BACKLOG 32
 
 static socket_op_t *socket_ops[SOCK_TYPE_NUM];
 

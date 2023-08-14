@@ -73,9 +73,8 @@ enum
 enum
 {
     TCP_TO_SYN = 75 * TCP_SLOWHZ,             // 建立连接超时
-    TCP_TO_REXMIT = 2 * TCP_SLOWHZ,           // 重传超时
     TCP_TO_FIN_WAIT2 = 10 * 60 * TCP_SLOWHZ,  // FIN_WAIT2 超时
-    TCP_TO_TIMEWAIT = 10 * TCP_SLOWHZ,        // TIMEWAIT 超时
+    TCP_TO_TIMEWAIT = 4 * 60 * TCP_SLOWHZ,    // TIMEWAIT 超时
     TCP_TO_PERSMIN = 5 * TCP_SLOWHZ,          // 最小持续超时
     TCP_TO_PERMAX = 60 * TCP_SLOWHZ,          // 最大持续超时
     TCP_TO_KEEP_IDLE = 120 * 60 * TCP_SLOWHZ, // 保活启动
