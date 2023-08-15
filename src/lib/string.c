@@ -42,6 +42,16 @@ char *strcat(char *dest, const char *src)
     }
 }
 
+size_t strnlen(const char *str, size_t maxlen)
+{
+    char *ptr = (char *)str;
+    while (*ptr != EOS && maxlen--)
+    {
+        ptr++;
+    }
+    return ptr - str;
+}
+
 size_t strlen(const char *str)
 {
     char *ptr = (char *)str;

@@ -10,6 +10,7 @@
 #include <onix/syscall.h>
 #include <onix/debug.h>
 #include <onix/errno.h>
+#include <onix/memory.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args);
 
@@ -18,6 +19,78 @@ static list_t netif_list; // 虚拟网卡列表
 static task_t *neti_task; // 接收任务
 static task_t *neto_task; // 发送任务
 
+err_t netif_ioctl(netif_t *netif, int cmd, void *args, int flags)
+{
+    if (!memory_access(args, sizeof(ifreq_t), true, true))
+        return -EINVAL;
+
+    ifreq_t *req = (ifreq_t *)args;
+    switch (cmd)
+    {
+    case SIOCGIFADDR:
+        ip_addr_copy(req->ipaddr, netif->ipaddr);
+        return EOK;
+    case SIOCGIFNETMASK:
+        ip_addr_copy(req->netmask, netif->netmask);
+        return EOK;
+    case SIOCGIFGATEWAY:
+        ip_addr_copy(req->gateway, netif->gateway);
+        return EOK;
+    case SIOCGIFBRDADDR:
+        ip_addr_copy(req->broadcast, netif->broadcast);
+        return EOK;
+    case SIOCGIFHWADDR:
+        eth_addr_copy(req->hwaddr, netif->hwaddr);
+        return EOK;
+    default:
+        break;
+    }
+
+    if (netif->flags & NETIF_LOOPBACK)
+        return -EINVAL;
+
+    switch (cmd)
+    {
+    case SIOCSIFADDR:
+        ip_addr_copy(netif->ipaddr, req->ipaddr);
+        return EOK;
+    case SIOCDIFADDR:
+        ip_addr_copy(netif->ipaddr, "\x00\x00\x00\x00");
+        return EOK;
+    case SIOCSIFNETMASK:
+        ip_addr_copy(netif->netmask, req->netmask);
+        return EOK;
+    case SIOCSIFGATEWAY:
+        ip_addr_copy(netif->gateway, req->gateway);
+        return EOK;
+    case SIOCSIFBRDADDR:
+        ip_addr_copy(netif->broadcast, req->broadcast);
+        return EOK;
+    case SIOCSIFHWADDR:
+        eth_addr_copy(netif->hwaddr, req->hwaddr);
+        return EOK;
+    default:
+        break;
+    }
+    return -EINVAL;
+}
+
+netif_t *netif_found(char *name)
+{
+    netif_t *netif = NULL;
+    list_t *list = &netif_list;
+    for (list_node_t *node = list->head.next; node != &list->tail; node = node->next)
+    {
+        netif_t *ptr = element_entry(netif_t, node, node);
+        if (!strcmp(ptr->name, name))
+        {
+            netif = ptr;
+            break;
+        }
+    }
+    return netif;
+}
+
 netif_t *netif_create()
 {
     netif_t *netif = kmalloc(sizeof(netif_t));
@@ -25,7 +98,8 @@ netif_t *netif_create()
     lock_init(&netif->rx_lock);
     lock_init(&netif->tx_lock);
 
-    sprintf(netif->name, "eth%d", list_size(&netif_list));
+    netif->index = list_size(&netif_list);
+    sprintf(netif->name, "eth%d", netif->index);
 
     list_push(&netif_list, &netif->node);
     list_init(&netif->rx_pbuf_list);
@@ -39,25 +113,28 @@ netif_t *netif_setup(void *nic, eth_addr_t hwaddr, void *output)
     netif_t *netif = netif_create();
     eth_addr_copy(netif->hwaddr, hwaddr);
 
-    assert(inet_aton("192.168.111.33", netif->ipaddr) == EOK);
-    assert(inet_aton("255.255.255.0", netif->netmask) == EOK);
-    assert(inet_aton("192.168.111.2", netif->gateway) == EOK);
-
     netif->nic = nic;
     netif->nic_output = output;
+
+    device_install(DEV_NET, DEV_NETIF, netif, netif->name, 0, netif_ioctl, NULL, NULL);
 
     return netif;
 }
 
 // 获取虚拟网卡
-netif_t *netif_get()
+netif_t *netif_get(idx_t index)
 {
+    netif_t *netif = NULL;
     list_t *list = &netif_list;
-    if (list_empty(list))
-        return NULL;
-
-    list_node_t *ptr = list->head.next;
-    netif_t *netif = element_entry(netif_t, node, ptr);
+    for (list_node_t *node = list->head.next; node != &list->tail; node = node->next)
+    {
+        netif_t *ptr = element_entry(netif_t, node, node);
+        if (ptr->index == index)
+        {
+            netif = ptr;
+            break;
+        }
+    }
     return netif;
 }
 
@@ -72,7 +149,7 @@ netif_t *netif_route(ip_addr_t addr)
             return netif;
         }
     }
-    return netif_get(); // TODO route
+    return netif_get(1); // TODO route
 }
 
 // 移除虚拟网卡

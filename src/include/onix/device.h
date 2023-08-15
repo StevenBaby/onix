@@ -13,6 +13,7 @@ enum device_type_t
     DEV_NULL,  // 空设备
     DEV_CHAR,  // 字符设备
     DEV_BLOCK, // 块设备
+    DEV_NET,   // 网络设备
 };
 
 // 设备子类型
@@ -27,6 +28,7 @@ enum device_subtype_t
     DEV_IDE_PART,    // IDE 磁盘分区
     DEV_RAMDISK,     // 虚拟磁盘
     DEV_FLOPPY,      // 软盘
+    DEV_NETIF,       // 网卡
 };
 
 // 设备控制命令

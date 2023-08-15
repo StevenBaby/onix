@@ -1,9 +1,11 @@
 #include <onix/net/socket.h>
+#include <onix/net/netif.h>
 #include <onix/fs.h>
 #include <onix/task.h>
 #include <onix/arena.h>
 #include <onix/string.h>
 #include <onix/assert.h>
+#include <onix/memory.h>
 #include <onix/debug.h>
 #include <onix/errno.h>
 
@@ -462,6 +464,37 @@ static int socket_write(inode_t *inode, char *data, int size, off_t offset)
     return socket_get_op(s->type)->sendmsg(s, &msg, 0);
 }
 
+static int socket_ioctl(inode_t *inode, int cmd, void *args)
+{
+    if (!memory_access(args, sizeof(ifreq_t), true, true))
+        return -EINVAL;
+
+    ifreq_t *req = (ifreq_t *)args;
+    netif_t *netif = NULL;
+    switch (cmd)
+    {
+    case SIOCGIFNAME:
+        netif = netif_get(req->index);
+        if (!netif)
+            return -EINVAL;
+        strcpy(req->name, netif->name);
+        return EOK;
+    case SIOCGIFINDEX:
+        netif = netif_found(req->name);
+        if (!netif)
+            return -EINVAL;
+        req->index = netif->index;
+        return EOK;
+    default:
+        break;
+    }
+
+    netif = netif_found(req->name);
+    if (!netif)
+        return -EINVAL;
+    return netif_ioctl(netif, cmd, args, 0);
+}
+
 static fs_op_t socket_op = {
     fs_default_nosys,
     fs_default_nosys,
@@ -469,6 +502,7 @@ static fs_op_t socket_op = {
     fs_default_nosys,
     socket_close,
 
+    socket_ioctl,
     socket_read,
     socket_write,
     fs_default_nosys,

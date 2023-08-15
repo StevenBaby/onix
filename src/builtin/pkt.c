@@ -26,6 +26,24 @@ int main(int argc, char const *argv[])
         goto rollback;
     }
 
+    ifreq_t req;
+    strcpy(req.name, "eth1");
+    ret = ioctl(fd, SIOCGIFINDEX, (int)&req);
+    if (ret < 0)
+    {
+        printf("get netif error.\n");
+        goto rollback;
+    }
+
+    opt = req.index;
+    printf("get netif index %d\n", opt);
+    ret = setsockopt(fd, SOL_SOCKET, SO_NETIF, &opt, 4);
+    if (ret < 0)
+    {
+        printf("set netif error.\n");
+        goto rollback;
+    }
+
     msghdr_t msg;
     iovec_t iov;
 

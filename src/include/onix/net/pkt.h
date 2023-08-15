@@ -11,6 +11,7 @@ typedef struct pkt_pcb_t
     list_t rx_pbuf_list;
     eth_addr_t laddr;
     eth_addr_t raddr;
+    netif_t *netif;
 
     struct task_t *rx_waiter;
 } pkt_pcb_t;

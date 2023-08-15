@@ -52,7 +52,9 @@ enum
     SO_LINGER = 0x0040,
 
     SO_TCP_NODELAY = 0x2008,
-    SO_TCP_QUICKACK = 0x2010
+    SO_TCP_QUICKACK = 0x2010,
+
+    SO_NETIF = 0x10000,
 };
 
 typedef struct sockaddr_t

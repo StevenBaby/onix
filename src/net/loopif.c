@@ -1,6 +1,7 @@
 
 #include <onix/net.h>
 #include <onix/assert.h>
+#include <onix/device.h>
 #include <onix/string.h>
 
 static netif_t *loopif = NULL;
@@ -34,4 +35,6 @@ void loopif_init()
                      NETIF_UDP_TX_CHECKSUM_OFFLOAD |
                      NETIF_TCP_RX_CHECKSUM_OFFLOAD |
                      NETIF_TCP_TX_CHECKSUM_OFFLOAD);
+
+    device_install(DEV_NET, DEV_NETIF, loopif, loopif->name, 0, netif_ioctl, NULL, NULL);
 }

@@ -509,8 +509,9 @@ int minix_readdir(inode_t *inode, dentry_t *entry, size_t count, off_t offset)
         return ret;
 
     entry->length = sizeof(mentry);
-    entry->namelen = strlen(mentry.name);
+    entry->namelen = strnlen(mentry.name, NAME_LEN);
     memcpy(entry->name, mentry.name, entry->namelen + 1);
+    entry->name[entry->namelen] = 0;
     entry->nr = mentry.nr;
     return ret;
 }
@@ -1144,7 +1145,7 @@ int minix_mknod(inode_t *dir, char *name, int mode, int dev)
     minix_inode_t *minode = inode->desc;
 
     minode->mode = mode;
-    if (ISBLK(mode) || ISCHR(mode))
+    if (ISBLK(mode) || ISCHR(mode) || ISSOCK(mode))
         minode->zone[0] = dev;
 
     ret = 0;
@@ -1273,6 +1274,22 @@ rollback:
     return ret;
 }
 
+int minix_ioctl(inode_t *inode, int cmd, void *args)
+{
+    // 文件必须是某种设备
+    int mode = inode->mode;
+    if (!ISCHR(mode) && !ISBLK(mode) && !ISSOCK(mode))
+        return -EINVAL;
+
+    // 得到设备号
+    dev_t dev = inode->rdev;
+    if (dev >= DEVICE_NR)
+        return -ENOTTY;
+
+    // 进行设备控制
+    return device_ioctl(dev, cmd, args, 0);
+}
+
 static fs_op_t minix_op = {
     minix_mkfs,
     minix_super,
@@ -1280,6 +1297,7 @@ static fs_op_t minix_op = {
     minix_open,
     minix_close,
 
+    minix_ioctl,
     minix_read,
     minix_write,
     minix_truncate,

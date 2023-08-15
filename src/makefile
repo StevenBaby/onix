@@ -70,6 +70,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/pkt.out \
 	$(BUILD)/builtin/server.out \
 	$(BUILD)/builtin/client.out \
+	$(BUILD)/builtin/ifconfig.out \
 	$(BUILD)/builtin/ping.out \
 	$(BUILD)/builtin/httpd.out \
 	$(BUILD)/builtin/tcp_server.out \

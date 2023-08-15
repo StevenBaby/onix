@@ -11,6 +11,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/system.bin \
 	$(BUILD)/system.map \
 	$(SRC)/utils/master.sfdisk \
+	$(SRC)/utils/network.conf \
 	$(BUILTIN_APPS) \
 	$(BUILD)/mono.wav \
 	$(BUILD)/stereo.wav \
@@ -48,7 +49,11 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 # 创建目录
 	mkdir -p /mnt/bin
 	mkdir -p /mnt/dev
+	mkdir -p /mnt/etc
 	mkdir -p /mnt/mnt
+
+# 拷贝配置文件
+	cp -r $(SRC)/utils/network.conf /mnt/etc
 
 # 拷贝音频
 	mkdir -p /mnt/data

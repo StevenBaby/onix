@@ -131,6 +131,7 @@ static fs_op_t pipe_op = {
     fs_default_nosys,
     pipe_close,
 
+    fs_default_nosys,
     pipe_read,
     pipe_write,
     fs_default_nosys,

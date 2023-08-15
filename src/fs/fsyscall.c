@@ -251,18 +251,9 @@ int sys_ioctl(fd_t fd, int cmd, void *args)
     if (!file)
         return -EBADF;
 
-    // 文件必须是某种设备
-    int mode = file->inode->mode;
-    if (!ISCHR(mode) && !ISBLK(mode))
-        return -EINVAL;
-
-    // 得到设备号
-    dev_t dev = file->inode->rdev;
-    if (dev >= DEVICE_NR)
-        return -ENOTTY;
-
-    // 进行设备控制
-    return device_ioctl(dev, cmd, args, 0);
+    inode_t *inode = file->inode;
+    assert(inode);
+    return inode->op->ioctl(inode, cmd, args);
 }
 
 char *sys_getcwd(char *buf, size_t size)

@@ -120,6 +120,7 @@ typedef struct fs_op_t
     int (*open)(inode_t *dir, char *name, int flags, int mode, inode_t **result);
     void (*close)(inode_t *inode);
 
+    int (*ioctl)(inode_t *inode, int cmd, void *args);
     int (*read)(inode_t *inode, char *data, int len, off_t offset);
     int (*write)(inode_t *inode, char *data, int len, off_t offset);
     int (*truncate)(inode_t *inode);

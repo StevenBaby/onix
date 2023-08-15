@@ -76,6 +76,25 @@ static int pkt_getsockname(socket_t *s, sockaddr_t *name, int *namelen)
     return EOK;
 }
 
+static int pkt_setsockopt(socket_t *s, int level, int optname, const void *optval, int optlen)
+{
+    LOGK("pkt setsockopt...\n");
+    switch (optname)
+    {
+    case SO_NETIF:
+        if (optlen != 4)
+            return -EINVAL;
+        netif_t *netif = netif_get(*(int *)optval);
+        if (!netif)
+            return -EINVAL;
+        s->pkt->netif = netif;
+        return EOK;
+    default:
+        break;
+    }
+    return -ENOSYS;
+}
+
 static int pkt_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
 {
     err_t ret = EOK;
@@ -98,6 +117,10 @@ static int pkt_recvmsg(socket_t *s, msghdr_t *msg, u32 flags)
 static int pkt_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
 {
     int ret = EOK;
+    netif_t *netif = s->pkt->netif;
+    if (!netif)
+        return -EINVAL;
+
     size_t size = iovec_size(msg->iov, msg->iovlen);
     if (size > ETH_MTU)
         return -EMSGSIZE;
@@ -114,7 +137,6 @@ static int pkt_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
         return ret;
     pbuf->length = size;
 
-    netif_t *netif = netif_get();
     netif_output(netif, pbuf);
     return size;
 }
@@ -144,6 +166,8 @@ err_t pkt_input(netif_t *netif, pbuf_t *pbuf)
     for (list_node_t *ptr = list->head.next; ptr != &list->tail; ptr = ptr->next)
     {
         pkt_pcb_t *pcb = element_entry(pkt_pcb_t, node, ptr);
+        if (netif != pcb->netif)
+            continue;
         err_t ret = pkt_recv(pcb, pbuf);
         if (ret < 0)
             return ret;
@@ -168,7 +192,7 @@ static socket_op_t pkt_op = {
     pkt_getsockname,  // getpeername
     pkt_getsockname,  // getsockname
     fs_default_nosys, // getsockopt
-    fs_default_nosys, // setsockopt
+    pkt_setsockopt,   // setsockopt
 
     pkt_recvmsg,
     pkt_sendmsg,

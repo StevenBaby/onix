@@ -38,15 +38,53 @@ typedef struct netif_t
 
     eth_addr_t hwaddr; // MAC 地址
 
-    ip_addr_t ipaddr;  // IP 地址
-    ip_addr_t netmask; // 子网掩码
-    ip_addr_t gateway; // 默认网关
+    ip_addr_t ipaddr;    // IP 地址
+    ip_addr_t netmask;   // 子网掩码
+    ip_addr_t gateway;   // 默认网关
+    ip_addr_t broadcast; // 广播地址
 
     void *nic; // 设备指针
     void (*nic_output)(struct netif_t *netif, pbuf_t *pbuf);
 
+    idx_t index;
     u32 flags;
 } netif_t;
+
+typedef struct ifreq_t
+{
+    char name[16];
+    union
+    {
+        idx_t index;         // 索引
+        ip_addr_t ipaddr;    // IP 地址
+        ip_addr_t netmask;   // 子网掩码
+        ip_addr_t gateway;   // 默认网关
+        ip_addr_t broadcast; // 广播地址
+        eth_addr_t hwaddr;   // MAC 地址
+    };
+} ifreq_t;
+
+enum
+{
+    SIOCGIFNAME,  // 通过网卡索引获取网卡名称
+    SIOCGIFINDEX, // 通过网卡名称获取网卡索引
+
+    SIOCGIFADDR, // 获取 IP 地址
+    SIOCSIFADDR, // 设置 IP 地址
+    SIOCDIFADDR, // 删除 IP 地址
+
+    SIOCGIFBRDADDR, // 获取广播地址
+    SIOCSIFBRDADDR, // 设置广播地址
+
+    SIOCGIFNETMASK, // 获取子网掩码
+    SIOCSIFNETMASK, // 设置子网掩码
+
+    SIOCGIFGATEWAY, // 获取默认网关
+    SIOCSIFGATEWAY, // 设置默认网关
+
+    SIOCGIFHWADDR, // 获取 mac 地址
+    SIOCSIFHWADDR, // 设置 mac 地址
+};
 
 // 创建虚拟网卡
 netif_t *netif_create();
@@ -54,8 +92,11 @@ netif_t *netif_create();
 // 初始化虚拟网卡
 netif_t *netif_setup(void *nic, eth_addr_t hwaddr, void *output);
 
+err_t netif_ioctl(netif_t *netif, int cmd, void *args, int flags);
+
 // 获取虚拟网卡
-netif_t *netif_get();
+netif_t *netif_found(char *name);
+netif_t *netif_get(idx_t index);
 
 // IP 路由选择
 netif_t *netif_route(ip_addr_t addr);

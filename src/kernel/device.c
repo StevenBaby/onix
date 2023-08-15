@@ -30,7 +30,7 @@ int device_ioctl(dev_t dev, int cmd, void *args, int flags)
         return device->ioctl(device->ptr, cmd, args, flags);
     }
     LOGK("ioctl of device %d not implemented!!!\n", dev);
-    return EOF;
+    return -ENOSYS;
 }
 
 int device_read(dev_t dev, void *buf, size_t count, idx_t idx, int flags)
@@ -41,7 +41,7 @@ int device_read(dev_t dev, void *buf, size_t count, idx_t idx, int flags)
         return device->read(device->ptr, buf, count, idx, flags);
     }
     LOGK("read of device %d not implemented!!!\n", dev);
-    return EOF;
+    return -ENOSYS;
 }
 
 int device_write(dev_t dev, void *buf, size_t count, idx_t idx, int flags)
@@ -52,7 +52,7 @@ int device_write(dev_t dev, void *buf, size_t count, idx_t idx, int flags)
         return device->write(device->ptr, buf, count, idx, flags);
     }
     LOGK("write of device %d not implemented!!!\n", dev);
-    return EOF;
+    return -ENOSYS;
 }
 
 // 安装设备
