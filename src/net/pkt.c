@@ -21,6 +21,8 @@ static int pkt_socket(socket_t *s, int domain, int type, int protocol)
     memset(s->pkt, 0, sizeof(pkt_pcb_t));
 
     pkt_pcb_t *pcb = s->pkt;
+    pcb->protocol = protocol;
+
     list_init(&pcb->rx_pbuf_list);
     list_push(&pkt_pcb_list, &pcb->node);
     return EOK;
@@ -148,6 +150,34 @@ static int pkt_recv(pkt_pcb_t *pcb, pbuf_t *pbuf)
         return false;
     if (!eth_addr_isany(pcb->laddr) && !eth_addr_cmp(pcb->laddr, eth->dst))
         return false;
+
+    switch (pcb->protocol)
+    {
+    case PROTO_IP:
+        if (eth->type != ETH_TYPE_IP)
+            return false;
+        break;
+    case PROTO_ICMP:
+        if (eth->type != ETH_TYPE_IP)
+            return false;
+        if (eth->ip->proto != IP_PROTOCOL_ICMP)
+            return false;
+        break;
+    case PROTO_UDP:
+        if (eth->type != ETH_TYPE_IP)
+            return false;
+        if (eth->ip->proto != IP_PROTOCOL_UDP)
+            return false;
+        break;
+    case PROTO_TCP:
+        if (eth->type != ETH_TYPE_IP)
+            return false;
+        if (eth->ip->proto != IP_PROTOCOL_TCP)
+            return false;
+        break;
+    default:
+        break;
+    }
 
     pbuf->count++;
     list_push(&pcb->rx_pbuf_list, &pbuf->node);

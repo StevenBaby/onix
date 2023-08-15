@@ -84,6 +84,9 @@ enum
 
     SIOCGIFHWADDR, // 获取 mac 地址
     SIOCSIFHWADDR, // 设置 mac 地址
+
+    SIOCSIFDHCPSTART, // 启动 DHCP
+    SIOCSIFDHCPSTOP,  // 停止 DHCP
 };
 
 // 创建虚拟网卡

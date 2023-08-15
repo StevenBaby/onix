@@ -11,6 +11,8 @@ extern file_t file_table[];
 
 void net_init()
 {
+    bool dhcp = true;
+
     fd_t netif = open("/dev/net/eth1", O_RDONLY, 0);
     if (netif < EOK)
         return;
@@ -45,6 +47,7 @@ void net_init()
             ioctl(netif, SIOCSIFADDR, (int)&req);
             req.ipaddr[3] = 255;
             ioctl(netif, SIOCSIFBRDADDR, (int)&req);
+            dhcp = false;
         }
         else if (!memcmp(ptr, "netmask=", 8))
         {
@@ -59,8 +62,10 @@ void net_init()
             ioctl(netif, SIOCSIFGATEWAY, (int)&req);
         }
     }
-
 rollback:
+    if (dhcp && netif > 0)
+        ioctl(netif, SIOCSIFDHCPSTART, (int)&req);
+
     if (netif > 0)
         close(netif);
     if (fd > 0)

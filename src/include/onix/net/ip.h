@@ -10,6 +10,9 @@
 #define IP_VERSION_4 4
 #define IP_TTL 64
 
+#define IP_ANY "\x00\x00\x00\x00"
+#define IP_BROADCAST "\xFF\xFF\xFF\xFF"
+
 enum
 {
     IP_PROTOCOL_NONE = 0,

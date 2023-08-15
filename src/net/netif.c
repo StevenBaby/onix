@@ -1,4 +1,5 @@
 #include <onix/net.h>
+#include <onix/net/dhcp.h>
 #include <onix/list.h>
 #include <onix/task.h>
 #include <onix/device.h>
@@ -68,6 +69,12 @@ err_t netif_ioctl(netif_t *netif, int cmd, void *args, int flags)
         return EOK;
     case SIOCSIFHWADDR:
         eth_addr_copy(netif->hwaddr, req->hwaddr);
+        return EOK;
+    case SIOCSIFDHCPSTART:
+        dhcp_start(netif);
+        return EOK;
+    case SIOCSIFDHCPSTOP:
+        dhcp_stop(netif);
         return EOK;
     default:
         break;

@@ -24,6 +24,7 @@ enum
 
 enum
 {
+    PROTO_ALL = -1,
     PROTO_IP = 0,
     PROTO_ICMP = 1,
     PROTO_TCP = 6,

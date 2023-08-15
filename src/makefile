@@ -149,6 +149,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/tcp_output.o \
 	$(BUILD)/net/tcp_option.o \
 	$(BUILD)/net/tcp_timer.o \
+	$(BUILD)/net/dhcp.o \
 	$(BUILD)/net/socket.o \
 	$(BUILD)/net/iovec.o \
 	$(BUILD)/net/pkt.o \

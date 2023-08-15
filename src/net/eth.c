@@ -11,7 +11,7 @@
 err_t eth_input(netif_t *netif, pbuf_t *pbuf)
 {
     eth_t *eth = (eth_t *)pbuf->eth;
-    u16 type = ntohs(eth->type);
+    eth->type = ntohs(eth->type);
 
     err_t ret = pkt_input(netif, pbuf);
     if (ret < 0)
@@ -19,7 +19,7 @@ err_t eth_input(netif_t *netif, pbuf_t *pbuf)
     if (ret > 0)
         return EOK;
 
-    switch (type)
+    switch (eth->type)
     {
     case ETH_TYPE_IP:
         return ip_input(netif, pbuf); // IP 输入
@@ -29,7 +29,7 @@ err_t eth_input(netif_t *netif, pbuf_t *pbuf)
     case ETH_TYPE_ARP:
         return arp_input(netif, pbuf); // ARP 输入
     default:
-        LOGK("ETH %m -> %m UNKNOWN [%04X], %d\n", type, eth->src, eth->dst, pbuf->length);
+        LOGK("ETH %m -> %m UNKNOWN [%04X], %d\n", eth->type, eth->src, eth->dst, pbuf->length);
         return -EPROTO;
     }
     return EOK;
