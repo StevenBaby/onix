@@ -410,3 +410,8 @@ int resolv(const char *name, ip_addr_t addr)
 {
     return _syscall2(SYS_NR_RESOLV, (u32)name, (u32)addr);
 }
+
+int uname(void *buf)
+{
+    return _syscall1(SYS_NR_UNAME, (u32)buf);
+}

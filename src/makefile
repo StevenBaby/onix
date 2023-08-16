@@ -1,6 +1,7 @@
 BUILD:=../build
 SRC:=.
 
+ONIX_VERSION:=1.0.0
 MULTIBOOT2:=0x18000
 ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 0x8000:x}')")
 
@@ -15,6 +16,8 @@ CFLAGS+= -fno-stack-protector	# 不需要栈保护
 CFLAGS+= -Werror
 CFLAGS+= -DONIX					# 定义 ONIX
 CFLAGS+= -DONIX_DEBUG			# 定义 ONIX_DEBUG
+CFLAGS+= -DONIX_VERSION='"$(ONIX_VERSION)"' # 定义 ONIX_VERSION
+
 CFLAGS:=$(strip ${CFLAGS})
 
 DEBUG:= -g
@@ -73,6 +76,7 @@ BUILTIN_APPS := \
 	$(BUILD)/builtin/ifconfig.out \
 	$(BUILD)/builtin/ping.out \
 	$(BUILD)/builtin/httpd.out \
+	$(BUILD)/builtin/uname.out \
 	$(BUILD)/builtin/tcp_server.out \
 	$(BUILD)/builtin/tcp_client.out \
 	$(BUILD)/builtin/tcp_nagle.out \
@@ -93,6 +97,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/onix.o \
 	$(BUILD)/kernel/main.o \
+	$(BUILD)/kernel/uname.o \
 	$(BUILD)/kernel/io.o \
 	$(BUILD)/kernel/mio.o \
 	$(BUILD)/kernel/device.o \

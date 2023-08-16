@@ -46,6 +46,7 @@ typedef enum syscall_t
     SYS_NR_SIGNAL = 48,
     SYS_NR_IOCTL = 54,
     SYS_NR_SETPGID = 57,
+    SYS_NR_UNAME = 59,
     SYS_NR_UMASK = 60,
     SYS_NR_CHROOT = 61,
     SYS_NR_DUP2 = 63,
@@ -222,5 +223,7 @@ int sendto(int fd, const void *data, int size, u32 flags, const sockaddr_t *to, 
 int sendmsg(int fd, msghdr_t *msg, u32 flags);
 
 int resolv(const char *name, ip_addr_t addr);
+
+int uname(void *buf);
 
 #endif

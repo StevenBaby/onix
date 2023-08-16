@@ -28,6 +28,7 @@ $(BUILD)/kernel.iso : \
 	cp $(SRC)/utils/grub.cfg $(BUILD)/iso/boot/grub
 # 生成 iso 文件
 	grub-mkrescue -o $@ $(BUILD)/iso
+	cp $@ $(BUILD)/onix_$(ONIX_VERSION).iso
 
 .PHONY: bochsb
 bochsb: $(BUILD)/kernel.iso

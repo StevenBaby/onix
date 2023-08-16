@@ -8,37 +8,20 @@
 
 - [参考文献](./docs/others/参考文献.md)
 
+## 使用方法
+
+iso 文件的使用参考 [版本 1.0.0](./docs/13%20系统优化/179%20版本%201.0.0.md)；
+
+对于 `qemu` 模拟器，需要提前配置 `tap0` 设备，用于网络：
+
+    qemu-system-i386  -m 32M -audiodev pa,id=snd -machine pcspk-audiodev=snd -device sb16,audiodev=snd -rtc base=localtime -chardev stdio,mux=on,id=com1 -serial chardev:com1 -netdev tap,id=eth0,ifname=tap0,script=no,downscript=no -device e1000,netdev=eth0 -drive file=onix_1.0.0.iso,media=cdrom,if=ide -boot d
+
 ## 开发中的功能
 
-### 硬件驱动：
+### 硬件驱动
 
-- [x] CPU 功能检测
-- [x] FPU 支持
 - [ ] ACPI：控制关机和重启 [@lihanrui2913](https://github.com/lihanrui2913)
-- [x] ISA 总线
-    - [x] 💾 软盘驱动
-    - [x] 📣 Sound Blaster16 驱动
-- [x] 💿 ATAPI 光盘驱动
-- [x] PCI 总线枚举
-- [x] IDE 硬盘 DMA
-- [x] 网卡驱动 E1000
 - [x] 网卡驱动 RTL8139
-
-### 文件系统
-
-- [x] 虚拟文件系统
-- [x] ISO 9660 文件系统
-
-### 网络协议栈
-
-- [x] Ether
-- [x] ARP
-- [x] IP
-- [x] ICMP
-- [x] UDP
-- [ ] TCP
-- [ ] DNS
-- [ ] HTTP
 
 ## Pull Request 约定
 

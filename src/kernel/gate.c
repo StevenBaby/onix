@@ -102,6 +102,8 @@ extern int sys_sendmsg();
 
 extern int sys_resolv();
 
+extern int sys_uname();
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -195,4 +197,6 @@ void syscall_init()
     syscall_table[SYS_NR_SHUTDOWN] = sys_shutdown;
 
     syscall_table[SYS_NR_RESOLV] = sys_resolv;
+
+    syscall_table[SYS_NR_UNAME] = sys_uname;
 }
