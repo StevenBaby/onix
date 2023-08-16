@@ -12,6 +12,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/system.map \
 	$(SRC)/utils/master.sfdisk \
 	$(SRC)/utils/network.conf \
+	$(SRC)/utils/resolv.conf \
 	$(BUILTIN_APPS) \
 	$(BUILD)/mono.wav \
 	$(BUILD)/stereo.wav \
@@ -54,6 +55,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 
 # 拷贝配置文件
 	cp -r $(SRC)/utils/network.conf /mnt/etc
+	cp -r $(SRC)/utils/resolv.conf /mnt/etc
 
 # 拷贝音频
 	mkdir -p /mnt/data

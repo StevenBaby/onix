@@ -100,6 +100,8 @@ extern int sys_recvmsg();
 extern int sys_sendto();
 extern int sys_sendmsg();
 
+extern int sys_resolv();
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -191,4 +193,6 @@ void syscall_init()
     syscall_table[SYS_NR_RECVFROM] = sys_recvfrom;
     syscall_table[SYS_NR_RECVMSG] = sys_recvmsg;
     syscall_table[SYS_NR_SHUTDOWN] = sys_shutdown;
+
+    syscall_table[SYS_NR_RESOLV] = sys_resolv;
 }

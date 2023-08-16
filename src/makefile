@@ -154,6 +154,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/net/iovec.o \
 	$(BUILD)/net/pkt.o \
 	$(BUILD)/net/raw.o \
+	$(BUILD)/net/resolv.o \
 	$(BUILD)/fs/super.o \
 	$(BUILD)/fs/inode.o \
 	$(BUILD)/fs/namei.o \

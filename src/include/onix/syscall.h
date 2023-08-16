@@ -76,6 +76,7 @@ typedef enum syscall_t
     SYS_NR_RECVFROM,
     SYS_NR_RECVMSG,
     SYS_NR_SHUTDOWN,
+    SYS_NR_RESOLV,
 
     SYS_NR_MKFS = SYSCALL_SIZE - 1,
 } syscall_t;
@@ -219,5 +220,7 @@ int recvmsg(int fd, msghdr_t *msg, u32 flags);
 int send(int fd, const void *data, int size, u32 flags);
 int sendto(int fd, const void *data, int size, u32 flags, const sockaddr_t *to, int tolen);
 int sendmsg(int fd, msghdr_t *msg, u32 flags);
+
+int resolv(const char *name, ip_addr_t addr);
 
 #endif

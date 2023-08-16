@@ -405,3 +405,8 @@ int sendmsg(int fd, msghdr_t *msg, u32 flags)
 {
     return _syscall3(SYS_NR_SENDMSG, fd, (u32)msg, flags);
 }
+
+int resolv(const char *name, ip_addr_t addr)
+{
+    return _syscall2(SYS_NR_RESOLV, (u32)name, (u32)addr);
+}

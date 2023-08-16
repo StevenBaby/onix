@@ -1,0 +1,115 @@
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="481px" height="281px" viewBox="-0.5 -0.5 481 281" content="&lt;mxfile&gt;&lt;diagram id=&quot;sTJJzsUDAS4pjVQ9B97C&quot; name=&quot;Page-1&quot;&gt;zZZNk6IwEIZ/TVfN3gLhIxxB0TnM7mG1as8RglALxIpx0P31m0AYtGCqODDWXLTzdmLM8zYdAK+q61bQU/6Tp6wEG6VXwGuwbQsRor60cusUP7A74SiK1EwahF3xj/UrjXopUnZ+mCg5L2VxehQTXtcskQ8aFYI3j9MyXj7ueqJHNhJ2CS3H6p8ilXmnEhcN+isrjnm/s4VMpqL9ZCOcc5ry5k7CMeCV4Fx2UXVdsVLD67l06zafZD/+mGC1nLPAcH+n5cWcDWIPgg2ELsQEQhUoxYUAAVlD7EPoQ4RetEQ2Ot0FAYE4gMCFqFWiEELvhzmhvPXYBL/UKdM7I8BRkxeS7U400dlGFYrSclmVamSpMCvKcsVLLtq1OHUZSR2ln6Xgf9ldhtgH7Hl6Ba+lqRUNMhqzMHjemZDseicZNlvGKybFTU3ps71PplBtYsbNYLvTa/md5b1GTaUdP356MEMFxo9pbxxrljnKEAuiqHUpBqKOjV4s71DIhQ2gjGTJlAFeQtghe44B2JtpgLOEAfOejt6Ar+HOLFX6/hT3wPMxfVLhO+iZ3PGI+37/pvlie3G+GUlYMlnXB+I6LvqU7wjmBPL5fJ1n8nVGfH+v3+Jf2/1rV8Tqs+OMdJlHqsU7uvBVW1f3gH4CVItvA3UnhPG49X+PxrOsQXM7/yIGuRMGhftwriHf4uJdFL9rfx1+NRxeuNrc3Wsrjv8D&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <defs/>
+    <g>
+        <rect x="0" y="0" width="480" height="80" fill="#d5e8d4" stroke="#82b366" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 40px; margin-left: 1px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div style="display: inline-block; font-size: 22px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                查询名称(可变长度)
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="240" y="47" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="22px" text-anchor="middle">
+                    查询名称(可变长度)
+                </text>
+            </switch>
+        </g>
+        <rect x="0" y="80" width="480" height="40" fill="#dae8fc" stroke="#6c8ebf" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 100px; margin-left: 1px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div style="display: inline-block; font-size: 22px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                查询类型 (16bit)
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="240" y="107" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="22px" text-anchor="middle">
+                    查询类型 (16bit)
+                </text>
+            </switch>
+        </g>
+        <rect x="0" y="120" width="480" height="40" fill="#e1d5e7" stroke="#9673a6" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 140px; margin-left: 1px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div style="display: inline-block; font-size: 22px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                查询类 (16bit)
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="240" y="147" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="22px" text-anchor="middle">
+                    查询类 (16bit)
+                </text>
+            </switch>
+        </g>
+        <rect x="0" y="160" width="480" height="40" fill="#f8cecc" stroke="#b85450" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 180px; margin-left: 1px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div style="display: inline-block; font-size: 22px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                TTL (32bit)
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="240" y="187" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="22px" text-anchor="middle">
+                    TTL (32bit)
+                </text>
+            </switch>
+        </g>
+        <rect x="0" y="200" width="480" height="40" fill="#dae8fc" stroke="#6c8ebf" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 220px; margin-left: 1px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div style="display: inline-block; font-size: 22px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                RDLENGTH (16 bit) 资源数据长度
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="240" y="227" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="22px" text-anchor="middle">
+                    RDLENGTH (16 bit) 资源数据长度
+                </text>
+            </switch>
+        </g>
+        <rect x="0" y="240" width="480" height="40" fill="#d5e8d4" stroke="#82b366" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 260px; margin-left: 1px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div style="display: inline-block; font-size: 22px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                RDATA 资源数据
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="240" y="267" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="22px" text-anchor="middle">
+                    RDATA 资源数据
+                </text>
+            </switch>
+        </g>
+    </g>
+    <switch>
+        <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/>
+        <a transform="translate(0,-5)" xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank">
+            <text text-anchor="middle" font-size="10px" x="50%" y="100%">
+                Text is not SVG - cannot display
+            </text>
+        </a>
+    </switch>
+</svg>

@@ -22,6 +22,15 @@ static int ping_input(ip_t *ip, ip_addr_t addr, size_t bytes)
     return EOK;
 }
 
+static int resolve(const char *name, ip_addr_t addr)
+{
+    if (inet_aton(name, addr) == EOK)
+        return EOK;
+    if (resolv(name, addr) == EOK)
+        return EOK;
+    return -EADDR;
+}
+
 int main(int argc, char const *argv[])
 {
     if (argc < 2)
@@ -31,9 +40,9 @@ int main(int argc, char const *argv[])
     }
 
     ip_addr_t addr;
-    if (inet_aton(argv[1], addr) != EOK)
+    if (resolve(argv[1], addr) < 0)
     {
-        printf("IP address error.\n");
+        printf("name resolve error.\n");
         return -EADDR;
     }
 

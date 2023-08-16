@@ -58,6 +58,7 @@ extern void minix_init();
 extern void super_init();
 extern void dev_init();
 extern void net_init();
+extern void resolv_init();
 
 void init_thread()
 {
@@ -81,8 +82,9 @@ void init_thread()
     pipe_init();   // 初始化管道
     super_init();  // 初始化超级块
 
-    dev_init(); // 初始化设备文件
-    net_init(); // 配置网卡
+    dev_init();    // 初始化设备文件
+    net_init();    // 配置网卡
+    resolv_init(); // 初始化域名解析
 
     prepare_stack();     // 准备栈顶
     task_to_user_mode(); // 进入用户态
