@@ -151,7 +151,8 @@ netif_t *netif_route(ip_addr_t addr)
     for (list_node_t *ptr = list->head.next; ptr != &list->tail; ptr = ptr->next)
     {
         netif_t *netif = element_entry(netif_t, node, ptr);
-        if (ip_addr_maskcmp(addr, netif->ipaddr, netif->netmask))
+        if (ip_addr_maskcmp(addr, netif->ipaddr, netif->netmask) &&
+            !ip_addr_isany(netif->ipaddr))
         {
             return netif;
         }

@@ -109,7 +109,7 @@ protect_mode:
     sub esp, 4 * 3; 三个变量
     mov dword [esp], 0; 读出的数量
     mov dword [esp + 4], 10     ; ecx 初始扇区位置
-    mov dword [esp + 8], 0x10000; edi 目标内存位置
+    mov dword [esp + 8], 0x18000; edi 目标内存位置
     BLOCK_SIZE equ 200          ; 一次读取的扇区数量
 
 .read_block:
@@ -132,7 +132,7 @@ protect_mode:
     mov eax, 0x20220205; 内核魔数
     mov ebx, ards_count; ards 数量指针
 
-    jmp dword code_selector:0x10040
+    jmp dword code_selector:0x20000
 
     ud2; 表示出错
 

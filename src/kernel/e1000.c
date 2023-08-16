@@ -488,6 +488,7 @@ static void e1000_reset(e1000_t *e1000)
 
     // 接收初始化
     e1000->rx_desc = (rx_desc_t *)alloc_kpage(1); // TODO: free
+    memset(e1000->rx_desc, 0, PAGE_SIZE);
     e1000->rx_cur = 0;
 
     e1000->rx_pbuf = (pbuf_t **)&e1000->rx_desc[RX_DESC_NR];
@@ -519,6 +520,7 @@ static void e1000_reset(e1000_t *e1000)
 
     // 传输初始化
     e1000->tx_desc = (tx_desc_t *)alloc_kpage(1); // TODO:free
+    memset(e1000->tx_desc, 0, PAGE_SIZE);
     e1000->tx_cur = 0;
 
     e1000->tx_pbuf = (pbuf_t **)&e1000->tx_desc[TX_DESC_NR];

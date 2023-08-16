@@ -1,8 +1,8 @@
 BUILD:=../build
 SRC:=.
 
-MULTIBOOT2:=0x10000
-ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 64:x}')")
+MULTIBOOT2:=0x18000
+ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 0x8000:x}')")
 
 CFLAGS:= -m32 					# 32 位的程序
 CFLAGS+= -march=pentium			# pentium 处理器
@@ -91,6 +91,7 @@ LDFLAGS:=$(strip ${LDFLAGS})
 
 $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/start.o \
+	$(BUILD)/kernel/onix.o \
 	$(BUILD)/kernel/main.o \
 	$(BUILD)/kernel/io.o \
 	$(BUILD)/kernel/mio.o \
@@ -180,6 +181,8 @@ $(BUILD)/kernel.bin: \
 	ld ${LDFLAGS} $^ -o $@
 
 $(BUILD)/system.bin: $(BUILD)/kernel.bin
+	objcopy -O binary $< $@
+	python utils/generate.py
 	objcopy -O binary $< $@
 
 $(BUILD)/system.map: $(BUILD)/kernel.bin

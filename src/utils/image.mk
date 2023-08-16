@@ -27,7 +27,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc
 
 # 测试 system.bin 容量，否则需要修改下面的 count
-	test -n "$$(find $(BUILD)/system.bin -size -500k)"
+	test -n "$$(find $(BUILD)/system.bin -size -384k)"
 
 # 将 system.bin 写入硬盘
 	dd if=$(BUILD)/system.bin of=$@ bs=512 count=1000 seek=10 conv=notrunc
