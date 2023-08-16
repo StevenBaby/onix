@@ -430,6 +430,8 @@ static int fd_ioctl(floppy_t *fd, int cmd, void *args, int flags)
         return 0;
     case DEV_CMD_SECTOR_COUNT:
         return (int)fd->tracks * fd->heads * fd->sectors;
+    case DEV_CMD_SECTOR_SIZE:
+        return SECTOR_SIZE;
     default:
         panic("device command %d can't recognize!!!", cmd);
         break;

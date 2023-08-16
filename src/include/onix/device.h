@@ -36,6 +36,7 @@ enum device_cmd_t
 {
     DEV_CMD_SECTOR_START = 1, // 获得设备扇区开始位置 lba
     DEV_CMD_SECTOR_COUNT,     // 获得设备扇区数量
+    DEV_CMD_SECTOR_SIZE,      // 获得设备扇区大小
 };
 
 #define REQ_READ 0  // 块设备读

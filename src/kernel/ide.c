@@ -292,6 +292,8 @@ int ide_pio_ioctl(ide_disk_t *disk, int cmd, void *args, int flags)
         return 0;
     case DEV_CMD_SECTOR_COUNT:
         return disk->total_lba;
+    case DEV_CMD_SECTOR_SIZE:
+        return SECTOR_SIZE;
     default:
         panic("device command %d can't recognize!!!", cmd);
         break;
@@ -400,6 +402,8 @@ int ide_pio_part_ioctl(ide_part_t *part, int cmd, void *args, int flags)
         return part->start;
     case DEV_CMD_SECTOR_COUNT:
         return part->count;
+    case DEV_CMD_SECTOR_SIZE:
+        return SECTOR_SIZE;
     default:
         panic("device command %d can't recognize!!!", cmd);
         break;

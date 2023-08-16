@@ -9,14 +9,8 @@
 // 内核占用的内存大小 16M
 #define KERNEL_MEMORY_SIZE 0x1000000
 
-// 内核缓存地址
-#define KERNEL_BUFFER_MEM 0x800000
-
-// 内核缓存大小
-#define KERNEL_BUFFER_SIZE 0x400000
-
 // 内存虚拟磁盘地址
-#define KERNEL_RAMDISK_MEM (KERNEL_BUFFER_MEM + KERNEL_BUFFER_SIZE)
+#define KERNEL_RAMDISK_MEM 0xC00000
 
 // 内存虚拟磁盘大小
 #define KERNEL_RAMDISK_SIZE 0x400000

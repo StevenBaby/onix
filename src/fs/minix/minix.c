@@ -29,7 +29,7 @@ idx_t minix_balloc(super_t *super)
 
     for (size_t i = 0; i < desc->zmap_blocks; i++)
     {
-        buf = bread(super->dev, bidx + i);
+        buf = bread(super->dev, bidx + i, BLOCK_SIZE);
         assert(buf);
 
         // 将整个缓冲区作为位图
@@ -68,7 +68,7 @@ void minix_bfree(super_t *super, idx_t idx)
             continue;
         }
 
-        buf = bread(super->dev, bidx + i);
+        buf = bread(super->dev, bidx + i, BLOCK_SIZE);
         assert(buf);
 
         // 将整个缓冲区作为位图
@@ -96,7 +96,7 @@ idx_t minix_ialloc(super_t *super)
     idx_t bidx = 2;
     for (size_t i = 0; i < desc->imap_blocks; i++)
     {
-        buf = bread(super->dev, bidx + i);
+        buf = bread(super->dev, bidx + i, BLOCK_SIZE);
         assert(buf);
 
         bitmap_make(&map, buf->data, BLOCK_BITS, i * BLOCK_BITS);
@@ -129,7 +129,7 @@ void minix_ifree(super_t *super, idx_t idx)
             continue;
         }
 
-        buf = bread(super->dev, bidx + i);
+        buf = bread(super->dev, bidx + i, BLOCK_SIZE);
         assert(buf);
 
         bitmap_make(&map, buf->data, BLOCK_BITS, i * BLOCK_BITS);
@@ -209,7 +209,7 @@ reckon:
         }
 
         // level 不为 0，处理下一级索引
-        buf = bread(inode->dev, array[index]);
+        buf = bread(inode->dev, array[index], BLOCK_SIZE);
         index = block / divider;
         block = block % divider;
         divider /= BLOCK_INDEXES;
@@ -251,7 +251,7 @@ static inode_t *iget(dev_t dev, idx_t nr)
     list_push(&super->inode_list, &inode->node);
 
     idx_t block = inode_block(desc, inode->nr);
-    buffer_t *buf = bread(inode->dev, block);
+    buffer_t *buf = bread(inode->dev, block, BLOCK_SIZE);
 
     inode->buf = buf;
 
@@ -367,7 +367,7 @@ static int minix_read(inode_t *inode, char *data, int len, off_t offset)
         assert(nr);
 
         // 读取文件块缓冲
-        buffer_t *buf = bread(inode->dev, nr);
+        buffer_t *buf = bread(inode->dev, nr, BLOCK_SIZE);
 
         // 文件块中的偏移量
         u32 start = offset % BLOCK_SIZE;
@@ -434,7 +434,7 @@ static int minix_write(inode_t *inode, char *data, int len, off_t offset)
         assert(nr);
 
         // 将读入文件块
-        buffer_t *buf = bread(inode->dev, nr);
+        buffer_t *buf = bread(inode->dev, nr, BLOCK_SIZE);
         buf->dirty = true;
 
         // 块中的偏移量
@@ -491,7 +491,7 @@ static void inode_bfree(inode_t *inode, u16 *array, int index, int level)
         return;
     }
 
-    buffer_t *buf = bread(inode->dev, array[index]);
+    buffer_t *buf = bread(inode->dev, array[index], BLOCK_SIZE);
     for (size_t i = 0; i < BLOCK_INDEXES; i++)
     {
         inode_bfree(inode, (u16 *)buf->data, i, level - 1);
@@ -612,7 +612,7 @@ static buffer_t *find_entry(inode_t *dir, const char *name, char **next, minix_d
             block = minix_bmap(dir, i / BLOCK_DENTRIES, false);
             assert(block);
 
-            buf = bread(dir->dev, block);
+            buf = bread(dir->dev, block, BLOCK_SIZE);
             entry = (minix_dentry_t *)buf->data;
         }
         if (match_name(name, entry->name, next) && entry->nr)
@@ -656,7 +656,7 @@ static buffer_t *add_entry(inode_t *dir, const char *name, minix_dentry_t **resu
             block = minix_bmap(dir, i / BLOCK_DENTRIES, true);
             assert(block);
 
-            buf = bread(dir->dev, block);
+            buf = bread(dir->dev, block, BLOCK_SIZE);
             entry = (minix_dentry_t *)buf->data;
         }
         if (i * sizeof(minix_dentry_t) >= minode->size)
@@ -819,7 +819,7 @@ int minix_mkdir(inode_t *dir, char *name, int mode)
     idx = minix_bmap(inode, 0, true);
     assert(idx);
 
-    zbuf = bread(inode->dev, idx);
+    zbuf = bread(inode->dev, idx, BLOCK_SIZE);
     assert(zbuf);
 
     zbuf->dirty = true;
@@ -871,7 +871,7 @@ static bool is_empty(inode_t *inode)
             block = minix_bmap(inode, i / BLOCK_DENTRIES, false);
             assert(block);
 
-            buf = bread(inode->dev, block);
+            buf = bread(inode->dev, block, BLOCK_SIZE);
             assert(buf);
             entry = (minix_dentry_t *)buf->data;
         }
@@ -1159,7 +1159,7 @@ rollback:
 static int minix_super(dev_t dev, super_t *super)
 {
     // 读取超级块
-    buffer_t *buf = bread(dev, 1);
+    buffer_t *buf = bread(dev, 1, BLOCK_SIZE);
     if (!buf)
         return -EFSUNK;
 
@@ -1202,7 +1202,7 @@ int minix_mkfs(dev_t dev, int icount)
     super->dev = dev;
     super->count++;
 
-    buf = bread(dev, 1);
+    buf = bread(dev, 1, BLOCK_SIZE);
     super->buf = buf;
     buf->dirty = true;
 
@@ -1226,7 +1226,7 @@ int minix_mkfs(dev_t dev, int icount)
     int idx = 2;
     for (int i = 0; i < (desc->imap_blocks + desc->zmap_blocks); i++, idx++)
     {
-        buf = bread(dev, idx);
+        buf = bread(dev, idx, BLOCK_SIZE);
         assert(buf);
         buf->dirty = true;
         memset(buf->data, 0, BLOCK_SIZE);
@@ -1253,7 +1253,7 @@ int minix_mkfs(dev_t dev, int icount)
     minode->size = sizeof(minix_dentry_t) * 2; // 当前目录和父目录两个目录项
     minode->nlinks = 2;                        // 一个是 '.' 一个是 name
 
-    buf = bread(dev, minix_bmap(iroot, 0, true));
+    buf = bread(dev, minix_bmap(iroot, 0, true), BLOCK_SIZE);
     buf->dirty = true;
 
     minix_dentry_t *entry = (minix_dentry_t *)buf->data;

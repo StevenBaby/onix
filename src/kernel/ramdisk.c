@@ -28,6 +28,8 @@ int ramdisk_ioctl(ramdisk_t *disk, int cmd, void *args, int flags)
         return 0;
     case DEV_CMD_SECTOR_COUNT:
         return disk->size / SECTOR_SIZE;
+    case DEV_CMD_SECTOR_SIZE:
+        return SECTOR_SIZE;
     default:
         panic("device command %d can't recognize!!!", cmd);
         break;
