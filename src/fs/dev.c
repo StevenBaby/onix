@@ -119,6 +119,17 @@ void dev_init()
         mknod(name, IFBLK | 0600, device->dev);
     }
 
+    for (size_t i = 0; true; i++)
+    {
+        device = device_find(DEV_IDE_CD, i);
+        if (!device)
+        {
+            break;
+        }
+        sprintf(name, "/dev/cd%d", i);
+        mknod(name, IFBLK | 0400, device->dev);
+    }
+
     // 防止误操作，去掉 mda，保护 dev 文件系统
     for (size_t i = 1; true; i++)
     {

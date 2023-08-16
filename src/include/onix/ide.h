@@ -4,7 +4,8 @@
 #include <onix/types.h>
 #include <onix/mutex.h>
 
-#define SECTOR_SIZE 512 // 扇区大小
+#define SECTOR_SIZE 512     // 扇区大小
+#define CD_SECTOR_SIZE 2048 // 光盘扇区大小
 
 #define IDE_CTRL_NR 2 // 控制器数量，固定为 2
 #define IDE_DISK_NR 2 // 每个控制器可挂磁盘数量，固定为 2
@@ -61,6 +62,7 @@ typedef struct ide_disk_t
     u32 heads;                     // 磁头数
     u32 sectors;                   // 扇区数
     u32 interface;                 // 磁盘类型
+    u32 sector_size;               // 扇区大小
     ide_part_t parts[IDE_PART_NR]; // 硬盘分区
 } ide_disk_t;
 

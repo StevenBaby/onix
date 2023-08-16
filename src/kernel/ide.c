@@ -6,6 +6,7 @@
 #include <onix/interrupt.h>
 #include <onix/task.h>
 #include <onix/string.h>
+#include <onix/net/types.h>
 #include <onix/assert.h>
 #include <onix/debug.h>
 #include <onix/device.h>
@@ -45,8 +46,20 @@
 #define IDE_CMD_WRITE 0x30      // 写命令
 #define IDE_CMD_IDENTIFY 0xEC   // 识别命令
 #define IDE_CMD_DIAGNOSTIC 0x90 // 诊断命令
+
 #define IDE_CMD_READ_UDMA 0xC8  // UDMA 读命令
 #define IDE_CMD_WRITE_UDMA 0xCA // UDMA 写命令
+
+#define IDE_CMD_PIDENTIFY 0xA1 // 识别 PACKET 命令
+#define IDE_CMD_PACKET 0xA0    // PACKET 命令
+
+// ATAPI 命令
+#define IDE_ATAPI_CMD_REQUESTSENSE 0x03
+#define IDE_ATAPI_CMD_READCAPICITY 0x25
+#define IDE_ATAPI_CMD_READ10 0x28
+
+#define IDE_ATAPI_FEATURE_PIO 0
+#define IDE_ATAPI_FEATURE_DMA 1
 
 // IDE 控制器状态寄存器
 #define IDE_SR_NULL 0x00 // NULL
@@ -268,7 +281,7 @@ static void ide_select_sector(ide_disk_t *disk, u32 lba, u8 count)
 // 从磁盘读取一个扇区到 buf
 static void ide_pio_read_sector(ide_disk_t *disk, u16 *buf)
 {
-    for (size_t i = 0; i < (SECTOR_SIZE / 2); i++)
+    for (size_t i = 0; i < (disk->sector_size / 2); i++)
     {
         buf[i] = inw(disk->ctrl->iobase + IDE_DATA);
     }
@@ -277,7 +290,7 @@ static void ide_pio_read_sector(ide_disk_t *disk, u16 *buf)
 // 从 buf 写入一个扇区到磁盘
 static void ide_pio_write_sector(ide_disk_t *disk, u16 *buf)
 {
-    for (size_t i = 0; i < (SECTOR_SIZE / 2); i++)
+    for (size_t i = 0; i < (disk->sector_size / 2); i++)
     {
         outw(disk->ctrl->iobase + IDE_DATA, buf[i]);
     }
@@ -293,7 +306,7 @@ int ide_pio_ioctl(ide_disk_t *disk, int cmd, void *args, int flags)
     case DEV_CMD_SECTOR_COUNT:
         return disk->total_lba;
     case DEV_CMD_SECTOR_SIZE:
-        return SECTOR_SIZE;
+        return disk->sector_size;
     default:
         panic("device command %d can't recognize!!!", cmd);
         break;
@@ -403,7 +416,7 @@ int ide_pio_part_ioctl(ide_part_t *part, int cmd, void *args, int flags)
     case DEV_CMD_SECTOR_COUNT:
         return part->count;
     case DEV_CMD_SECTOR_SIZE:
-        return SECTOR_SIZE;
+        return part->disk->sector_size;
     default:
         panic("device command %d can't recognize!!!", cmd);
         break;
@@ -530,6 +543,180 @@ err_t ide_udma_write(ide_disk_t *disk, void *buf, u8 count, idx_t lba)
     return ret;
 }
 
+// 读取 atapi 数据包
+static int ide_atapi_packet_read_pio(ide_disk_t *disk, u8 *pkt, int pktlen, void *buf, size_t bufsize)
+{
+    // 等待磁盘空闲
+    // ide_busy_wait(disk->ctrl, IDE_SR_NULL);
+
+    lock_acquire(&disk->ctrl->lock);
+
+    // 设置寄存器
+    outb(disk->ctrl->iobase + IDE_FEATURE, IDE_ATAPI_FEATURE_PIO);
+    outb(disk->ctrl->iobase + IDE_SECTOR, 0);
+    outb(disk->ctrl->iobase + IDE_LBA_LOW, 0);
+    outb(disk->ctrl->iobase + IDE_LBA_MID, (bufsize & 0xFF));
+    outb(disk->ctrl->iobase + IDE_LBA_HIGH, (bufsize >> 8) & 0xFF);
+    outb(disk->ctrl->iobase + IDE_HDDEVSEL, disk->selector & 0x10);
+
+    // 发送命令
+    outb(disk->ctrl->iobase + IDE_COMMAND, IDE_CMD_PACKET);
+
+    int ret = EOF;
+    // 等待磁盘就绪
+    if ((ret = ide_busy_wait(disk->ctrl, IDE_SR_DRDY, IDE_TIMEOUT)) < 0)
+        goto rollback;
+
+    // 输出 pkt 内容
+    u16 *ptr = (u16 *)pkt;
+    for (size_t i = 0; i < pktlen / 2; i++)
+    {
+        outw(disk->ctrl->iobase + IDE_DATA, ptr[i]);
+    }
+
+    // 阻塞自己等待磁盘写数据完成
+    task_t *task = running_task();
+    disk->ctrl->waiter = task;
+    if ((ret = task_block(task, NULL, TASK_BLOCKED, IDE_TIMEOUT)) < 0)
+        goto rollback;
+
+    int bufleft = bufsize;
+
+    ptr = (u16 *)buf;
+    int idx = 0;
+    while (bufleft > 0)
+    {
+        // 等待磁盘空闲
+        if ((ret = ide_busy_wait(disk->ctrl, IDE_SR_NULL, IDE_TIMEOUT)) < 0)
+            goto rollback;
+
+        // 输入字节数量
+        int bytes = inb(disk->ctrl->iobase + IDE_LBA_HIGH) << 8;
+        bytes |= inb(disk->ctrl->iobase + IDE_LBA_MID);
+
+        assert(bytes >= 0);
+
+        if (bytes == 0)
+            break;
+        assert(bufleft <= bytes);
+        // 输入字节
+        for (size_t i = 0; i < bytes / 2; i++)
+        {
+            ptr[idx++] = inw(disk->ctrl->iobase + IDE_DATA);
+        }
+        bufleft -= bytes;
+    }
+    ret = bufsize - bufleft;
+
+rollback:
+    lock_release(&disk->ctrl->lock);
+    return ret;
+}
+
+static int ide_atapi_packet_read_dma(ide_disk_t *disk, u8 *pkt, int pktlen, void *buf, size_t bufsize)
+{
+    // 等待磁盘空闲
+    // ide_busy_wait(disk->ctrl, IDE_SR_NULL);
+
+    lock_acquire(&disk->ctrl->lock);
+
+    ide_setup_dma(disk->ctrl, BM_CR_READ, buf, bufsize);
+
+    // 设置寄存器
+    outb(disk->ctrl->iobase + IDE_FEATURE, IDE_ATAPI_FEATURE_DMA);
+    outb(disk->ctrl->iobase + IDE_SECTOR, 0);
+    outb(disk->ctrl->iobase + IDE_LBA_LOW, 0);
+    outb(disk->ctrl->iobase + IDE_LBA_MID, 0);
+    outb(disk->ctrl->iobase + IDE_LBA_HIGH, 0);
+    outb(disk->ctrl->iobase + IDE_HDDEVSEL, disk->selector & 0x10);
+
+    // 发送命令
+    outb(disk->ctrl->iobase + IDE_COMMAND, IDE_CMD_PACKET);
+
+    int ret = EOF;
+    // 等待磁盘就绪
+    if ((ret = ide_busy_wait(disk->ctrl, IDE_SR_DRDY, IDE_TIMEOUT)) < 0)
+        goto rollback;
+
+    // 输出 pkt 内容
+    u16 *ptr = (u16 *)pkt;
+    for (size_t i = 0; i < pktlen / 2; i++)
+    {
+        outw(disk->ctrl->iobase + IDE_DATA, ptr[i]);
+    }
+
+    ide_start_dma(disk->ctrl); /* code */
+
+    // 阻塞自己等待磁盘写数据完成
+    task_t *task = running_task();
+    disk->ctrl->waiter = task;
+    if ((ret = task_block(task, NULL, TASK_BLOCKED, IDE_TIMEOUT)) < 0)
+        goto rollback;
+
+    assert(ide_stop_dma(disk->ctrl) == EOK);
+    ret = bufsize;
+
+rollback:
+    lock_release(&disk->ctrl->lock);
+    return ret;
+}
+
+// 读取 ATAPI 容量
+static int ide_atapi_read_capacity(ide_disk_t *disk)
+{
+    u8 pkt[12];
+    u32 buf[2];
+    u32 block_count;
+    u32 block_size;
+
+    memset(pkt, 0, sizeof(pkt));
+    pkt[0] = IDE_ATAPI_CMD_READCAPICITY;
+
+    int (*function)() = ide_atapi_packet_read_pio;
+    if (disk->ctrl->iotype == IDE_TYPE_UDMA)
+        function = ide_atapi_packet_read_dma;
+
+    int ret = function(disk, pkt, sizeof(pkt), buf, sizeof(buf));
+    if (ret < 0)
+        return ret;
+    if (ret != sizeof(buf))
+        return -EIO;
+
+    block_count = ntohl(buf[0]);
+    block_size = ntohl(buf[1]);
+
+    if (block_size != disk->sector_size)
+    {
+        LOGK("CD block size warning %d\n", block_size);
+        return 0;
+    }
+    return block_count;
+}
+
+// atapi 设备读
+static int ide_atapi_read(ide_disk_t *disk, void *buf, int count, idx_t lba)
+{
+    u8 pkt[12];
+    if (count > 0xffff)
+        return -EIO;
+
+    memset(pkt, 0, sizeof(pkt));
+
+    pkt[0] = IDE_ATAPI_CMD_READ10;
+    pkt[2] = lba >> 24;
+    pkt[3] = (lba >> 16) & 0xFF;
+    pkt[4] = (lba >> 8) & 0xFF;
+    pkt[5] = lba & 0xFF;
+    pkt[7] = (count >> 8) & 0xFF;
+    pkt[8] = count & 0xFF;
+
+    int (*function)() = ide_atapi_packet_read_pio;
+    if (disk->ctrl->iotype == IDE_TYPE_UDMA)
+        function = ide_atapi_packet_read_dma;
+
+    return function(disk, pkt, sizeof(pkt), buf, count * disk->sector_size);
+}
+
 // 探测设备
 static err_t ide_probe_device(ide_disk_t *disk)
 {
@@ -599,10 +786,15 @@ static err_t ide_identify(ide_disk_t *disk, u16 *buf)
     ide_select_drive(disk);
 
     // ide_select_sector(disk, 0, 0);
-    int ret = EOK;
+    u8 cmd = IDE_CMD_IDENTIFY;
+    if (disk->interface == IDE_INTERFACE_ATAPI)
+    {
+        cmd = IDE_CMD_PIDENTIFY;
+    }
 
-    outb(disk->ctrl->iobase + IDE_COMMAND, IDE_CMD_IDENTIFY);
+    outb(disk->ctrl->iobase + IDE_COMMAND, cmd);
 
+    int ret = EOF;
     if ((ret = ide_busy_wait(disk->ctrl, IDE_SR_NULL, IDE_TIMEOUT)) < EOK)
         goto rollback;
 
@@ -618,6 +810,12 @@ static err_t ide_identify(ide_disk_t *disk, u16 *buf)
 
     ide_fixstrings(params->model, sizeof(params->model));
     LOGK("disk %s model number %s\n", disk->name, params->model);
+
+    if (disk->interface == IDE_INTERFACE_ATAPI)
+    {
+        ret = EOK;
+        goto rollback;
+    }
 
     if (params->total_lba == 0)
     {
@@ -763,12 +961,21 @@ static void ide_ctrl_init()
 
             if (disk->interface == IDE_INTERFACE_ATA)
             {
-                ide_identify(disk, buf);
-                ide_part_init(disk, buf);
+                disk->sector_size = SECTOR_SIZE;
+                if (ide_identify(disk, buf) == EOK)
+                {
+                    ide_part_init(disk, buf);
+                }
             }
             else if (disk->interface == IDE_INTERFACE_ATAPI)
             {
                 LOGK("Disk %s interface is ATAPI\n", disk->name);
+                disk->sector_size = CD_SECTOR_SIZE;
+                if (ide_identify(disk, buf) == EOK)
+                {
+                    disk->total_lba = ide_atapi_read_capacity(disk);
+                    LOGK("disk %s total lba %d\n", disk->name, disk->total_lba);
+                }
             }
         }
     }
@@ -809,6 +1016,12 @@ static void ide_install()
                         DEV_BLOCK, DEV_IDE_PART, part, part->name, dev,
                         ide_pio_part_ioctl, ide_pio_part_read, ide_pio_part_write);
                 }
+            }
+            else if (disk->interface == IDE_INTERFACE_ATAPI)
+            {
+                device_install(
+                    DEV_BLOCK, DEV_IDE_CD, disk, disk->name, 0,
+                    ide_pio_ioctl, ide_atapi_read, NULL);
             }
         }
     }

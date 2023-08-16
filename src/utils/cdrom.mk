@@ -16,14 +16,22 @@ $(BUILD)/kernel.iso : $(BUILD)/kernel.bin $(SRC)/utils/grub.cfg
 bochsb: $(BUILD)/kernel.iso
 	bochs -q -f ../bochs/bochsrc.grub -unlock
 
-QEMU_CDROM := -drive file=$(BUILD)/kernel.iso,media=cdrom # 光盘镜像
+QEMU_CDROM := -drive file=$(BUILD)/kernel.iso,media=cdrom,if=ide # 光盘镜像
 
 QEMU_CDROM_BOOT:= -boot d
 
-.PHONY: qemub
-qemub: $(BUILD)/kernel.iso $(IMAGES)
-	$(QEMU) $(QEMU_CDROM) $(QEMU_CDROM_BOOT) \
+.PHONY: qemu-cd
+qemu-cd: $(BUILD)/kernel.iso $(IMAGES)
+	$(QEMU) $(QEMU_DISK) $(QEMU_CDROM) $(QEMU_CDROM_BOOT) \
 	# $(QEMU_DEBUG)
+
+.PHONY: qemug-cd
+qemug-cd: $(BUILD)/kernel.iso $(IMAGES)
+	$(QEMU) \
+	$(QEMU_DISK) \
+	$(QEMU_CDROM) \
+	$(QEMU_CDROM_BOOT) \
+	$(QEMU_DEBUG)
 
 .PHONY:cdrom
 cdrom: $(BUILD)/kernel.iso $(IMAGES)

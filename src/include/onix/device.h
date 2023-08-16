@@ -26,6 +26,7 @@ enum device_subtype_t
     DEV_SB16,        // 声霸卡
     DEV_IDE_DISK,    // IDE 磁盘
     DEV_IDE_PART,    // IDE 磁盘分区
+    DEV_IDE_CD,      // IDE 光盘
     DEV_RAMDISK,     // 虚拟磁盘
     DEV_FLOPPY,      // 软盘
     DEV_NETIF,       // 网卡
