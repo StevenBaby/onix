@@ -55,6 +55,7 @@ extern void file_init();
 extern void inode_init();
 extern void pipe_init();
 extern void minix_init();
+extern void iso_init();
 extern void super_init();
 extern void dev_init();
 extern void net_init();
@@ -79,6 +80,7 @@ void init_thread()
     file_init();   // 初始化文件
     inode_init();  // 初始化 inode
     minix_init();  // 初始化 minix 文件系统
+    iso_init();    // 初始化 iso9660 文件系统
     pipe_init();   // 初始化管道
     super_init();  // 初始化超级块
 

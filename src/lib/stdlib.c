@@ -14,6 +14,20 @@ void hang()
         ;
 }
 
+char toupper(char ch)
+{
+    if (ch >= 'a' && ch <= 'z')
+        ch -= 0x20;
+    return ch;
+}
+
+char tolower(char ch)
+{
+    if (ch >= 'A' && ch <= 'Z')
+        ch += 0x20;
+    return ch;
+}
+
 // 将 bcd 码转成整数
 u8 bcd_to_bin(u8 value)
 {

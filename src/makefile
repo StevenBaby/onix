@@ -164,6 +164,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/fs/dev.o \
 	$(BUILD)/fs/minix/minix.o \
 	$(BUILD)/fs/pipe/pipe.o \
+	$(BUILD)/fs/iso9660/iso9660.o \
 	$(BUILD)/lib/bitmap.o \
 	$(BUILD)/lib/list.o \
 	$(BUILD)/lib/fifo.o \

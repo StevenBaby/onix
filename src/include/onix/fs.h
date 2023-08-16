@@ -31,6 +31,7 @@ enum
     FS_TYPE_PIPE,
     FS_TYPE_SOCKET,
     FS_TYPE_MINIX,
+    FS_TYPE_ISO9660,
     FS_TYPE_NUM,
 };
 

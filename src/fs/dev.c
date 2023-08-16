@@ -74,7 +74,11 @@ rollback:
 
 void dev_init()
 {
-    mkdir("/dev", 0755);
+    stat_t statbuf;
+    if (stat("/dev", &statbuf) < 0)
+    {
+        assert(mkdir("/dev", 0755) == EOK);
+    }
 
     device_t *device = NULL;
 
@@ -85,17 +89,22 @@ void dev_init()
 
     super_t *super = read_super(device->dev);
     assert(super->iroot);
+    assert(super->iroot->nr == 1);
     super->imount = namei("/dev");
+    assert(super->imount);
     super->imount->mount = device->dev;
 
     device = device_find(DEV_CONSOLE, 0);
-    mknod("/dev/console", IFCHR | 0200, device->dev);
+    assert(device);
+    assert(mknod("/dev/console", IFCHR | 0200, device->dev) == EOK);
 
     device = device_find(DEV_KEYBOARD, 0);
-    mknod("/dev/keyboard", IFCHR | 0400, device->dev);
+    assert(device);
+    assert(mknod("/dev/keyboard", IFCHR | 0400, device->dev) == EOK);
 
     device = device_find(DEV_TTY, 0);
-    mknod("/dev/tty", IFCHR | 0600, device->dev);
+    assert(device);
+    assert(mknod("/dev/tty", IFCHR | 0600, device->dev) == EOK);
 
     char name[32];
 
@@ -105,7 +114,7 @@ void dev_init()
         if (!device)
             break;
         sprintf(name, "/dev/%s", device->name);
-        mknod(name, IFBLK | 0600, device->dev);
+        assert(mknod(name, IFBLK | 0600, device->dev) == EOK);
     }
 
     for (size_t i = 0; true; i++)
@@ -116,7 +125,7 @@ void dev_init()
             break;
         }
         sprintf(name, "/dev/%s", device->name);
-        mknod(name, IFBLK | 0600, device->dev);
+        assert(mknod(name, IFBLK | 0600, device->dev) == EOK);
     }
 
     for (size_t i = 0; true; i++)
@@ -139,7 +148,7 @@ void dev_init()
             break;
         }
         sprintf(name, "/dev/%s", device->name);
-        mknod(name, IFBLK | 0600, device->dev);
+        assert(mknod(name, IFBLK | 0600, device->dev) == EOK);
     }
 
     for (size_t i = 0; true; i++)
@@ -150,7 +159,7 @@ void dev_init()
             break;
         }
         sprintf(name, "/dev/%s", device->name);
-        mknod(name, IFBLK | 0600, device->dev);
+        assert(mknod(name, IFBLK | 0600, device->dev) == EOK);
     }
 
     for (size_t i = 0; true; i++)
@@ -161,7 +170,7 @@ void dev_init()
             break;
         }
         sprintf(name, "/dev/%s", device->name);
-        mknod(name, IFCHR | 0600, device->dev);
+        assert(mknod(name, IFCHR | 0600, device->dev) == EOK);
     }
 
     for (size_t i = 0; true; i++)
@@ -172,7 +181,7 @@ void dev_init()
             break;
         }
         sprintf(name, "/dev/%s", device->name);
-        mknod(name, IFCHR | 0200, device->dev);
+        assert(mknod(name, IFCHR | 0200, device->dev) == EOK);
     }
 
     assert(mkdir("/dev/net", 0755) == EOK);
@@ -187,26 +196,29 @@ void dev_init()
         mknod(name, IFSOCK | 0400, device->dev);
     }
 
-    link("/dev/tty", "/dev/stdout");
-    link("/dev/tty", "/dev/stderr");
-    link("/dev/tty", "/dev/stdin");
+    assert(link("/dev/tty", "/dev/stdout") == EOK);
+    assert(link("/dev/tty", "/dev/stderr") == EOK);
+    assert(link("/dev/tty", "/dev/stdin") == EOK);
 
     file_t *file;
     inode_t *inode;
     file = &file_table[STDIN_FILENO];
     inode = namei("/dev/stdin");
+    assert(inode);
     file->inode = inode;
     file->flags = O_RDONLY;
     file->offset = 0;
 
     file = &file_table[STDOUT_FILENO];
     inode = namei("/dev/stdout");
+    assert(inode);
     file->inode = inode;
     file->flags = O_WRONLY;
     file->offset = 0;
 
     file = &file_table[STDERR_FILENO];
     inode = namei("/dev/stderr");
+    assert(inode);
     file->inode = inode;
     file->flags = O_WRONLY;
     file->offset = 0;
