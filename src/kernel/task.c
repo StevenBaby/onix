@@ -307,57 +307,58 @@ task_t *task_create(target_t target, const char *name, u32 priority, u32 uid)
 extern int sys_execve();
 extern int init_user_thread();
 
-// 调用该函数的地方不能有任何局部变量
-// 调用前栈顶需要准备足够的空间
+static task_params_t params;
+
+// 调用该函数的地方不能有任何局部变量，局部变量存储与 params 中
 void task_to_user_mode()
 {
-    task_t *task = running_task();
+    params.task = running_task();
 
     // 创建用户进程虚拟内存位图
-    task->vmap = kmalloc(sizeof(bitmap_t));
-    void *buf = (void *)alloc_kpage(1);
-    bitmap_init(task->vmap, buf, USER_MMAP_SIZE / PAGE_SIZE / 8, USER_MMAP_ADDR / PAGE_SIZE);
+    params.task->vmap = kmalloc(sizeof(bitmap_t));
+    params.addr = alloc_kpage(1);
+    bitmap_init(params.task->vmap, (char *)params.addr, USER_MMAP_SIZE / PAGE_SIZE / 8, USER_MMAP_ADDR / PAGE_SIZE);
 
     // 创建用户进程页表
-    task->pde = (u32)copy_pde();
-    set_cr3(task->pde);
+    params.task->pde = (u32)copy_pde();
+    set_cr3(params.task->pde);
 
-    u32 addr = (u32)task + PAGE_SIZE;
+    params.addr = (u32)params.task + PAGE_SIZE;
 
-    addr -= sizeof(intr_frame_t);
-    intr_frame_t *iframe = (intr_frame_t *)(addr);
+    params.addr -= sizeof(intr_frame_t);
+    params.iframe = (intr_frame_t *)(params.addr);
 
-    iframe->vector = 0x20;
-    iframe->edi = 1;
-    iframe->esi = 2;
-    iframe->ebp = 3;
-    iframe->esp_dummy = 4;
-    iframe->ebx = 5;
-    iframe->edx = 6;
-    iframe->ecx = 7;
-    iframe->eax = 8;
+    params.iframe->vector = 0x20;
+    params.iframe->edi = 1;
+    params.iframe->esi = 2;
+    params.iframe->ebp = 3;
+    params.iframe->esp_dummy = 4;
+    params.iframe->ebx = 5;
+    params.iframe->edx = 6;
+    params.iframe->ecx = 7;
+    params.iframe->eax = 8;
 
-    iframe->gs = 0;
-    iframe->ds = USER_DATA_SELECTOR;
-    iframe->es = USER_DATA_SELECTOR;
-    iframe->fs = USER_DATA_SELECTOR;
-    iframe->ss = USER_DATA_SELECTOR;
-    iframe->cs = USER_CODE_SELECTOR;
+    params.iframe->gs = 0;
+    params.iframe->ds = USER_DATA_SELECTOR;
+    params.iframe->es = USER_DATA_SELECTOR;
+    params.iframe->fs = USER_DATA_SELECTOR;
+    params.iframe->ss = USER_DATA_SELECTOR;
+    params.iframe->cs = USER_CODE_SELECTOR;
 
-    iframe->error = ONIX_MAGIC;
+    params.iframe->error = ONIX_MAGIC;
 
-    iframe->eip = (u32)init_user_thread;
-    iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
-    iframe->esp = USER_STACK_TOP;
+    params.iframe->eip = (u32)init_user_thread;
+    params.iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
+    params.iframe->esp = USER_STACK_TOP;
 
 #ifdef ONIX_DEBUG
     // ROP 技术，直接从中断返回
     // 通过 eip 跳转到 entry 执行
     asm volatile(
         "movl %0, %%esp\n"
-        "jmp interrupt_exit\n" ::"m"(iframe));
+        "jmp interrupt_exit\n" ::"m"(params.iframe));
 #else
-    int err = sys_execve("/bin/init.out", NULL, NULL);
+    sys_execve("/bin/init.out", NULL, NULL);
     panic("exec /bin/init.out failure");
 #endif
 }

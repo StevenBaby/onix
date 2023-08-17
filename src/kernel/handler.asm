@@ -1,6 +1,8 @@
 [bits 32]
 ; 中断处理函数入口 
 
+data_selector equ (2 << 3)
+
 extern handler_table
 extern task_signal
 
@@ -24,6 +26,11 @@ interrupt_entry:
     push fs
     push gs
     pusha
+
+    ; 从 vm86 模式恢复
+    mov ax, data_selector
+    mov ds, ax
+    mov es, ax
 
     ; 找到前面 push %1 压入的 中断向量
     mov eax, [esp + 12 * 4]

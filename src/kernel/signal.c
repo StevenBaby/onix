@@ -99,6 +99,8 @@ int sys_kill(pid_t pid, int sig)
 void task_signal()
 {
     task_t *task = running_task();
+    assert(task->magic == ONIX_MAGIC);
+
     // 获得任务可用信号位图
     u32 map = task->signal & (~task->blocked);
     if (!map)

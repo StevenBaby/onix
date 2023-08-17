@@ -545,6 +545,22 @@ void map_area(u32 paddr, u32 size)
     LOGK("MAP memory 0x%p size 0x%X\n", paddr, size);
 }
 
+void map_zero()
+{
+    u32 vaddr = 0;
+    page_entry_t *entry = get_pte(vaddr, false);
+    entry_init(entry, IDX(0));
+    flush_tlb(vaddr);
+}
+
+void unmap_zero()
+{
+    u32 vaddr = 0;
+    page_entry_t *entry = get_pte(vaddr, false);
+    entry->present = false;
+    flush_tlb(vaddr);
+}
+
 // 拷贝当前页目录
 page_entry_t *copy_pde()
 {

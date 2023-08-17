@@ -3,20 +3,6 @@
 #include <onix/stdio.h>
 #include <onix/task.h>
 
-// 进入用户态，准备内核栈
-// 保证栈顶占用足够的大小
-// 约等于 char temp[100];
-static void prepare_stack()
-{
-    // 获取返回地址，也就是下面调用 task_to_user_mode 的位置
-    void *addr = __builtin_return_address(0);
-    asm volatile(
-        "subl $100, %%esp\n" // 为栈顶有足够的空间
-        "pushl %%eax\n"      // 将返回地址压入栈中
-        "ret \n"             // 直接返回
-        ::"a"(addr));
-}
-
 extern int main();
 
 int init_user_thread()
@@ -60,6 +46,7 @@ extern void super_init();
 extern void dev_init();
 extern void net_init();
 extern void resolv_init();
+extern void vm86_init();
 
 void init_thread()
 {
@@ -87,7 +74,7 @@ void init_thread()
     dev_init();    // 初始化设备文件
     net_init();    // 配置网卡
     resolv_init(); // 初始化域名解析
+    vm86_init();   // 初始化 VM8086
 
-    prepare_stack();     // 准备栈顶
     task_to_user_mode(); // 进入用户态
 }

@@ -56,6 +56,8 @@ enum
     ERROR = 99,        // 一般错误
     EEOF,              // 读写文件结束
 
+    EVM86, // VM86 错误
+
     // 网络错误
     EADDR,     // 地址错误
     EPROTO,    // 协议错误

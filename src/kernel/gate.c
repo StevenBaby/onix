@@ -104,6 +104,8 @@ extern int sys_resolv();
 
 extern int sys_uname();
 
+extern int sys_vm86();
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -199,4 +201,6 @@ void syscall_init()
     syscall_table[SYS_NR_RESOLV] = sys_resolv;
 
     syscall_table[SYS_NR_UNAME] = sys_uname;
+
+    syscall_table[SYS_NR_VM86] = sys_vm86;
 }

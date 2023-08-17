@@ -3,6 +3,28 @@
 
 #include <onix/types.h>
 
+enum
+{
+    EFLAG_CF = 0x1,
+    EFLAG_MSB = 0x2,
+    EFLAG_PF = 0x4,
+    EFLAG_AF = 0x10,
+    EFLAG_ZF = 0x40,
+    EFLAG_SF = 0x80,
+    EFLAG_TF = 0x100,
+    EFLAG_IF = 0x200,
+    EFLAG_DF = 0x400,
+    EFLAG_OF = 0x800,
+    EFLAG_IOPL = 12,
+    EFLAG_NT = 0x4000,
+    EFLAG_RF = 0x10000,
+    EFLAG_VM = 0x20000,
+    EFLAG_AC = 0x40000,
+    EFLAG_VIF = 0x80000,
+    EFLAG_VIP = 0x100000,
+    EFLAG_ID = 0x200000,
+};
+
 // Vendor strings from CPUs.
 #define CPUID_VENDOR_AMD "AuthenticAMD"
 #define CPUID_VENDOR_INTEL "GenuineIntel"

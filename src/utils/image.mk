@@ -8,6 +8,7 @@ $(BUILD)/stereo.wav: $(MUSIC)
 
 $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/boot/loader.bin \
+	$(BUILD)/boot/vm86.bin \
 	$(BUILD)/system.bin \
 	$(BUILD)/system.map \
 	$(SRC)/utils/master.sfdisk \
@@ -69,6 +70,11 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	done
 
 	echo "hello onix!!!" > /mnt/hello.txt
+
+# 拷贝 vm8086 程序
+	# 测试 vm86.bin 容量，小于一页
+	test -n "$$(find $(BUILD)/boot/vm86.bin -size -4k)"
+	cp $(BUILD)/boot/vm86.bin /mnt/bin
 
 # 卸载文件系统
 	sudo umount /mnt

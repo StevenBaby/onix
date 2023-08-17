@@ -7,6 +7,7 @@
 #include <onix/debug.h>
 #include <onix/errno.h>
 #include <onix/syscall.h>
+#include <onix/vm86.h>
 
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
@@ -33,7 +34,7 @@ int tty_intr()
     return 0;
 }
 
-int tty_rx_notify(char *ch, bool ctrl, bool shift, bool alt)
+int tty_rx_notify(char *ch, char makecode, bool ctrl, bool shift, bool alt)
 {
     switch (*ch)
     {
@@ -62,8 +63,31 @@ int tty_rx_notify(char *ch, bool ctrl, bool shift, bool alt)
         *ch = '\r';
         return 0;
     default:
-        return 1;
+        break;
     }
+
+    vm86_reg_t reg;
+
+    switch (makecode)
+    {
+    case 0x3B:
+        LOGK("set vga to text\n");
+        reg.ax = 0x03;
+        vm86(0x10, &reg);
+        extern void console_reset();
+        console_reset();
+        device_write(tty->wdev, "\x1b[2J\x1b[0;0H\r", 12, 0, 0);
+        *ch = '\r';
+        return 0;
+    case 0x3C:
+        LOGK("set vga to linear 256\n");
+        reg.ax = 0x0013;
+        vm86(0x10, &reg);
+        return 0;
+    default:
+        break;
+    }
+
     return 1;
 }
 

@@ -138,6 +138,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/fpu.o \
 	$(BUILD)/kernel/test.o \
 	$(BUILD)/kernel/e1000.o \
+	$(BUILD)/kernel/vm86.o \
 	$(BUILD)/net/pbuf.o \
 	$(BUILD)/net/chksum.o \
 	$(BUILD)/net/netif.o \

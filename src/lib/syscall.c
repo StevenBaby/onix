@@ -415,3 +415,8 @@ int uname(void *buf)
 {
     return _syscall1(SYS_NR_UNAME, (u32)buf);
 }
+
+int vm86(int vec, void *reg)
+{
+    return _syscall2(SYS_NR_VM86, vec, (u32)reg);
+}

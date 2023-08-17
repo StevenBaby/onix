@@ -85,6 +85,10 @@ void map_page(u32 vaddr, u32 paddr);
 // 映射物理内存区域
 void map_area(u32 paddr, u32 size);
 
+// 映射和解除映射第 0 页，用于 VM8086
+void map_zero();
+void unmap_zero();
+
 // 拷贝页目录
 page_entry_t *copy_pde();
 

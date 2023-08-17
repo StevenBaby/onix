@@ -112,6 +112,13 @@ typedef struct intr_frame_t
     u32 ss;
 } intr_frame_t;
 
+typedef struct task_params_t
+{
+    task_t *task;
+    intr_frame_t *iframe;
+    u32 addr;
+} task_params_t;
+
 task_t *get_task(pid_t pid);
 task_t *running_task();
 void schedule();
