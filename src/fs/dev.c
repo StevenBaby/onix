@@ -102,6 +102,10 @@ void dev_init()
     assert(device);
     assert(mknod("/dev/keyboard", IFCHR | 0400, device->dev) == EOK);
 
+    device = device_find(DEV_MOUSE, 0);
+    if (device)
+        mknod("/dev/mouse", IFCHR | 0400, device->dev);
+
     device = device_find(DEV_TTY, 0);
     assert(device);
     assert(mknod("/dev/tty", IFCHR | 0600, device->dev) == EOK);

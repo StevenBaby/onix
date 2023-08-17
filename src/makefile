@@ -129,6 +129,7 @@ $(BUILD)/kernel.bin: \
 	$(BUILD)/kernel/isa.o \
 	$(BUILD)/kernel/sb16.o \
 	$(BUILD)/kernel/floppy.o \
+	$(BUILD)/kernel/mouse.o \
 	$(BUILD)/kernel/buffer.o \
 	$(BUILD)/kernel/system.o \
 	$(BUILD)/kernel/execve.o \

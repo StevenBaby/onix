@@ -21,6 +21,7 @@ enum device_subtype_t
 {
     DEV_CONSOLE = 1, // 控制台
     DEV_KEYBOARD,    // 键盘
+    DEV_MOUSE,       // 鼠标
     DEV_SERIAL,      // 串口
     DEV_TTY,         // TTY 设备
     DEV_SB16,        // 声霸卡

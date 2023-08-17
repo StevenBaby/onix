@@ -35,6 +35,7 @@ extern void floppy_init();
 extern void ramdisk_init();
 extern void sb16_init();
 extern void e1000_init();
+extern void mouse_init();
 
 extern void buffer_init();
 extern void file_init();
@@ -62,6 +63,7 @@ void init_thread()
     sb16_init();   // 初始化声霸卡
     floppy_init(); // 初始化软盘
     e1000_init();  // 初始化 e1000 网卡
+    mouse_init();  // 初始化鼠标
 
     buffer_init(); // 初始化高速缓冲
     file_init();   // 初始化文件
