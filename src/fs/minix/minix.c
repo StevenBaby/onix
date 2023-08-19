@@ -262,7 +262,7 @@ static inode_t *iget(dev_t dev, idx_t nr)
     inode->rdev = minode->zone[0];
 
     inode->atime = time();
-    inode->mtime = inode->mtime;
+    inode->mtime = minode->mtime;
     inode->ctime = minode->mtime;
 
     inode->mode = minode->mode;
