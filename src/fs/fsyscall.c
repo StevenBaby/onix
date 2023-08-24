@@ -34,6 +34,7 @@ fd_t sys_open(char *filename, int flags, int mode)
         goto rollback;
 
 makeup:
+{
     file_t *file;
     fd_t fd = fd_get(&file);
     if (fd < EOK)
@@ -50,7 +51,7 @@ makeup:
     }
 
     ret = fd;
-
+}
 rollback:
     iput(dir);
     return ret;

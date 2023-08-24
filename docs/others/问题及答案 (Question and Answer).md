@@ -18,3 +18,13 @@
 
 3. `vscode` 设置需要勾选 **Debug:Allow Breakpoints Everywhere**；
 
+## ld: invalid hex number
+
+debian11中遇到报错需要安装以下工具
+```bash
+sudo apt install python3
+sudo apt install python-is-python3
+pip install pyelftools
+sudo apt install python3-pip
+sudo apt install ffmpeg
+```

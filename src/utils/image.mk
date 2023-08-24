@@ -33,7 +33,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	dd if=$(BUILD)/system.bin of=$@ bs=512 count=1000 seek=10 conv=notrunc
 
 # 执行硬盘分区
-	sfdisk $@ < $(SRC)/utils/master.sfdisk
+	sudo sfdisk $@ < $(SRC)/utils/master.sfdisk
 
 # 挂载设备
 	sudo losetup /dev/loop0 --partscan $@
@@ -82,7 +82,7 @@ $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 	yes | bximage -q -hd=32 -func=create -sectsize=512 -imgmode=flat $@
 
 # 执行硬盘分区
-	sfdisk $@ < $(SRC)/utils/slave.sfdisk
+	sudo sfdisk $@ < $(SRC)/utils/slave.sfdisk
 
 # 挂载设备
 	sudo losetup /dev/loop0 --partscan $@

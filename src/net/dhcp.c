@@ -323,11 +323,13 @@ static void dhcp_parse_option(dhcp_pcb_t *pcb, dhcp_t *dhcp)
         case OPT_LOG_SERVER:
             break;
         case OPT_DOMAIN_NAME:
+        {
             u8 val = opt->value[opt->size];
             opt->value[opt->size] = 0;
             LOGK("DHCP domain name %s...\n", opt->value);
             opt->value[opt->size] = val;
             break;
+        }
         case OPT_BROADCAST_ADDRESS:
             ip_addr_copy(pcb->netif->broadcast, opt->value);
             LOGK("DHCP boardcast address %r...\n", opt->value);
