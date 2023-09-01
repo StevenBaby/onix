@@ -131,8 +131,9 @@ void kfree(void *ptr)
             list_remove(block);
             assert(!list_search(&arena->desc->free_list, block));
         }
-        free_kpage((u32)arena, 1);
         arena->desc->page_count--;
         assert(arena->desc->page_count >= BUF_COUNT);
+
+        free_kpage((u32)arena, 1);
     }
 }
