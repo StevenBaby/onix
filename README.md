@@ -55,6 +55,10 @@ Commit Decription 前面加上 emoji ❤️ 提高阅读性：
 - vmware >= 16.1
 - vscode == 1.74.3
 
+## Star History
+
+![Star History Chart](https://api.star-history.com/svg?repos=StevenBaby/onix&type=Date)
+
 ## 参考
 
 [^bochs]: <https://bochs.sourceforge.io>
