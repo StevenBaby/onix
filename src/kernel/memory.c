@@ -278,6 +278,7 @@ void mapping_init()
             page_entry_t *tentry = &pte[tidx];
             entry_init(tentry, index);
             tentry->user = USER_MEMORY; // 只能被内核访问
+            if(memory_map[index] == 0) free_pages--;
             memory_map[index] = 1;      // 设置物理内存数组，该页被占用
         }
     }
