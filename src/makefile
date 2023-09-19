@@ -194,11 +194,20 @@ $(BUILD)/system.bin: $(BUILD)/kernel.bin
 $(BUILD)/system.map: $(BUILD)/kernel.bin
 	nm $< | sort > $@
 
+
+WSL2:=$(findstring WSL2,$(shell uname -r))
+
 include utils/image.mk
 include utils/cdrom.mk
+
+ifdef WSL2
+include utils/net_wsl2.mk
+else
 include utils/net.mk
+endif
+
 include utils/cmd.mk
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD)	

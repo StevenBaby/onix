@@ -54,7 +54,12 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	mkdir -p /mnt/mnt
 
 # 拷贝配置文件
-	cp -r $(SRC)/utils/network.conf /mnt/etc
+	@if [ $(WSL2) ]; then \
+		cp -r $(SRC)/utils/network_wsl2.conf /mnt/etc/network.conf; \
+	else \
+		cp -r $(SRC)/utils/network.conf /mnt/etc; \
+	fi
+
 	cp -r $(SRC)/utils/resolv.conf /mnt/etc
 
 # 拷贝音频
@@ -63,10 +68,18 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	cp $(BUILD)/stereo.wav /mnt/data
 
 # 拷贝程序
-	for app in $(BUILTIN_APPS); \
-	do \
-		cp $$app /mnt/bin; \
-	done
+	@if [ $(WSL2) ]; then \
+		for app in $(BUILTIN_APPS); \
+		do \
+			fname=$$(echo $$(basename $$app) | sed 's/_//g'); \
+			cp $$app /mnt/bin/$$fname; \
+		done; \
+	else \
+		for app in $(BUILTIN_APPS); \
+		do \
+			cp $$app /mnt/bin; \
+		done; \
+	fi
 
 	echo "hello onix!!!" > /mnt/hello.txt
 
