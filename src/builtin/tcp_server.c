@@ -46,6 +46,14 @@ int main(int argc, char const *argv[])
     }
     printf("socket acccept %d\n", client);
 
+    int opt=1;
+    ret=setsockopt(client,SOL_SOCKET,SO_TCP_NODELAY,&opt,4);
+    if (ret < 0)
+    {
+        printf("set nodelay error.\n");
+        goto rollback;
+    }
+
     int len = sprintf(tx_buf, "hello tcp client %d", time());
     send(client, tx_buf, len, 0);
 
