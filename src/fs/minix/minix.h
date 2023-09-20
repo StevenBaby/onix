@@ -4,12 +4,12 @@
 #include <onix/fs.h>
 #include <onix/buffer.h>
 
-#define BLOCK_SIZE 1024 // 块大小
-#define SECTOR_SIZE 512 // 扇区大小
+#define BLOCK_SIZE 1024                       // 块大小
+#define SECTOR_SIZE 512                       // 扇区大小
 #define BLOCK_SECS (BLOCK_SIZE / SECTOR_SIZE) // 一块占 2 个扇区
 
 #define MINIX1_MAGIC 0x137F // 文件系统魔数
-#define NAME_LEN 14         // 文件名长度
+#define MINIX1_NAME_LEN 14  // 文件名长度
 
 #define BLOCK_BITS (BLOCK_SIZE * 8)                          // 块位图大小
 #define BLOCK_INODES (BLOCK_SIZE / sizeof(minix_inode_t))    // 块 inode 数量
@@ -25,7 +25,7 @@
 #define P_READ IROTH
 #define P_WRITE IWOTH
 
-#define ACC_MODE(x) ("\004\002\006\377"[(x)&O_ACCMODE])
+#define ACC_MODE(x) ("\004\002\006\377"[(x) & O_ACCMODE])
 
 typedef struct minix_super_t
 {
@@ -53,8 +53,8 @@ typedef struct minix_inode_t
 // 文件目录项结构
 typedef struct minix_dentry_t
 {
-    u16 nr;              // i 节点
-    char name[NAME_LEN]; // 文件名
+    u16 nr;                    // i 节点
+    char name[MINIX1_NAME_LEN]; // 文件名
 } minix_dentry_t;
 
 #endif

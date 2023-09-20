@@ -509,7 +509,7 @@ int minix_readdir(inode_t *inode, dentry_t *entry, size_t count, off_t offset)
         return ret;
 
     entry->length = sizeof(mentry);
-    entry->namelen = strnlen(mentry.name, NAME_LEN);
+    entry->namelen = strnlen(mentry.name, MINIX1_NAME_LEN);
     memcpy(entry->name, mentry.name, entry->namelen + 1);
     entry->name[entry->namelen] = 0;
     entry->nr = mentry.nr;
@@ -615,7 +615,7 @@ static buffer_t *find_entry(inode_t *dir, const char *name, char **next, minix_d
             buf = bread(dir->dev, block, BLOCK_SIZE);
             entry = (minix_dentry_t *)buf->data;
         }
-        if (match_name(name, entry->name, next) && entry->nr)
+        if (match_name(name, entry->name, next, MINIX1_NAME_LEN) && entry->nr)
         {
             *result = entry;
             return buf;
@@ -638,7 +638,7 @@ static buffer_t *add_entry(inode_t *dir, const char *name, minix_dentry_t **resu
     }
 
     // name 中不能有分隔符
-    for (size_t i = 0; i < NAME_LEN && name[i]; i++)
+    for (size_t i = 0; i < MINIX1_NAME_LEN && name[i]; i++)
     {
         assert(!IS_SEPARATOR(name[i]));
     }
@@ -668,7 +668,7 @@ static buffer_t *add_entry(inode_t *dir, const char *name, minix_dentry_t **resu
         if (entry->nr)
             continue;
 
-        strncpy(entry->name, name, NAME_LEN);
+        strncpy(entry->name, name, MINIX1_NAME_LEN);
 
         buf->dirty = true;
         dir->mtime = minode->mtime = time();

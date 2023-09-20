@@ -10,16 +10,18 @@
 #define LOGK(fmt, args...) DEBUGK(fmt, ##args)
 
 // 判断文件名是否相等
-bool match_name(const char *name, const char *entry_name, char **next)
+bool match_name(const char *name, const char *entry_name, char **next, int count)
 {
     char *lhs = (char *)name;
     char *rhs = (char *)entry_name;
-    while (*lhs == *rhs && *lhs != EOS && *rhs != EOS)
+
+    while (*lhs == *rhs && *lhs != EOS && *rhs != EOS && count--)
     {
         lhs++;
         rhs++;
     }
-    if (*rhs)
+
+    if (*rhs && count)
         return false;
     if (*lhs && !IS_SEPARATOR(*lhs))
         return false;
@@ -67,7 +69,7 @@ inode_t *named(char *pathname, char **next)
     while (true)
     {
         // 返回上一级目录且上一级目录是个挂载点
-        if (match_name(name, "..", next) && dir == dir->super->iroot)
+        if (match_name(name, "..", next, 3) && dir == dir->super->iroot)
         {
             super_t *super = dir->super;
             inode = super->imount;
@@ -113,7 +115,7 @@ inode_t *namei(char *pathname)
     inode_t *inode = NULL;
 
     // 返回上一级目录且上一级目录是个挂载点
-    if (match_name(name, "..", &next) && dir == dir->super->iroot)
+    if (match_name(name, "..", &next, 3) && dir == dir->super->iroot)
     {
         super_t *super = dir->super;
         inode = super->imount;

@@ -172,6 +172,6 @@ void put_file(file_t *file);
 #define P_READ IROTH
 #define P_WRITE IWOTH
 
-bool match_name(const char *name, const char *entry_name, char **next);
+bool match_name(const char *name, const char *entry_name, char **next, int count);
 
 #endif
