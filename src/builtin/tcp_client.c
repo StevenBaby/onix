@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
         return fd;
     }
 
-    inet_aton("192.168.111.33", addr.addr);
+    inet_aton("172.16.16.11", addr.addr);
     addr.family = AF_INET;
     addr.port = htons((u16)time());
 
@@ -36,13 +36,18 @@ int main(int argc, char const *argv[])
     if (ret < EOK)
         goto rollback;
 
-    inet_aton("192.168.111.1", addr.addr);
+    ret = setsockopt(fd, SOL_SOCKET, SO_TCP_NODELAY, &val, 4);
+    printf("socket nodelay %d\n", ret);
+    if (ret < EOK)
+        goto rollback;
+
+    inet_aton("172.16.16.1", addr.addr);
     addr.family = AF_INET;
     addr.port = htons(7777);
     ret = connect(fd, (sockaddr_t *)&addr, sizeof(sockaddr_in_t));
     printf("socket connect %d\n", ret);
 
-    sleep(10000);
+    sleep(1000);
 
     int len = sprintf(tx_buf, "hello tcp server %d", time());
     send(fd, tx_buf, len, 0);
