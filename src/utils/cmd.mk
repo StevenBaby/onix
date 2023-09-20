@@ -33,11 +33,11 @@ QEMU_DISK_BOOT:=-boot c
 QEMU_DEBUG:= -s -S
 
 .PHONY: qemu
-qemu: $(IMAGES) $(BR0) $(TAPS)
+qemu: $(IMAGES) $(TAP0)
 	$(QEMU) $(QEMU_DISK) $(QEMU_DISK_BOOT)
 
 .PHONY: qemug
-qemug: $(IMAGES) $(BR0) $(TAPS)
+qemug: $(IMAGES) $(TAP0)
 	$(QEMU) $(QEMU_DISK) $(QEMU_DISK_BOOT) $(QEMU_DEBUG)
 
 # VMWare 磁盘转换

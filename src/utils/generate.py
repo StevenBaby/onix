@@ -2,22 +2,36 @@
 
 import os
 import binascii
-from elftools.elf.elffile import ELFFile
+import shutil
+try:
+    from elftools.elf.elffile import ELFFile
+except ImportError:
+    print('''
+        import elftools failure.
+        You may need to install elftools packet using either
+            pip install pyelftools
+        or in Archlinux
+            sudo pacman -S python-pyelftools
+    ''')
+    exit(-1)
 
 DIRNAME = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.abspath(os.path.join(DIRNAME, "../../build"))
+KERNELRAWBIN = os.path.join(BUILD, 'kernel.raw.bin')
+SYSTEMRAWBIN = os.path.join(BUILD, 'system.raw.bin')
 KERNELBIN = os.path.join(BUILD, 'kernel.bin')
-SYSTEMBIN = os.path.join(BUILD, 'system.bin')
 
 
 def main():
     start = 0x8000
-    size = os.path.getsize(SYSTEMBIN) - start
+    size = os.path.getsize(SYSTEMRAWBIN) - start
 
-    with open(SYSTEMBIN, 'rb') as file:
+    with open(SYSTEMRAWBIN, 'rb') as file:
         data = file.read()
         chksum = binascii.crc32(data[start:])
         print(f"system.bin chksum: {chksum} size {size}")
+
+    shutil.copy(KERNELRAWBIN, KERNELBIN)
 
     with open(KERNELBIN, 'rb+') as file:
         elf = ELFFile(file)

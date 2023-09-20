@@ -4,6 +4,7 @@ SRC:=.
 ONIX_VERSION:=1.0.0
 MULTIBOOT2:=0x18000
 ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 0x8000:x}')")
+WSL2:=$(findstring WSL2,$(shell uname -r))
 
 CFLAGS:= -m32 					# 32 位的程序
 CFLAGS+= -march=pentium			# pentium 处理器
@@ -93,7 +94,7 @@ LDFLAGS:= -m elf_i386 \
 		--section-start=.multiboot2=$(MULTIBOOT2)
 LDFLAGS:=$(strip ${LDFLAGS})
 
-$(BUILD)/kernel.bin: \
+$(BUILD)/kernel.raw.bin: \
 	$(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/onix.o \
 	$(BUILD)/kernel/main.o \
@@ -186,9 +187,13 @@ $(BUILD)/kernel.bin: \
 	$(shell mkdir -p $(dir $@))
 	ld ${LDFLAGS} $^ -o $@
 
-$(BUILD)/system.bin: $(BUILD)/kernel.bin
+$(BUILD)/system.raw.bin: $(BUILD)/kernel.raw.bin
 	objcopy -O binary $< $@
+
+$(BUILD)/kernel.bin: $(BUILD)/system.raw.bin
 	python utils/generate.py
+
+$(BUILD)/system.bin: $(BUILD)/kernel.bin
 	objcopy -O binary $< $@
 
 $(BUILD)/system.map: $(BUILD)/kernel.bin

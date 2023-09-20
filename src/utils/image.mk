@@ -1,4 +1,5 @@
 MUSIC:= ./utils/deer.mp3
+LOOP:= $(shell sudo losetup --find)
 
 $(BUILD)/mono.wav: $(MUSIC)
 	ffmpeg -i $< -ac 1 -ar 44100 -acodec pcm_u8 -y $@
@@ -36,13 +37,13 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	sfdisk $@ < $(SRC)/utils/master.sfdisk
 
 # 挂载设备
-	sudo losetup /dev/loop0 --partscan $@
+	sudo losetup $(LOOP) --partscan $@
 
 # 创建 minux 文件系统
-	sudo mkfs.minix -1 -n 14 /dev/loop0p1
+	sudo mkfs.minix -1 -n 14 $(LOOP)p1
 
 # 挂载文件系统
-	sudo mount /dev/loop0p1 /mnt
+	sudo mount $(LOOP)p1 /mnt
 
 # 切换所有者
 	sudo chown ${USER} /mnt 
@@ -74,7 +75,7 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	sudo umount /mnt
 
 # 卸载设备
-	sudo losetup -d /dev/loop0
+	sudo losetup -d $(LOOP)
 
 $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 
@@ -85,13 +86,13 @@ $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 	sfdisk $@ < $(SRC)/utils/slave.sfdisk
 
 # 挂载设备
-	sudo losetup /dev/loop0 --partscan $@
+	sudo losetup $(LOOP) --partscan $@
 
 # 创建 minux 文件系统
-	sudo mkfs.minix -1 -n 14 /dev/loop0p1
+	sudo mkfs.minix -1 -n 14 $(LOOP)p1
 
 # 挂载文件系统
-	sudo mount /dev/loop0p1 /mnt
+	sudo mount $(LOOP)p1 /mnt
 
 # 切换所有者
 	sudo chown ${USER} /mnt 
@@ -103,7 +104,7 @@ $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 	sudo umount /mnt
 
 # 卸载设备
-	sudo losetup -d /dev/loop0
+	sudo losetup -d $(LOOP)
 
 $(BUILD)/floppya.img:
 
@@ -112,8 +113,8 @@ $(BUILD)/floppya.img:
 
 .PHONY: mount0
 mount0: $(BUILD)/master.img
-	sudo losetup /dev/loop0 --partscan $<
-	sudo mount /dev/loop0p1 /mnt
+	sudo losetup $(LOOP) --partscan $<
+	sudo mount $(LOOP) /mnt
 	sudo chown ${USER} /mnt 
 
 .PHONY: umount0
