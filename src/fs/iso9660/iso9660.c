@@ -125,11 +125,11 @@ static int iso_namelen(char *name, int len)
 static bool iso_match_name(char *name1, int len1, char *name2, int len2)
 {
     char *next;
-    if (len2 == 1 && !memcmp("\0", name2, 1) && match_name(name1, ".", &next))
+    if (len2 == 1 && !memcmp("\0", name2, 1) && match_name(name1, ".", &next, 2))
     {
         return true;
     }
-    if (len2 == 1 && !memcmp("\x01", name2, 1) && match_name(name1, "..", &next))
+    if (len2 == 1 && !memcmp("\x01", name2, 1) && match_name(name1, "..", &next, 3))
     {
         return true;
     }
