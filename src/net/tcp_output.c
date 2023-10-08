@@ -81,6 +81,7 @@ err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags)
         tcp->flags |= flags;
 
         int seglen = (pcb->snd_mss - pbuf->size);
+        seglen=15;
         int len = left < seglen ? left : seglen;
 
         if (left > 0)

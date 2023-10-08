@@ -15,7 +15,9 @@ conn, addr = s.accept()
 print(conn)
 print(addr)
 
-data = conn.recv(1024)
+data1 = conn.recv(1024)
+data2 = conn.recv(1024)
+data=data1+data2
 print("recv:", data.decode())
 conn.send(f"hello client {int(time.time())}".encode())
 time.sleep(1)
