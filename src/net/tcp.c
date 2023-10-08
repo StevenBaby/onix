@@ -377,7 +377,7 @@ static int tcp_sendmsg(socket_t *s, msghdr_t *msg, u32 flags)
             continue;
 
         int len = left < iov->size ? left : iov->size;
-        tcp_enqueue(pcb, iov->base, left, flags);
+        tcp_enqueue(pcb, iov->base, len, flags);
         left -= len;
     }
     tcp_output(pcb);

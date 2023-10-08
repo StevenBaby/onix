@@ -47,6 +47,7 @@ err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags)
     ip_t *ip;
     tcp_t *tcp;
     pbuf_t *pbuf;
+    void *data_ptr=data;
 
     if (pcb->snd_mss < TCP_DEFAULT_MSS)
         pcb->snd_mss = TCP_DEFAULT_MSS;
@@ -81,11 +82,13 @@ err_t tcp_enqueue(tcp_pcb_t *pcb, void *data, size_t size, int flags)
         tcp->flags |= flags;
 
         int seglen = (pcb->snd_mss - pbuf->size);
-        seglen=15;
         int len = left < seglen ? left : seglen;
 
-        if (left > 0)
-            memcpy(pbuf->data + pbuf->size, data, len);
+        if (len > 0)
+        {
+            memcpy(pbuf->data + pbuf->size, data_ptr, len);
+            data_ptr+=len;
+        }
 
         pcb->snd_nbb += len;
         pbuf->size += len;
