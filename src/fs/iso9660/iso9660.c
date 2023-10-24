@@ -361,6 +361,11 @@ static void iso_close(inode_t *inode)
     // 从超级块链表中移除
     list_remove(&inode->node);
 
+    inode->buf = NULL;
+    inode->desc = NULL;
+    inode->super = NULL;
+    inode->op = NULL;
+
     // 释放 inode 内存
     put_free_inode(inode);
 }

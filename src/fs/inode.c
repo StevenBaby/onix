@@ -29,6 +29,12 @@ inode_t *get_free_inode()
         inode_t *inode = &inode_table[i];
         if (inode->type == FS_TYPE_NONE)
         {
+            assert(!inode->buf);
+            assert(!inode->desc);
+            assert(!inode->super);
+            assert(!inode->op);
+            assert(!inode->rxwaiter);
+            assert(!inode->txwaiter);
             return inode;
         }
     }
@@ -41,6 +47,12 @@ void put_free_inode(inode_t *inode)
     assert(inode != inode_table);
     assert(inode->count == 0);
     inode->type = FS_TYPE_NONE;
+    assert(!inode->buf);
+    assert(!inode->desc);
+    assert(!inode->super);
+    assert(!inode->op);
+    assert(!inode->rxwaiter);
+    assert(!inode->txwaiter);
 }
 
 // 获取根 inode
@@ -90,12 +102,11 @@ void iput(inode_t *inode)
 
 void inode_init()
 {
+    memset(inode_table, 0, sizeof(inode_table));
     for (size_t i = 0; i < INODE_NR; i++)
     {
         inode_t *inode = &inode_table[i];
         inode->dev = EOF;
         inode->type = FS_TYPE_NONE;
-        inode->rxwaiter = NULL;
-        inode->txwaiter = NULL;
     }
 }

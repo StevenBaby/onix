@@ -76,6 +76,11 @@ static void socket_close(inode_t *inode)
 
     kfree(inode->desc);
 
+    inode->buf = NULL;
+    inode->desc = NULL;
+    inode->super = NULL;
+    inode->op = NULL;
+
     // 释放 inode
     put_free_inode(inode);
 
