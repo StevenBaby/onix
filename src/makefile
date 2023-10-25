@@ -1,7 +1,7 @@
 BUILD:=../build
 SRC:=.
 
-ONIX_VERSION:=1.0.0
+ONIX_VERSION:=1.0.1
 MULTIBOOT2:=0x18000
 ENTRYPOINT:=$(shell python -c "print(f'0x{$(MULTIBOOT2) + 0x8000:x}')")
 WSL2:=$(findstring WSL2,$(shell uname -r))
