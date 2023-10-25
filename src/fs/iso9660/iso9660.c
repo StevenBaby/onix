@@ -34,6 +34,8 @@
 #define ISO_FLAG_EXTUSR 0x10 // 扩展所有者和组权限
 #define ISO_FLAG_LONG 0x80   // 大文件
 
+#define MAX_DENTRY_SIZE 256
+
 typedef struct iso_dentry_t
 {
     u8 length;             // 目录记录的长度
@@ -439,19 +441,23 @@ rollback:
 
 int iso_readdir(inode_t *inode, dentry_t *entry, size_t count, off_t offset)
 {
-    void *buf = kmalloc(256);
+    void *buf = kmalloc(MAX_DENTRY_SIZE);
     int ret = EOF;
     iso_dentry_t *desc = inode->desc;
     if (offset >= desc->size)
         goto rollback;
 
-    if ((ret = iso_read(inode, (char *)buf, 256, offset)) < 0)
+    if ((ret = iso_read(inode, (char *)buf, MAX_DENTRY_SIZE, offset)) < 0)
         goto rollback;
 
     iso_dentry_t *mentry = buf;
     if (mentry->length == 0)
     {
-        ret = EOF;
+        entry->length = 0;
+        entry->namelen = 0;
+        entry->nr = 0;
+        ret = ((offset / BLOCK_SIZE) + 1) * BLOCK_SIZE;
+        ret -= offset;
         goto rollback;
     }
 
