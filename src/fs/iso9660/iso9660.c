@@ -104,7 +104,7 @@ typedef struct iso_desc_t
 
 static time_t iso_make_datetime(u8 *data)
 {
-    tm t;
+    tm_t t;
     t.tm_year = data[0];
     t.tm_mon = data[1];
     t.tm_mday = data[2];

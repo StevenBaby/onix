@@ -58,7 +58,7 @@ bool is_leap_year(int year)
     return ((year % 4 == 0) && (year % 100 != 0)) || ((year + 1900) % 400 == 0);
 }
 
-void localtime(time_t stamp, tm *time)
+void localtime(time_t stamp, tm_t *time)
 {
     time->tm_sec = stamp % 60;
 
@@ -95,7 +95,7 @@ void localtime(time_t stamp, tm *time)
 
 // 这里生成的时间可能和 UTC 时间有出入
 // 与系统具体时区相关，不过也不要紧，顶多差几个小时
-time_t mktime(tm *time)
+time_t mktime(tm_t *time)
 {
     time_t res;
     int year; // 1970 年开始的年数
@@ -133,7 +133,7 @@ time_t mktime(tm *time)
     return res;
 }
 
-int get_yday(tm *time)
+int get_yday(tm_t *time)
 {
     int res = month[time->tm_mon]; // 已经过去的月的天数
     res += time->tm_mday;          // 这个月过去的天数
@@ -154,7 +154,7 @@ int get_yday(tm *time)
     return res;
 }
 
-void time_read_bcd(tm *time)
+void time_read_bcd(tm_t *time)
 {
     // CMOS 的访问速度很慢。为了减小时间误差，在读取了下面循环中所有数值后，
     // 若此时 CMOS 中秒值发生了变化，那么就重新读取所有值。
@@ -172,7 +172,7 @@ void time_read_bcd(tm *time)
     } while (time->tm_sec != cmos_read(CMOS_SECOND));
 }
 
-void time_read(tm *time)
+void time_read(tm_t *time)
 {
     time_read_bcd(time);
     time->tm_sec = bcd_to_bin(time->tm_sec);
@@ -189,7 +189,7 @@ void time_read(tm *time)
 
 void time_init()
 {
-    tm time;
+    tm_t time;
     time_read(&time);
     startup_time = mktime(&time);
     LOGK("startup time: %d%d-%02d-%02d %02d:%02d:%02d\n",

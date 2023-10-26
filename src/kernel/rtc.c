@@ -58,7 +58,7 @@ void set_alarm(u32 secs)
 {
     LOGK("beeping after %d seconds\n", secs);
 
-    tm time;
+    tm_t time;
     time_read(&time);
 
     u8 sec = secs % 60;

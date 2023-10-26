@@ -11,7 +11,7 @@ static char buf[BUF_LEN];
 
 static void strftime(time_t stamp, char *buf)
 {
-    tm time;
+    tm_t time;
     localtime(stamp, &time);
     sprintf(buf, "%d-%02d-%02d %02d:%02d:%02d",
             time.tm_year + 1900,

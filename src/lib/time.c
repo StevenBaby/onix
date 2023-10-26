@@ -40,7 +40,7 @@ bool is_leap_year(int year)
     return ((year % 4 == 0) && (year % 100 != 0)) || ((year + 1900) % 400 == 0);
 }
 
-void localtime(time_t stamp, tm *time)
+void localtime(time_t stamp, tm_t *time)
 {
     time->tm_sec = stamp % 60;
 
