@@ -37,5 +37,6 @@ buffer_t *bread(dev_t dev, idx_t block, size_t size);
 err_t bwrite(buffer_t *buf);
 err_t brelse(buffer_t *buf);
 err_t bdirty(buffer_t *buf, bool dirty);
+bool bvalid(size_t size);
 
 #endif

@@ -14,6 +14,12 @@
 
 static bdesc_t bdescs[BUFFER_DESC_NR];
 
+// 验证缓存尺寸是否有效
+bool bvalid(size_t size)
+{
+    return (size == 1024 || size == 2048 || size == 4096);
+}
+
 // 哈希函数
 u32 hash(dev_t dev, idx_t block)
 {
