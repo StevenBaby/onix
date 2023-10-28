@@ -101,6 +101,7 @@ bool fat_match_short_name(char *name, char *entry_name, char **next, int count);
 int fat_format_long_name(char *data, fat_lentry_t **entries, int count, u8 chksum);
 void fat_parse_short_name(char *name, char *ext, fat_entry_t *entry);
 int fat_parse_long_name(char *data, fat_lentry_t **entries, int count, u8 chksum);
+err_t fat_create_short_name(inode_t *dir, fat_entry_t *entry, char *name, char *ext, int namelen);
 
 int validate_short_name(char *name, char **ext);
 void fat_parse_short_name(char *name, char *ext, fat_entry_t *entry);

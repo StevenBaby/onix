@@ -171,6 +171,7 @@ $(BUILD)/kernel.raw.bin: \
 	$(BUILD)/fs/dev.o \
 	$(BUILD)/fs/minix/minix.o \
 	$(BUILD)/fs/fat/fat.o \
+	$(BUILD)/fs/fat/fat16.o \
 	$(BUILD)/fs/pipe/pipe.o \
 	$(BUILD)/fs/iso9660/iso9660.o \
 	$(BUILD)/lib/bitmap.o \

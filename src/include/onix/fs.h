@@ -34,6 +34,7 @@ enum
     FS_TYPE_SOCKET,
     FS_TYPE_MINIX,
     FS_TYPE_FAT,
+    FS_TYPE_FAT16,
     FS_TYPE_ISO9660,
     FS_TYPE_NUM,
 };

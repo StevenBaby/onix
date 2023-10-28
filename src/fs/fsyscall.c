@@ -722,6 +722,7 @@ int sys_mkfs(char *devname, int fs, int args)
     {
     case FS_TYPE_MINIX:
     case FS_TYPE_FAT:
+    case FS_TYPE_FAT16:
         break;
     default:
         goto rollback;

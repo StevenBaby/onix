@@ -90,7 +90,7 @@ $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 	sudo losetup $(LOOP) --partscan $@
 
 # 创建 minux 文件系统
-	sudo mkfs.fat -F 12 -s 8 $(LOOP)p1
+	sudo mkfs.fat -F 16 -s 4 $(LOOP)p1
 
 # 挂载文件系统
 	sudo mount $(LOOP)p1 /mnt -o rw,uid=${USER}

@@ -181,6 +181,10 @@ void builtin_mkfs(int argc, char *argv[])
     int fs = FS_TYPE_MINIX;
     if (argc >= 2 && !strcmp(argv[2], "fat"))
         fs = FS_TYPE_FAT;
+    if (argc >= 2 && !strcmp(argv[2], "fat12"))
+        fs = FS_TYPE_FAT;
+    else if (argc >= 2 && !strcmp(argv[2], "fat16"))
+        fs = FS_TYPE_FAT16;
 
     print_error(mkfs(argv[1], fs, 0));
 }
