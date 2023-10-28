@@ -78,9 +78,10 @@ $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	sudo losetup -d $(LOOP)
 
 $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
+	$(shell mkdir -p $(dir $@))
 
-# 创建一个 32M 的硬盘镜像
-	yes | bximage -q -hd=32 -func=create -sectsize=512 -imgmode=flat $@
+# 创建一个 16M 的硬盘镜像
+	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
 
 # 执行硬盘分区
 	sfdisk $@ < $(SRC)/utils/slave.sfdisk
@@ -89,17 +90,16 @@ $(BUILD)/slave.img: $(SRC)/utils/slave.sfdisk
 	sudo losetup $(LOOP) --partscan $@
 
 # 创建 minux 文件系统
-	sudo mkfs.minix -1 -n 14 $(LOOP)p1
+	sudo mkfs.fat -F 12 -s 8 $(LOOP)p1
 
 # 挂载文件系统
-	sudo mount $(LOOP)p1 /mnt
-
-# 切换所有者
-	sudo chown ${USER} /mnt 
+	sudo mount $(LOOP)p1 /mnt -o rw,uid=${USER}
 
 # 创建文件
-	echo "slave root direcotry file..." > /mnt/hello.txt
-
+	sudo mkdir -p /mnt/data
+	sudo mkdir -p /mnt/test_directory_for_long_name
+	echo "this is fat file..." > /mnt/fat.txt
+	cp $(BUILD)/stereo.wav /mnt/data
 # 卸载文件系统
 	sudo umount /mnt
 

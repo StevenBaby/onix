@@ -178,7 +178,11 @@ void builtin_mkfs(int argc, char *argv[])
     {
         return;
     }
-    print_error(mkfs(argv[1], 0));
+    int fs = FS_TYPE_MINIX;
+    if (argc >= 2 && !strcmp(argv[2], "fat"))
+        fs = FS_TYPE_FAT;
+
+    print_error(mkfs(argv[1], fs, 0));
 }
 
 static int dupfile(int argc, char **argv, fd_t dupfd[3])

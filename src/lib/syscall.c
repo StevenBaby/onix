@@ -299,9 +299,9 @@ int fstat(fd_t fd, stat_t *statbuf)
     return _syscall2(SYS_NR_FSTAT, (u32)fd, (u32)statbuf);
 }
 
-int mkfs(char *devname, int icount)
+int mkfs(char *devname, int fs, int icount)
 {
-    return _syscall2(SYS_NR_MKFS, (u32)devname, (u32)icount);
+    return _syscall3(SYS_NR_MKFS, (u32)devname, (u32)fs, (u32)icount);
 }
 
 int sgetmask()

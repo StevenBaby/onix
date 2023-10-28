@@ -697,7 +697,7 @@ rollback:
     return ret;
 }
 
-int sys_mkfs(char *devname, int args)
+int sys_mkfs(char *devname, int fs, int args)
 {
     inode_t *inode = NULL;
     int ret = EOF;
@@ -717,7 +717,18 @@ int sys_mkfs(char *devname, int args)
 
     dev_t dev = inode->rdev;
     assert(dev);
-    ret = inode->op->mkfs(dev, args);
+
+    switch (fs)
+    {
+    case FS_TYPE_MINIX:
+    case FS_TYPE_FAT:
+        break;
+    default:
+        goto rollback;
+        break;
+    }
+
+    ret = fs_get_op(fs)->mkfs(dev, args);
 
 rollback:
     iput(inode);

@@ -55,6 +55,7 @@ enum
     EMSGSIZE = 90,     // 消息过长
     ERROR = 99,        // 一般错误
     EEOF,              // 读写文件结束
+    ESUPPORT,          // 不支持
 
     // 网络错误
     EADDR,     // 地址错误

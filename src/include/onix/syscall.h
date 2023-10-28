@@ -190,7 +190,7 @@ int stat(char *filename, stat_t *statbuf);
 int fstat(fd_t fd, stat_t *statbuf);
 
 // 格式化文件系统
-int mkfs(char *devname, int icount);
+int mkfs(char *devname, int fs, int icount);
 
 int stty();
 int gtty();
