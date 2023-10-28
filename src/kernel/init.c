@@ -57,6 +57,7 @@ extern void pipe_init();
 extern void minix_init();
 extern void fat_init();
 extern void fat16_init();
+extern void fat32_init();
 extern void iso_init();
 extern void super_init();
 extern void dev_init();
@@ -84,6 +85,7 @@ void init_thread()
     minix_init();  // 初始化 minix 文件系统
     fat_init();    // 初始化 fat 文件系统
     fat16_init();  // 初始化 fat16 文件系统
+    fat32_init();  // 初始化 fat32 文件系统
     iso_init();    // 初始化 iso9660 文件系统
     pipe_init();   // 初始化管道
     super_init();  // 初始化超级块

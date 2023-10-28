@@ -88,6 +88,67 @@ typedef struct fat_super_t
     u8 identifier[8];
 } _packed fat_super_t;
 
+typedef struct fat32_entry_t
+{
+    u8 name[8];
+    u8 ext[3];
+    u8 attrs;
+    u8 RESERVED;
+    u8 cseconts;
+    u16 ctime;
+    u16 cdate;
+    u16 last_accessed_date;
+    u16 first_cluster_high;
+    u16 mtime;
+    u16 mdate;
+    u16 first_cluster_low;
+    u32 filesize;
+} _packed fat32_entry_t;
+
+typedef struct fat32_super_t
+{
+    u8 jmp[3];
+    u8 oem[8];
+    u16 bytes_per_sector;
+    u8 sectors_per_cluster;
+    u16 reserved_sector_count;
+    u8 fat_count;
+    u16 root_directory_entry_count;
+    u16 RESERVED;
+    u8 media_descriptor_type;
+    u16 RESERVED;
+    u16 sectors_per_track;
+    u16 head_count;
+    u32 hidden_sector_count;
+    u32 sector_count;
+
+    u32 sectors_per_fat;
+    u16 flags;
+    u16 version;
+    u32 root_directory_cluster;
+    u16 fs_info_sector;
+    u16 backup_boot_sector;
+    u8 RESERVED[12];
+
+    u8 drive_number;
+    u8 nt_flags;
+    u8 signature;
+    u32 volume_id;
+    u8 volume_label_string[11];
+    u8 identifier[8];
+} _packed fat32_super_t;
+
+typedef struct fat32_fsinfo_t
+{
+    u32 lead_signature;
+    u8 RESERVED[480];
+    u32 another_signature;
+    u32 free_cluster_cnt;
+    u32 cluster_available;
+    u8 RESERVED[12];
+    u32 trail_signature;
+} _packed fat32_fsinfo_t;
+
 time_t fat_format_time(u16 date, u16 time);
 void fat_parse_time(time_t t, u16 *date, u16 *time);
 

@@ -185,6 +185,8 @@ void builtin_mkfs(int argc, char *argv[])
         fs = FS_TYPE_FAT;
     else if (argc >= 2 && !strcmp(argv[2], "fat16"))
         fs = FS_TYPE_FAT16;
+    else if (argc >= 2 && !strcmp(argv[2], "fat32"))
+        fs = FS_TYPE_FAT32;
 
     print_error(mkfs(argv[1], fs, 0));
 }

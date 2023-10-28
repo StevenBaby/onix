@@ -35,6 +35,7 @@ enum
     FS_TYPE_MINIX,
     FS_TYPE_FAT,
     FS_TYPE_FAT16,
+    FS_TYPE_FAT32,
     FS_TYPE_ISO9660,
     FS_TYPE_NUM,
 };
