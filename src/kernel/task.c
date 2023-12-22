@@ -599,7 +599,7 @@ pid_t task_waitpid(pid_t pid, int32 *status)
     return -1;
 
 rollback:
-    *status = child->status;
+    if (status != NULL) *status = child->status;
     u32 ret = child->pid;
     free_kpage((u32)child, 1);
     return ret;
