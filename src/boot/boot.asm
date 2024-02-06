@@ -14,12 +14,17 @@ mov sp, 0x7c00
 mov si, booting
 call print
 
-mov edi, 0x1000; 读取的目标内存
-mov ecx, 2; 起始扇区
-mov bl, 4; 扇区数量
+; 读磁盘
+mov ah, 0x42
+mov dl, 0x80
+mov si, dap
+int 0x13
 
-call read_disk
+; 检查读磁盘错误
+cmp ah, 0
+jnz error
 
+; 检查 loader 魔数
 cmp word [0x1000], 0x55aa
 jnz error
 
@@ -27,76 +32,6 @@ jmp 0:0x1008
 
 ; 阻塞
 jmp $
-
-read_disk:
-
-    ; 设置读写扇区的数量
-    mov dx, 0x1f2
-    mov al, bl
-    out dx, al
-
-    inc dx; 0x1f3
-    mov al, cl; 起始扇区的前八位
-    out dx, al
-
-    inc dx; 0x1f4
-    shr ecx, 8
-    mov al, cl; 起始扇区的中八位
-    out dx, al
-
-    inc dx; 0x1f5
-    shr ecx, 8
-    mov al, cl; 起始扇区的高八位
-    out dx, al
-
-    inc dx; 0x1f6
-    shr ecx, 8
-    and cl, 0b1111; 将高四位置为 0
-
-    mov al, 0b1110_0000;
-    or al, cl
-    out dx, al; 主盘 - LBA 模式
-
-    inc dx; 0x1f7
-    mov al, 0x20; 读硬盘
-    out dx, al
-
-    xor ecx, ecx; 将 ecx 清空
-    mov cl, bl; 得到读写扇区的数量
-
-    .read:
-        push cx; 保存 cx
-        call .waits; 等待数据准备完毕
-        call .reads; 读取一个扇区
-        pop cx; 恢复 cx
-        loop .read
-
-    ret
-
-    .waits:
-        mov dx, 0x1f7
-        .check:
-            in al, dx
-            jmp $+2; nop 直接跳转到下一行
-            jmp $+2; 一点点延迟
-            jmp $+2
-            and al, 0b1000_1000
-            cmp al, 0b0000_1000
-            jnz .check
-        ret
-
-    .reads:
-        mov dx, 0x1f0
-        mov cx, 256; 一个扇区 256 字
-        .readw:
-            in ax, dx
-            jmp $+2; 一点点延迟
-            jmp $+2
-            jmp $+2
-            mov [edi], ax
-            add edi, 2
-            loop .readw
-        ret
 
 print:
     mov ah, 0x0e
@@ -119,6 +54,18 @@ error:
     hlt; 让 CPU 停止
     jmp $
     .msg db "Booting Error!!!", 10, 13, 0
+
+    align 4         ; 四字节对齐
+dap:                ; Disk Address Packet
+    .size db 0x10   ; DAP 大小 16 字节
+    .unused db 0x00 ; 保留
+    .sectors dw 4   ; 扇区数量
+
+    ; 因为是小端，所以 offset:segment
+    .offset dw 0x1000   ; 缓存偏移
+    .segment dw 0x00    ; 缓存段
+    .lbal dd 0x02       ; lba 低 32 位
+    .lbah dd 0x00       ; lba 高 16 位
 
 ; 填充 0
 times 510 - ($ - $$) db 0

@@ -116,8 +116,9 @@ void memory_init(u32 magic, u32 addr)
     LOGK("Memory base 0x%p\n", (u32)memory_base);
     LOGK("Memory size 0x%p\n", (u32)memory_size);
 
-    assert(memory_base == MEMORY_BASE); // 内存开始的位置为 1M
+    assert(memory_base <= MEMORY_BASE); // 内存开始的位置为 1M
     assert((memory_size & 0xfff) == 0); // 要求按页对齐
+    memory_base = MEMORY_BASE;
 
     total_pages = IDX(memory_size) + IDX(MEMORY_BASE);
     free_pages = IDX(memory_size);

@@ -28,9 +28,13 @@ $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(dir $@))
 	nasm -f bin $< -o $@
 
+LOADERFLAGS+= -DKERNEL_SIZE=$$(stat -c%s "$(BUILD)/system.bin") 
+LOADERFLAGS+= -DLOADERADDR=$(MULTIBOOT2)
+LOADERFLAGS+= -DENTRYPOINT=$(ENTRYPOINT)
+
 $(BUILD)/boot/loader.bin: $(SRC)/boot/loader.asm $(BUILD)/system.bin
 	$(shell mkdir -p $(dir $@))
-	nasm -f bin $< -o $@ -DKERNEL_SIZE=$$(stat -c%s "$(BUILD)/system.bin")
+	nasm -f bin $< $(LOADERFLAGS) -o $@
 
 $(BUILD)/%.o: $(SRC)/%.asm
 	$(shell mkdir -p $(dir $@))
@@ -203,6 +207,7 @@ include utils/image.mk
 include utils/cdrom.mk
 include utils/net.mk
 include utils/cmd.mk
+include utils/usb.mk
 
 .PHONY: clean
 clean:
